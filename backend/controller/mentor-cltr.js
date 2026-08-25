@@ -1,4 +1,5 @@
 import User from "../models/userSchema.js"
+import MentorProfile from "../models/mentorProfileSchema.js";
 import bcryptjs from "bcryptjs"
 import jwt from "jsonwebtoken"
 
@@ -12,7 +13,7 @@ export const mentorRegister=async(req,res)=>{
         }
         let saltValue=await bcryptjs.genSalt(10)
         let hashPassword=await bcryptjs.hash(password,saltValue)
-        const countUsers = await User.countDocuments();
+        
         
         const user =await User.create({username,email,password:hashPassword,phone,role:"mentor"})
         res.status(201).json({data:user,message:"Sucessfully registed"})
@@ -39,25 +40,13 @@ export const mentorLogin= async (req,res)=>{
         const tokenData={userId:user._id,role:user.role}
         const token=jwt.sign(tokenData,process.env.JWT_SECRET,{expiresIn:"7d"})
         res.status(200).json({data:token,message:{status:"sucess"}})
+
     }catch(err){
         console.log(err);
         res.status(500).json({error:"Somthing went wrong"})
     }
 }
 
-export const mentorProfile= async(req,res)=>{
-    let userId = req.userId
-   try{
-        const userDetails= await User.findById(userId)
-        if(!userDetails){
-            return res.status(404).json({error:"user not found"})
-        }
-        res.status(200).json({Data:userDetails})
-   }catch(err){
-        console.log(err)
-        res.status(500).json({error:"something went wrong"})
-   }
-}
 
 export const deleteMentor = async (req, res) => {
     const userId = req.userId;
@@ -82,3 +71,75 @@ export const deleteMentor = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+
+
+export const createMentorProfile = async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        // Check if mentor profile already exists
+        const existingProfile = await MentorProfile.findOne({ userId });
+
+        if (existingProfile) {
+            return res.status(400).json({
+                success: false,
+                message: "Mentor profile already exists"
+            });
+        }
+
+        const {designation,company,yearsOfExperience,specialization,bio,hourlyRate,availableSlots,languages} = req.body;
+
+        // Create mentor profile
+        const mentorProfile = await MentorProfile.create({
+            userId,
+            designation,
+            company,
+            yearsOfExperience,
+            specialization,
+            bio,
+            hourlyRate,
+            availableSlots,
+            languages
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Mentor profile created successfully",
+            data: mentorProfile
+        });
+
+    } catch (err) {
+        console.error("Create mentor profile error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to create mentor profile",
+            error: err.message
+        });
+    }
+};
+
+export const showMentorProfile= async(req,res)=>{
+    let userId = req.userId
+   try{
+        const mentorDetails= await User.findById(userId)
+        if(!mentorDetails){
+            return res.status(404).json({error:"user not found"})
+        }
+
+        const ProfileDetails= await MentorProfile.findOne({userId})
+        if(!ProfileDetails){
+            return res.status(404).json({error:"No Profile Data Found"})
+        }
+
+        res.status(200).json({success:true,mentor:mentorDetails,profile:ProfileDetails})
+   }catch(err){
+        console.log(err)
+        res.status(500).json({error:"something went wrong"})
+   }
+}

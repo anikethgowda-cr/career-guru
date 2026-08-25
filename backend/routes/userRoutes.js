@@ -11,7 +11,7 @@ userRouter.post("/user/register",userRegister)
 userRouter.post("/user/login",userLogin)
 userRouter.delete("/user/delete",authenticateUser,deleteUser)
 //------------------------------------------------------------------------
-userRouter.post("/user/create-profile",authenticateUser,createProfile)
+userRouter.post("/user/profile",authenticateUser,createProfile)
 userRouter.get("/user/profile",authenticateUser,showProfile)
 
 

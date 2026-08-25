@@ -45,20 +45,9 @@ export const generateCoursePlan = async (req, res) => {
       });
     }
 
-    const {
-      role,
-      strengths,
-      weaknesses,
-      missingSkills,
-      valueAddingSkills
-    } = roleAnalysis;
+    const {role,strengths,weaknesses,missingSkills,valueAddingSkills} = roleAnalysis;
 
-    /* console.log("Role:", role);
-    console.log("Strengths:", strengths);
-    console.log("Weaknesses:", weaknesses);
-    console.log("Missing Skills:", missingSkills);
-    console.log("Value Adding Skills:", valueAddingSkills);
-    console.log("Duration:", durationWeeks); */
+    
 
     // Create prompt for Gemini
     const prompt = `

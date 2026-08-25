@@ -6,4 +6,5 @@ const router = express.Router();
 
 router.post("/course-plan/generate",authenticateUser,generateCoursePlan);
 router.get('/course-plan',authenticateUser,showCoursePlan)
+
 export default router;

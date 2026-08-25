@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken"
 
 export const userRegister = async (req, res) => {
   const { username, email, password, phone } = req.body;
-
   try {
     const existedUser = await User.findOne({ email });
 
@@ -78,32 +77,13 @@ export const userLogin = async (req, res) => {
       });
     }
 
-    const tokenData = {
-      userId: user._id,
-      role: user.role
-    };
-
-    const token = jwt.sign(
-      tokenData,
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d"
-      }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token: token
-    });
+    const tokenData = {userId: user._id, role: user.role };
+    const token = jwt.sign(tokenData,process.env.JWT_SECRET,{expiresIn: "7d"});
+    return res.status(200).json({success: true,message: "Login successful",token: token});
 
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-
-    return res.status(500).json({
-      success: false,
-      error: "Something went wrong"
-    });
+    return res.status(500).json({success: false,error: "Something went wrong"});
   }
 };
 
