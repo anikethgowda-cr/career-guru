@@ -57,11 +57,11 @@ const resumeAnalysisSchema = new mongoose.Schema(
       ref: "Resume",
       required: true,
     },
-
     roleAnalysis: {
-      type: [roleAnalysisSchema],
-      default: [],
-    },
+        type: roleAnalysisSchema,
+        default: null,
+    }
+    
   },
   {
     timestamps: true,
