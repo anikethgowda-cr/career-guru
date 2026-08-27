@@ -1,69 +1,18 @@
-import React from "react";
-import "./Sidebar.css";
+import { Link } from "react-router-dom"
 
+export default function Sidebar(){
 
-function Sidebar() {
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <h2>CareerGuru</h2>
-      </div>
-
-      <nav className="sidebar-nav">
-        <a href="/dashboard" className="nav-item active">
-          <span>🏠</span>
-          <span>Dashboard</span>
-        </a>
-
-        <a href="/profile" className="nav-item">
-          <span>👤</span>
-          <span>Profile</span>
-        </a>
-
-        <a href="/resume" className="nav-item">
-          <span>📄</span>
-          <span>Resume </span>
-        </a>
-
-        <a href="/jobs" className="nav-item">
-          <span>💼</span>
-          <span>Jobs</span>
-        </a>
-
-        <a href="/mentors" className="nav-item">
-          <span>👨‍🏫</span>
-          <span>Mentors</span>
-        </a>
-
-        <a href="/interview" className="nav-item">
-          <span>🎤</span>
-          <span>AI Interview</span>
-        </a>
-
-        <a href="/chat" className="nav-item">
-          <span>💬</span>
-          <span>AI Chat</span>
-        </a>
-
-        <a href="/applications" className="nav-item">
-          <span>📋</span>
-          <span>Applications</span>
-        </a>
-      </nav>
-
-      <div className="sidebar-bottom">
-        <a href="/settings" className="nav-item">
-          <span>⚙️</span>
-          <span>Settings</span>
-        </a>
-
-        <button className="logout-btn">
-          <span>🚪</span>
-          <span>Logout</span>
-        </button>
-      </div>
-    </aside>
-  );
+    return (
+        <>
+        <h1>Sidebar Component</h1>
+        <nav>
+            <Link to="/DashBoard">DashBoard</Link>{" "}
+            <Link to="/learning-plan">LearningPlan</Link>{" "}
+            <Link to="/interview-questions">Interview Questions</Link>{" "}
+            <Link to="/jobs-board">Jobs Board</Link>{" "}
+            <Link to="/mentor">Mentor</Link>{" "}
+            <Link to="/profile">Profile</Link>
+        </nav>
+        </>
+    )
 }
-
-export default Sidebar;
