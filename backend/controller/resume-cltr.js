@@ -58,7 +58,7 @@ export const uploadResume = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: err.message
+      error: "Internal Server Error"
     });
   }
 };
@@ -274,14 +274,14 @@ export const generateResumeAnalysis = async (req, res) => {
 
   } catch (err) {
     console.error("RESUME ANALYSIS ERROR:",err);
-    return res.status(500).json({success: false,error: err.message})
+    return res.status(500).json({success: false,error: "Internal Server Error"})
   }
 };
 
 
 export const getAnalysis = async (req, res) => {
   try {
-    const analysis = await ResumeAnalysis.findOne({ userId: req.userId })
+    const analysis = await ResumeAnalyis.findOne({ userId: req.userId })
 
     if (!analysis) {
       return res.status(404).json({
@@ -298,7 +298,7 @@ export const getAnalysis = async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       success: false,
-      error: err.message,
+      error: "Internal Server Error",
     });
   }
 };

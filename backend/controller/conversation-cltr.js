@@ -70,7 +70,8 @@ export const getOrCreateConversation = async (req, res) => {
 
         return res.status(500).json({
             success: false,
-            message: "Failed to create conversation"
+            message: "Failed to create conversation",
+            error:"Internal Server Error"
         });
 
     }
@@ -114,7 +115,8 @@ export const getUserConversations = async (req, res) => {
         return res.status(500).json({
 
             success: false,
-            message: "Failed to fetch conversations"
+            message: "Failed to fetch conversations",
+            error:"Internal Server Error"
 
         });
 
@@ -182,7 +184,8 @@ export const getMessages = async (req, res) => {
         return res.status(500).json({
 
             success: false,
-            message: "Failed to fetch messages"
+            message: "Failed to fetch messages",
+            error:"Internal Server Error"
 
         });
 

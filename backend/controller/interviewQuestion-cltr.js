@@ -76,7 +76,7 @@ export const generateInterviewQuestions=async(req,res)=>{
 
     }catch(err){
         console.log(err.message)
-        return res.status(500).json({error:err.message})
+        return res.status(500).json({success:false,error:"Internal Server Error"})
     }
 }
 
@@ -97,7 +97,7 @@ export const showInterviewQuestions =async(req,res)=>{
         console.log(err.message)
         return res.status(500).json({
             success:false,
-            error:err.message
+            error:"Internal Server Error"
         })
     }
 }

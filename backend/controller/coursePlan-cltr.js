@@ -334,7 +334,7 @@ export const generateCoursePlan = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: err.message
+      error:"Internal Server Error"
     });
   }
 };
@@ -353,7 +353,7 @@ export const showCoursePlan=async(req,res)=>{
         data:coursePlan
       })
   }catch(err){
-    return res.status(500).json({success:false,error:err.message})
+    return res.status(500).json({success:false,error:"Internal Server Error"})
 
   }
 }

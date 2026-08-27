@@ -43,7 +43,7 @@ export const getJobsLinks = async (req, res) => {
     } catch (err) {
         return res.status(500).json({
             success: false,
-            error: "Failed to fetch jobs"
+            error: "Internal Server Error"
         })
     }
 }

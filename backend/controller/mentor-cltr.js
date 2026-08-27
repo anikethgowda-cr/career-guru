@@ -19,7 +19,7 @@ export const mentorRegister=async(req,res)=>{
         res.status(201).json({data:user,message:"Sucessfully registed"})
     }catch(err){
         console.log(err)
-        res.status(500).json({error:"Something went wrong"})
+        res.status(500).json({success:false,error:"Internal Server Error"})
     }
 }
 
@@ -43,7 +43,7 @@ export const mentorLogin= async (req,res)=>{
 
     }catch(err){
         console.log(err);
-        res.status(500).json({error:"Somthing went wrong"})
+        res.status(500).json({success:false,error:"Internal Server Error"})
     }
 }
 
@@ -67,7 +67,8 @@ export const deleteMentor = async (req, res) => {
 
     } catch (err) {
         return res.status(500).json({
-            error: "Something went wrong"
+            success:false,
+            error: "Internal Server Error"
         });
     }
 };
@@ -114,12 +115,12 @@ export const createMentorProfile = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Create mentor profile error:", error);
+        console.error("Create mentor profile error:", err);
 
         return res.status(500).json({
             success: false,
             message: "Failed to create mentor profile",
-            error: err.message
+            error: "Internal Server Error"
         });
     }
 };
@@ -140,6 +141,6 @@ export const showMentorProfile= async(req,res)=>{
         res.status(200).json({success:true,mentor:mentorDetails,profile:ProfileDetails})
    }catch(err){
         console.log(err)
-        res.status(500).json({error:"something went wrong"})
+        res.status(500).json({success:false,error:"Internal Server Error"})
    }
 }

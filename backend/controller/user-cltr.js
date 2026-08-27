@@ -47,7 +47,7 @@ export const userRegister = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: "Something went wrong"
+      error: "Internal Server Error"
     });
   }
 };
@@ -83,7 +83,7 @@ export const userLogin = async (req, res) => {
 
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-    return res.status(500).json({success: false,error: "Something went wrong"});
+    return res.status(500).json({success: false,error: "Internal Server Error"});
   }
 };
 
@@ -111,7 +111,7 @@ export const deleteUser = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: err.message
+      error: "Internal Server Error"
     });
   }
 };
@@ -159,7 +159,7 @@ export const createProfile = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: err.message
+      error: "Internal Server Error"
     });
   }
 };
@@ -201,7 +201,7 @@ export const showProfile = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: err.message
+      error: "Internal Server Error"
     });
   }
 };
