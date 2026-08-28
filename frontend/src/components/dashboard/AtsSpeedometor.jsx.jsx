@@ -1,19 +1,18 @@
 import { useSelector } from "react-redux";
 
 export default function AtsSpeedometer() {
-  const {data,loading,serverError}=useSelector((state)=>{
-    return state.dashboard
-  })
+  const { data } = useSelector((state) => {
+    return state.dashboard;
+  });
 
-  const score=data?.roleAnalysis?.atsScore
+  const score = data?.roleAnalysis?.atsScore;
 
   const validatedScore = Math.min(
     Math.max(Math.round(Number(score) || 0), 0),
     100
   );
 
-  const needleRotation =
-    (validatedScore / 100) * 180 - 90;
+  const needleRotation = (validatedScore / 100) * 180 - 90;
 
   let themeColor;
   let badgeText;
@@ -31,9 +30,7 @@ export default function AtsSpeedometer() {
 
   const radius = 90;
   const circumference = Math.PI * radius;
-
-  const filledLength =
-    (validatedScore / 100) * circumference;
+  const filledLength = (validatedScore / 100) * circumference;
 
   const styles = {
     card: {
@@ -45,11 +42,9 @@ export default function AtsSpeedometer() {
       padding: "24px",
       borderRadius: "16px",
       boxShadow: "0 4px 20px rgba(0, 0, 0, 0.4)",
-      fontFamily:
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       width: "260px",
     },
-
     header: {
       fontSize: "13px",
       fontWeight: "600",
@@ -58,13 +53,11 @@ export default function AtsSpeedometer() {
       letterSpacing: "0.05em",
       marginBottom: "15px",
     },
-
     gaugeContainer: {
       position: "relative",
       width: "220px",
       height: "175px",
     },
-
     svg: {
       position: "absolute",
       top: "0",
@@ -73,7 +66,6 @@ export default function AtsSpeedometer() {
       height: "110px",
       overflow: "visible",
     },
-
     needle: {
       position: "absolute",
       bottom: "65px",
@@ -84,11 +76,9 @@ export default function AtsSpeedometer() {
       borderRadius: "4px",
       transformOrigin: "bottom center",
       transform: `translateX(-50%) rotate(${needleRotation}deg)`,
-      transition:
-        "transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)",
+      transition: "transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)",
       zIndex: 3,
     },
-
     centerHub: {
       position: "absolute",
       bottom: "57px",
@@ -102,7 +92,6 @@ export default function AtsSpeedometer() {
       boxShadow: "0 2px 6px rgba(255, 255, 255, 0.2)",
       zIndex: 4,
     },
-
     readout: {
       position: "absolute",
       bottom: "8px",
@@ -112,21 +101,18 @@ export default function AtsSpeedometer() {
       justifyContent: "center",
       alignItems: "baseline",
     },
-
     scoreNumber: {
       fontSize: "36px",
       fontWeight: "800",
       color: themeColor,
       lineHeight: "1",
     },
-
     scoreUnit: {
       fontSize: "18px",
       fontWeight: "700",
       color: themeColor,
       marginLeft: "2px",
     },
-
     badge: {
       fontSize: "12px",
       fontWeight: "700",
@@ -143,18 +129,10 @@ export default function AtsSpeedometer() {
 
   return (
     <div style={styles.card}>
-
-      <div style={styles.header}>
-        ATS Match Score
-      </div>
+      <div style={styles.header}>ATS Match Score</div>
 
       <div style={styles.gaugeContainer}>
-
-        <svg
-          style={styles.svg}
-          viewBox="0 0 220 110"
-        >
-          {/* Remaining meter */}
+        <svg style={styles.svg} viewBox="0 0 220 110">
           <path
             d="M 20 100 A 90 90 0 0 1 200 100"
             fill="none"
@@ -162,8 +140,6 @@ export default function AtsSpeedometer() {
             strokeWidth="14"
             strokeLinecap="round"
           />
-
-          {/* Filled meter */}
           <path
             d="M 20 100 A 90 90 0 0 1 200 100"
             fill="none"
@@ -172,35 +148,21 @@ export default function AtsSpeedometer() {
             strokeLinecap="round"
             strokeDasharray={`${filledLength} ${circumference}`}
             style={{
-              transition:
-                "stroke-dasharray 1s ease, stroke 0.5s ease",
+              transition: "stroke-dasharray 1s ease, stroke 0.5s ease",
             }}
           />
         </svg>
 
-        {/* Needle */}
         <div style={styles.needle}></div>
-
-        {/* Center */}
         <div style={styles.centerHub}></div>
 
-        {/* Score */}
         <div style={styles.readout}>
-          <span style={styles.scoreNumber}>
-            {validatedScore}
-          </span>
-
-          <span style={styles.scoreUnit}>
-            %
-          </span>
+          <span style={styles.scoreNumber}>{validatedScore}</span>
+          <span style={styles.scoreUnit}>%</span>
         </div>
       </div>
 
-      {/* Fit badge */}
-      <div style={styles.badge}>
-        {badgeText}
-      </div>
-
+      <div style={styles.badge}>{badgeText}</div>
     </div>
   );
 }

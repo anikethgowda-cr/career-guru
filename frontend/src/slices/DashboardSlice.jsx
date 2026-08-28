@@ -9,7 +9,7 @@ const initialState={
 
 export const fetchResumeAnalysis=createAsyncThunk("dashboard/fetchResumeAnalysis",async(_,thunkAPI)=>{
     try{
-        const response=await axios.get("/resume/analysis",{headers:{Authorization:`Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTc2ZDQ5YzAzYjFjMjFkMzlmYzNmM2YiLCJyb2xlIjoidXNlciIsImlhdCI6MTc4Nzc2MjkxMSwiZXhwIjoxNzg4MzY3NzExfQ.d-QmTtCBQeT0ERPaOfG6fcNH8jnI2IpoCDwP7wG6Tmc`}})
+        const response=await axios.get("/resume/analysis",{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
        /*  console.log(response.data.data.roleAnalysis) */
         return response.data?.data
     }catch(err){
