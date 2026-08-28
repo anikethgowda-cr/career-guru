@@ -297,7 +297,7 @@ export const generateResumeAnalysis = async (req, res) => {
 
 export const getAnalysis = async (req, res) => {
   try {
-    const analysis = await ResumeAnalysis.findOne({ userId: req.userId })
+    const analysis = await ResumeAnalysis.findOne({ userId: req.userId }).populate("userId", "username");
 
     if (!analysis) {
       return res.status(404).json({

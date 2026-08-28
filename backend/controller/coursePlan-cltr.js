@@ -7,9 +7,9 @@ export const generateCoursePlan = async (req, res) => {
     const userId = req.userId;
 
     // User decides how many weeks they want to prepare
-    const { durationWeeks } = req.body;
+    const durationWeeks = 6  
 
-    if (!durationWeeks) {
+    /* if (!durationWeeks) {
       return res.status(400).json({
         success: false,
         error: "Please provide the number of weeks"
@@ -21,7 +21,7 @@ export const generateCoursePlan = async (req, res) => {
         success: false,
         error: "Duration must be at least 1 week"
       });
-    }
+    } */
 
     // Get latest resume analysis of the user
     const analysis = await ResumeAnalysis.findOne({
@@ -36,7 +36,7 @@ export const generateCoursePlan = async (req, res) => {
     }
 
     // Get role analysis
-    const roleAnalysis = analysis.roleAnalysis[0];
+    const roleAnalysis = analysis.roleAnalysis;
 
     if (!roleAnalysis) {
       return res.status(404).json({
@@ -46,8 +46,6 @@ export const generateCoursePlan = async (req, res) => {
     }
 
     const {role,strengths,weaknesses,missingSkills,valueAddingSkills} = roleAnalysis;
-
-    
 
     // Create prompt for Gemini
     const prompt = `
@@ -340,20 +338,58 @@ export const generateCoursePlan = async (req, res) => {
 };
 
 
-export const showCoursePlan=async(req,res)=>{
-  
-  try{
-      const coursePlan=await CoursePlan.findOne({userId:req.userId})
-      console.log(coursePlan)
-      if(!coursePlan){
-        return res.status(404).json({success:false,message:"No Course Plan Found"})
-      }
-      return res.status(200).json({
-        success:true,
-        data:coursePlan
-      })
-  }catch(err){
-    return res.status(500).json({success:false,error:"Internal Server Error"})
+export const showCoursePlan = async (req, res) => {
+  try {
+    const userId = req.userId;
 
+    // Check whether course plan already exists
+    const coursePlan = await CoursePlan.findOne({
+      userId: userId
+    }).populate("userId","username")
+
+    if (coursePlan) {
+      return res.status(200).json({
+        success: true,
+        data: coursePlan
+      });
+    }
+
+    // Get user's latest resume analysis
+    const analysis = await ResumeAnalysis.findOne({userId: userId}).sort({createdAt: -1});
+
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        error: "Resume analysis not found"
+      });
+    }
+
+    // Get role analysis
+    const roleAnalysis = analysis.roleAnalysis;
+
+    if (!roleAnalysis) {
+      return res.status(404).json({
+        success: false,
+        error: "Role analysis not found"
+      });
+    }
+    
+    const { role,missingSkills } = roleAnalysis; 
+
+    return res.status(404).json({
+      success: false,
+      message: "No Course Plan Found",
+      data: {
+        targetRole: role,
+        missingSkills: missingSkills || []
+      }
+    });
+
+  } catch (err) {
+    console.error("SHOW COURSE PLAN ERROR:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Internal Server Error"
+    });
   }
-}
+};
