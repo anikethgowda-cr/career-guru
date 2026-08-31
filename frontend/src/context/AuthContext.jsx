@@ -1,29 +1,83 @@
-import { createContext, useReducer } from "react";
+import { useEffect, createContext, useReducer } from "react";
 import reducer from "../auth-reducer/AuthReducer";
-export const AuthContext=createContext()
+import axios from "../config/axios-config";
 
+export const AuthContext = createContext();
 
-const initialState={
-    isLoggedIn:false,
-    user:null
-}
+const initialState = {
+    isLoggedIn: false,
+    user: null,
+    loading: true
+};
 
+export function AuthProvider({ children }) {
 
-export function AuthProvider({children}){
-    
-const[state,dispatch]=useReducer(reducer ,initialState)
+    const [state, dispatch] = useReducer(reducer, initialState);
 
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+        if (!token || !role) {
+            dispatch({ type: "AUTH_CHECK_COMPLETE" });
+            return;
+        }
+        const userEndpoint = role === "user" ? "/user/me" : "/mentor/me";
 
+        axios.get(userEndpoint)
+            .then((response) => {
+                dispatch({ type: "LOGIN", payload: response.data.data });
+                dispatch({ type: "AUTH_CHECK_COMPLETE"});
+            })
+            .catch(() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("role");
+                dispatch({ type: "LOGOUT" });
+                dispatch({ type: "AUTH_CHECK_COMPLETE" });
+            });
+    }, []);
 
-    return(
-        <>
-        <AuthContext.Provider value={{...state,dispatch}}>
+    async function handleLogin(formData, role) {
+
+        const endpoint = role === "user" ? "/user/login" : "/mentor/login";
+        try {
+            const response = await axios.post(endpoint, formData);
+            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("role", role);
+
+            const userEndpoint = role === "user" ? "/user/me" : "/mentor/me";
+            const userResponse = await axios.get(userEndpoint);
+            dispatch({ type: "LOGIN", payload: userResponse.data.data });
+            dispatch({ type: "AUTH_CHECK_COMPLETE" });
+            return {
+                success: true
+            };
+        } catch (err) {
+            console.log(err.response);
+            const message =err.response?.data?.message || "Something went wrong";
+            return {
+                success: false,
+                message
+            };
+        }
+    }
+
+    function handleLogout() {
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+
+        dispatch({ type: "LOGOUT" });
+    }
+
+    return (
+        <AuthContext.Provider
+            value={{
+                ...state,
+                handleLogin,
+                handleLogout
+            }}
+        >
             {children}
         </AuthContext.Provider>
-        
-        </>
-    )
-
+    );
 }
-
-

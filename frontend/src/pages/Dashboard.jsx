@@ -22,8 +22,8 @@ export default function Dashboard() {
 
   return (
     <>
-      <h2>Welcome back, {data?.userId?.username}</h2>
-      <h5>Target Role: {data?.roleAnalysis?.role}</h5>
+      <h2>Welcome back, {data?.userId?.username || "user"}</h2>
+      <h5>Target Role: {data?.roleAnalysis?.role ||"Software Developer"}</h5>
       <AtsSpeedometer />
       <Strengths />
       <Weakness />

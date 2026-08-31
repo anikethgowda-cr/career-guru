@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector,useDispatch } from "react-redux";
-import { fetchLearningPlan } from "../../slices/LearningPlanSlice";
+import { fetchLearningPlan } from "../../slices/LearningPlanSlice"
 import Topics from "./Topics";
 import Skills from "./Skills";
 import Materials from "./Materials";
