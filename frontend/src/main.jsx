@@ -4,6 +4,7 @@ import {Provider} from "react-redux"
 import './index.css'
 import App from './App.jsx'
 import store from "./store.jsx"
+import { AuthProvider } from './context/AuthContext.jsx'
 
 
 console.log(store.getState())
@@ -14,7 +15,9 @@ store.subscribe(()=>{
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <BrowserRouter>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
   </Provider>
 )

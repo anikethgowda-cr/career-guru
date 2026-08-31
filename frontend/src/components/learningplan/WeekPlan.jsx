@@ -12,17 +12,15 @@ export default function WeekPlan() {
 
     const { data, loading, serverError } = useSelector(
         (state) => state.learningPlan
-    );
+    )
 
     useEffect(() => {
         if (!data) {
             dispatch(fetchLearningPlan());
         }
-    }, [data, dispatch]);
+    }, [data, dispatch])
 
-    const week = data?.weeks?.find(
-        (week) => week.weekNumber === Number(weekNumber)
-    );
+    const week = data?.weeks?.find((week) => week.weekNumber === Number(weekNumber))
 
     console.log(week?.sessions)
 
@@ -31,7 +29,7 @@ export default function WeekPlan() {
         <>  
             {loading && <h2>Loading...</h2>}
 
-            {serverError && (<p style={{color:"red"}}>{serverError.message}</p>)}
+            {serverError && (<p style={{color:"red"}}>{serverError.status} - {serverError.message}</p>)}
 
             {!loading && !serverError && week && (
                 <>
@@ -39,6 +37,7 @@ export default function WeekPlan() {
                     <h2>{week.overview}</h2>
                 
                     <table border={1}>
+
                         <thead>
                             <tr>
                                 <th>title</th>
@@ -47,6 +46,7 @@ export default function WeekPlan() {
                                 <th>reference</th>
                             </tr>
                         </thead>
+                        
                         <tbody>
                             {week.sessions.map((session,index)=>{
                                 return (
@@ -62,6 +62,7 @@ export default function WeekPlan() {
                     </table>
                 </>
             )} 
+
             {!loading && !serverError && data && !week && (<h2>Week not found</h2>)}
         </>
     );
