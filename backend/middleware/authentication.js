@@ -8,11 +8,13 @@ const authenticateUser = (req, res, next) => {
             error: "Token is required"
         });
     }
+
     if (!authHeader.startsWith("Bearer ")) {
         return res.status(401).json({
             error: "Invalid token format"
         });
-    }
+    } 
+    
     const token = authHeader.split(" ")[1];
 
     try {
