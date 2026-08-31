@@ -129,6 +129,34 @@ export const userLogin = async (req, res) => {
     }
 };
 
+export const getCurrentUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.userId)
+            .select("username email phone role");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: user
+        });
+
+    } catch (err) {
+        console.error("GET CURRENT USER ERROR:", err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+
 export const deleteUser = async (req, res) => {
   const userId = req.userId;
 

@@ -115,11 +115,40 @@ export const mentorLogin = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Mentor login successful",
-            data: token
+            token: token
         });
 
     } catch (err) {
         console.error("Mentor login error:", err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+
+
+export const getCurrentMentor = async (req, res) => {
+    try {
+        const mentor = await User.findById(req.userId)
+            .select("username email phone role");
+
+        if (!mentor) {
+            return res.status(404).json({
+                success: false,
+                message: "Mentor not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: mentor
+        });
+
+    } catch (err) {
+        console.error("GET CURRENT MENTOR ERROR:", err);
 
         return res.status(500).json({
             success: false,
