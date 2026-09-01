@@ -4,7 +4,7 @@ import authenticateUser from "../middleware/authentication.js"
 
 const router = express.Router()
 
-router.post('/interview-question/generate',authenticateUser,generateInterviewQuestions)
+router.post('/interview-questions/generate',authenticateUser,generateInterviewQuestions)
 router.get('/interview-questions',authenticateUser,showInterviewQuestions)
 
 
