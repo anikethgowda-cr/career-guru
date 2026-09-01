@@ -256,11 +256,13 @@ export const createMentorProfile = async (req, res) => {
 };
 
 export const showMentorProfile = async (req, res) => {
+
     const userId = req.userId;
 
     try {
+
         const mentorDetails = await User.findById(userId)
-            .select("-password");
+            .select("username email phone role");
 
         if (!mentorDetails) {
             return res.status(404).json({
@@ -277,25 +279,21 @@ export const showMentorProfile = async (req, res) => {
         }
 
         const profileDetails = await MentorProfile.findOne({
-            userId
+            userId: userId
         });
-
-        if (!profileDetails) {
-            return res.status(404).json({
-                success: false,
-                message: "Mentor profile not found"
-            });
-        }
 
         return res.status(200).json({
             success: true,
-            message: "Mentor profile retrieved successfully",
-            mentor: mentorDetails,
-            profile: profileDetails
+            hasProfile: !!profileDetails,
+            data: {
+                mentor: mentorDetails,
+                profile: profileDetails
+            }
         });
 
     } catch (err) {
-        console.error("Show mentor profile error:", err);
+
+        console.error("SHOW MENTOR PROFILE ERROR:", err);
 
         return res.status(500).json({
             success: false,

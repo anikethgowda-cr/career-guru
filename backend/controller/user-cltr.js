@@ -189,7 +189,6 @@ export const createProfile = async (req, res) => {
   const {
     education,
     experience,
-    skills,
     preferredJobRole,
     preferredLocation,
     linkedin
@@ -211,7 +210,6 @@ export const createProfile = async (req, res) => {
       userId: req.userId,
       education,
       experience,
-      skills,
       preferredJobRole,
       preferredLocation,
       linkedin
@@ -234,43 +232,41 @@ export const createProfile = async (req, res) => {
 };
 
 export const showProfile = async (req, res) => {
-  const userId = req.userId;
 
-  try {
-    const userDetails = await User.findById(userId)
-      .select("username email phone role");
+    const userId = req.userId;
 
-    if (!userDetails) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found"
-      });
+    try {
+
+        const userDetails = await User.findById(userId)
+            .select("username email phone role");
+
+        if (!userDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const profileDetails = await UserProfile.findOne({
+            userId: userId
+        });
+
+        return res.status(200).json({
+            success: true,
+            hasProfile: !!profileDetails,
+            data: {
+                user: userDetails,
+                profile: profileDetails
+            }
+        });
+
+    } catch (err) {
+
+        console.error("SHOW PROFILE ERROR:", err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
-
-    const profileDetails = await UserProfile.findOne({
-      userId: userId
-    });
-
-    const analysis = await ResumeAnalysis.findOne({
-      userId: userId
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Profile retrieved successfully",
-      data: {
-        user: userDetails,
-        profile: profileDetails,
-        analysis: analysis
-      }
-    });
-
-  } catch (err) {
-    console.error("SHOW PROFILE ERROR:", err);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error"
-    });
-  }
 };

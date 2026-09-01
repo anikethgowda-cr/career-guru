@@ -11,11 +11,7 @@ const userProfileSchema=new mongoose.Schema({
         required:true
     },
     experience:{
-        type: Number,
-        required:true
-    },
-    skills:{
-        type:[String],
+        type: String,
         required:true
     },
     preferredJobRole:{

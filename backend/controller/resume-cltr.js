@@ -23,7 +23,7 @@ export const uploadResume = async (req, res) => {
 
       return res.status(409).json({
         success: false,
-        error: "You have already uploaded a resume"
+        message: "You have already uploaded a resume"
       });
     }
 
@@ -58,7 +58,7 @@ export const uploadResume = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error: "Internal Server Error"
+      message: "Internal Server Error"
     });
   }
 };
@@ -68,7 +68,7 @@ export const generateResumeAnalysis = async (req, res) => {
   try {
     const userId = req.userId;
     const resumeText = req.resumeText;
-    const preferredJobRole = req.preferredJobRole;
+    const {preferredJobRole} = req.body;
     const prompt = `
         You are an expert ATS resume analyzer and career advisor.
 
@@ -289,7 +289,7 @@ export const generateResumeAnalysis = async (req, res) => {
     console.error("RESUME ANALYSIS ERROR:", err);
     return res.status(500).json({
       success: false,
-      error: "Internal Server Error",
+      message: "Internal Server Error",
     });
   }
 };
@@ -302,7 +302,7 @@ export const getAnalysis = async (req, res) => {
     if (!analysis) {
       return res.status(404).json({
         success: false,
-        error: "No analysis found",
+        message: "No analysis found",
       });
     }
 
@@ -314,7 +314,31 @@ export const getAnalysis = async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       success: false,
-      error: "Internal Server Error",
+      message: "Internal Server Error",
     });
   }
+};
+
+
+export const getResumeStatus = async (req, res) => {
+    try {
+
+        const analysis = await ResumeAnalysis.findOne({
+            userId: req.userId
+        }).select("_id");
+
+        return res.status(200).json({
+            success: true,
+            hasResumeAnalysis: !!analysis
+        });
+
+    } catch (err) {
+
+        console.error("GET USER STATUS ERROR:", err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
 };

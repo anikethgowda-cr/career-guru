@@ -31,7 +31,7 @@ export const generateCoursePlan = async (req, res) => {
     if (!analysis) {
       return res.status(404).json({
         success: false,
-        error: "Resume analysis not found"
+        message: "Resume analysis not found"
       });
     }
 
@@ -41,7 +41,7 @@ export const generateCoursePlan = async (req, res) => {
     if (!roleAnalysis) {
       return res.status(404).json({
         success: false,
-        error: "Role analysis not found"
+        message: "Role analysis not found"
       });
     }
 
@@ -332,7 +332,7 @@ export const generateCoursePlan = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      error:"Internal Server Error"
+      message:"Internal Server Error"
     });
   }
 };
@@ -350,7 +350,8 @@ export const showCoursePlan = async (req, res) => {
     if (coursePlan) {
       return res.status(200).json({
         success: true,
-        data: coursePlan
+        data: coursePlan,
+        message:"sucessfully retervied"
       });
     }
 
@@ -360,7 +361,7 @@ export const showCoursePlan = async (req, res) => {
     if (!analysis) {
       return res.status(404).json({
         success: false,
-        error: "Resume analysis not found"
+        message: "Resume analysis not found"
       });
     }
 
@@ -370,7 +371,7 @@ export const showCoursePlan = async (req, res) => {
     if (!roleAnalysis) {
       return res.status(404).json({
         success: false,
-        error: "Role analysis not found"
+        message: "Role analysis not found"
       });
     }
     
@@ -389,7 +390,7 @@ export const showCoursePlan = async (req, res) => {
     console.error("SHOW COURSE PLAN ERROR:", err);
     return res.status(500).json({
       success: false,
-      error: "Internal Server Error"
+      message: "Internal Server Error"
     });
   }
 };

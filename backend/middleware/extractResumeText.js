@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import { PDFParse } from "pdf-parse";
 import Resume from "../models/resumeSchema.js";
-import UserProfile from "../models/userProfileSchema.js";
+import User from "../models/userSchema.js";
 
 const extractResumeText = async (req, res, next) => {
   try {
@@ -14,19 +14,19 @@ const extractResumeText = async (req, res, next) => {
     if (!resume) {
       return res.status(404).json({
         success: false,
-        error: "Resume not found"
+        message: "Resume not found"
       });
     }
 
-    // Find user's profile
-    const profile = await UserProfile.findOne({
-      userId: req.userId
+    // Find user's details
+    const userDetail = await User.findOne({
+      _id: req.userId
     });
 
-    if (!profile) {
+    if (!userDetail) {
       return res.status(404).json({
         success: false,
-        error: "User profile not found"
+        message: "User not found"
       });
     }
 
@@ -45,7 +45,7 @@ const extractResumeText = async (req, res, next) => {
     // Pass temporary data to next controller
     req.resumeText = result.text;
     req.resumeData = resume;
-    req.preferredJobRole = profile.preferredJobRole;
+    
 
     next();
 
@@ -54,7 +54,7 @@ const extractResumeText = async (req, res, next) => {
 
     return res.status(500).json({
       success: false,
-      error: error.message
+      message: error.message
     });
   }
 };
