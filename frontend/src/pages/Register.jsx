@@ -1,6 +1,6 @@
 import {useState} from "react"
 import axios from "../config/axios-config"
-import {useNavigate} from "react-router-dom"
+import {useNavigate,Link} from "react-router-dom"
 
 export default function Register(){
     const navigate=useNavigate()
@@ -47,6 +47,7 @@ export default function Register(){
         <form onSubmit={handleSubmit}>
 
             <button type="button" onClick={()=>{setRole("user")}}>user</button> {" "} <button  type="button" onClick={()=>{setRole("mentor")}}>mentor</button> <br />
+            <h2> Register as {role === "user" ? "User" : "Mentor"} </h2>
             {serverError && <p style={{color:"red"}}>{serverError}</p>  }
             <label >username:</label>
             <input type="text" required placeholder="Username" name="username" value={formData.username} onChange={handleFormData}/><br />
@@ -56,10 +57,10 @@ export default function Register(){
             <input type="text" required placeholder="password" name="password" value={formData.password}  onChange={handleFormData}/><br />
             <label >Phone Number</label>
             <input type="text" required placeholder="phone" name="phone" value={formData.phone}  onChange={handleFormData}/> <br />
+            <p><Link to="/login">Sign in</Link></p>
             <button type="submit" >Register</button>
   
         </form>
-        
         </>
     )
 }

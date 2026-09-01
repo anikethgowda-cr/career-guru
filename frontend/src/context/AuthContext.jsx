@@ -13,7 +13,7 @@ const initialState = {
 export function AuthProvider({ children }) {
 
     const [state, dispatch] = useReducer(reducer, initialState);
-
+    console.log(state)
     useEffect(() => {
         const token = localStorage.getItem("token");
         const role = localStorage.getItem("role");
@@ -36,6 +36,7 @@ export function AuthProvider({ children }) {
             });
     }, []);
 
+    /* console.log(state?.user?._id) */
     async function handleLogin(formData, role) {
 
         const endpoint = role === "user" ? "/user/login" : "/mentor/login";
@@ -47,9 +48,16 @@ export function AuthProvider({ children }) {
             const userEndpoint = role === "user" ? "/user/me" : "/mentor/me";
             const userResponse = await axios.get(userEndpoint);
             dispatch({ type: "LOGIN", payload: userResponse.data.data });
+
+            const profileEndpoint = role === "user" ? "/user/profile" : "/mentor/profile";
+
+            const profileResponse = await axios.get(profileEndpoint);
+            
             dispatch({ type: "AUTH_CHECK_COMPLETE" });
+
             return {
-                success: true
+                success: true,
+                hasProfile: profileResponse.data.hasProfile
             };
         } catch (err) {
             console.log(err.response);

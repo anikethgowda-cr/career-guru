@@ -9,9 +9,13 @@ import Profile from "./pages/Profile";
 import WeekPlan from "./components/learningplan/WeekPlan";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import UserProfile from "./components/UserProfile";
+import MentorProfile from "./components/MentorProfile"
+
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedLayout from "./components/ProtectedLayout";
+
 
 export default function App() {
     return (
@@ -19,15 +23,20 @@ export default function App() {
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/user/create-profile" element={<UserProfile />} />
+            <Route path="/mentor/create-profile" element={<MentorProfile/>} /> 
             <Route element={<ProtectedRoute />}>
                 <Route element={<ProtectedLayout />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/learning-plan" element={<LearningPlan />} />
-                    <Route path="/learning-plan/week/:weekNumber" element={<WeekPlan />} />
-                    <Route path="/interview-questions" element={<InterviewQuestions />} />
-                    <Route path="/jobs-board" element={<JobsBoard />} />
-                    <Route path="/mentor" element={<Mentor />} />
-                    <Route path="/profile" element={<Profile />} />
+                    
+                    <Route path="/user/dashboard" element={<Dashboard />} />
+                    <Route path="/user/learning-plan" element={<LearningPlan />} />
+                    <Route path="/user/learning-plan/week/:weekNumber" element={<WeekPlan />} />
+                    <Route path="/user/interview-questions" element={<InterviewQuestions />} />
+                    <Route path="/user/jobs-board" element={<JobsBoard />} />
+                    <Route path="/user/mentor" element={<Mentor />} />
+                    <Route path="/user/profile" element={<Profile />} /> 
+                   {/* ------------------------------------------------------------------ */}
+                        
                 </Route>
             </Route>
         </Routes>

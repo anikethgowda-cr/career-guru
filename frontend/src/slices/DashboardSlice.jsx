@@ -15,7 +15,7 @@ export const fetchResumeAnalysis=createAsyncThunk("dashboard/fetchResumeAnalysis
     }catch(err){
         
         const status =err.response.status
-        const message = err.response.data.error
+        const message = err.response.data.message
         console.log(err.response)
         return thunkAPI.rejectWithValue({status,message})
     }

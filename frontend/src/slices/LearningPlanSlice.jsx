@@ -30,7 +30,7 @@ export const fetchLearningPlan = createAsyncThunk("learningPlan/fetchLearningPla
             // Actual error
             return thunkAPI.rejectWithValue({
                 status: err.response?.status || 500,
-                message:err.response?.data?.error ||"Failed to fetch learning plan"
+                message:err.response?.data?.message ||"Failed to fetch learning plan"
             });
         }
     }
@@ -44,7 +44,7 @@ export const generateLearningPlan = createAsyncThunk("learningPlan/generateLearn
         } catch (err) {
             return thunkAPI.rejectWithValue({
                 status: err.response?.status,
-                message:err.response?.data?.error || "Failed to generate learning plan"
+                message:err.response?.data?.message || "Failed to generate learning plan"
             });
         }
     }

@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
+import UserSidebar from "./UserSidebar";
 
 export default function ProtectedLayout() {
     return (
         <>
-            <Sidebar />
+            <UserSidebar />
             <Outlet />
         </>
     );
