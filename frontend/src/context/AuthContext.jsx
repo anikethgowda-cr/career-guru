@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
 
     const [state, dispatch] = useReducer(reducer, initialState);
     console.log(state)
+
     useEffect(() => {
         const token = localStorage.getItem("token");
         const role = localStorage.getItem("role");
@@ -78,13 +79,7 @@ export function AuthProvider({ children }) {
     }
 
     return (
-        <AuthContext.Provider
-            value={{
-                ...state,
-                handleLogin,
-                handleLogout
-            }}
-        >
+        <AuthContext.Provider value={{ ...state,  handleLogin,  handleLogout }} >
             {children}
         </AuthContext.Provider>
     );

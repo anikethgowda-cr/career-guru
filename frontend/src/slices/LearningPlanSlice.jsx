@@ -13,7 +13,7 @@ const initialState = {
 
 export const fetchLearningPlan = createAsyncThunk("learningPlan/fetchLearningPlan",async (_, thunkAPI) => {
         try {
-            const response = await axios.get("/course-plan",{headers: {Authorization: `Bearer ${localStorage.getItem("token")}`}})
+            const response = await axios.get("/course-plan")
             return response?.data;
 
         } catch (err) {
@@ -38,7 +38,7 @@ export const fetchLearningPlan = createAsyncThunk("learningPlan/fetchLearningPla
 
 export const generateLearningPlan = createAsyncThunk("learningPlan/generateLearningPlan",async (_, thunkAPI) => {
         try {
-            const response = await axios.post("/course-plan/generate",{},{headers: {Authorization: `Bearer ${localStorage.getItem("token")}`}});
+            const response = await axios.post("/course-plan/generate");
             return response.data;
 
         } catch (err) {

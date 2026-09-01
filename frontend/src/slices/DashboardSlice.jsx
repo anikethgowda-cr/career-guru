@@ -9,7 +9,7 @@ const initialState={
 
 export const fetchResumeAnalysis=createAsyncThunk("dashboard/fetchResumeAnalysis",async(_,thunkAPI)=>{
     try{
-        const response=await axios.get("/resume/analysis",{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
+        const response=await axios.get("/resume/analysis")
        /*  console.log(response.data.data.roleAnalysis) */
         return response.data?.data
     }catch(err){
@@ -19,7 +19,6 @@ export const fetchResumeAnalysis=createAsyncThunk("dashboard/fetchResumeAnalysis
         console.log(err.response)
         return thunkAPI.rejectWithValue({status,message})
     }
-
 })
 
 export const dashboardSlice=createSlice({
