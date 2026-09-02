@@ -1,10 +1,11 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useSelector } from "react-redux";
 
 export default function ProtectedRoute() {
 
-    const { isLoggedIn, loading } = useContext(AuthContext);
+    const { isLoggedIn, loading } = useSelector(
+        (state) => state.auth
+    );
 
     if (loading) {
         return <div>Loading...</div>;
@@ -16,3 +17,4 @@ export default function ProtectedRoute() {
 
     return <Outlet />;
 }
+

@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 
 import Dashboard from "./pages/Dashboard";
 import LearningPlan from "./pages/LearningPlan";
@@ -15,9 +17,15 @@ import MentorProfile from "./components/MentorProfile"
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedLayout from "./components/ProtectedLayout";
-
+import { checkAuth } from "./slices/AuthSlice";
 
 export default function App() {
+
+    const dispatch = useDispatch();
+    
+    useEffect(() => { 
+        dispatch(checkAuth()); 
+    }, [dispatch]);
     return (
         <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />

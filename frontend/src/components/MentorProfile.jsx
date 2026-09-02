@@ -1,11 +1,13 @@
-import { useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useState } from "react";
+import { useSelector } from "react-redux";
 import axios from "../config/axios-config";
 import { useNavigate } from "react-router-dom";
 
 export default function MentorProfile() {
 
-    const { user, loading } = useContext(AuthContext);
+    const { user, loading } = useSelector(
+        (state) => state.auth
+    );
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
