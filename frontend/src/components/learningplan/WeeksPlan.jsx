@@ -9,7 +9,6 @@ export default function WeeksPlan(){
         return state.learningPlan
     })
 
-    console.log(data.weeks[0].sessions)
     
     function handleNavigation(weekNumber){
         navigate(`/user/learning-plan/week/${weekNumber}`)

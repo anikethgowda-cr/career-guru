@@ -12,7 +12,7 @@ import MissingSkills from "../components/dashboard/MissingSkills.jsx";
 export default function Dashboard() {
   const dispatch = useDispatch();
 
-  const { data } = useSelector((state) => {
+  const { data,loading} = useSelector((state) => {
     return state.dashboard;
   });
 
@@ -20,6 +20,9 @@ export default function Dashboard() {
     dispatch(fetchResumeAnalysis());
   }, [dispatch]);
 
+  if(loading){
+    return <p>Loading.....</p>
+  }
   return (
     <>
       <h2>Welcome back, {data?.userId?.username || "user"}</h2>
