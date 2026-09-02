@@ -9,7 +9,7 @@ export const getJobsLinks = async (req, res) => {
         if (!userProfile) {
             return res.status(404).json({
                 success: false,
-                error: "User profile not found"
+                message: "User profile not found"
             })
         }
 
@@ -18,7 +18,7 @@ export const getJobsLinks = async (req, res) => {
         if (!role) {
             return res.status(400).json({
                 success: false,
-                error: "No preferred job role found"
+                message: "No preferred job role found"
             })
         }
 
@@ -29,7 +29,7 @@ export const getJobsLinks = async (req, res) => {
                     app_id: process.env.ADZUNA_APP_ID,
                     app_key: process.env.ADZUNA_APP_KEY,
                     what: role,
-                    results_per_page: 10
+                    results_per_page: 18
                 }
             }
         )
@@ -43,7 +43,7 @@ export const getJobsLinks = async (req, res) => {
     } catch (err) {
         return res.status(500).json({
             success: false,
-            error: "Internal Server Error"
+            message: "Internal Server Error"
         })
     }
 }
