@@ -8,7 +8,8 @@ export default function UserSidebar() {
 
     return (
         <>
-            <h1>Sidebar Component</h1>
+            <h1>CareerGuru</h1>
+            <p>AI-Powered Guidance for Your IT Career</p>
 
             <nav>
                 <Link to="/user/dashboard">Dashboard</Link>{" "}

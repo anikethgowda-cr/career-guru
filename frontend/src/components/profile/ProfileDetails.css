@@ -1,0 +1,113 @@
+.profile-container {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 40px 32px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.profile-form {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 32px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: left;
+}
+
+/* Profile heading */
+.profile-form h1 {
+    margin: 0 0 32px;
+    text-align: center;
+    font-family: var(--heading);
+    font-size: 32px;
+    font-weight: 500;
+    letter-spacing: -0.8px;
+    color: var(--text-h);
+}
+
+/* Individual fields */
+.profile-field {
+    margin-bottom: 22px;
+}
+
+.profile-field:last-child {
+    margin-bottom: 0;
+}
+
+.profile-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Input fields */
+.profile-field input {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    box-sizing: border-box;
+
+    background: var(--code-bg);
+    color: var(--text-h);
+
+    border: 1px solid var(--border);
+    border-radius: 6px;
+
+    font-family: var(--sans);
+    font-size: 15px;
+
+    outline: none;
+}
+
+/* Only show styling when the input is focused */
+.profile-field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+.profile-field input[readonly] {
+    cursor: default;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+
+    .profile-container {
+        padding: 30px 24px;
+    }
+
+    .profile-form {
+        padding: 28px 24px;
+    }
+
+    .profile-form h1 {
+        font-size: 28px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+
+    .profile-container {
+        padding: 24px 16px;
+    }
+
+    .profile-form {
+        padding: 24px 18px;
+    }
+
+    .profile-form h1 {
+        font-size: 26px;
+        margin-bottom: 26px;
+    }
+
+    .profile-field {
+        margin-bottom: 18px;
+    }
+}

@@ -1,177 +1,161 @@
 import { useState } from "react";
-import { useSelector } from "react-redux";
-import axios from "../config/axios-config";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { uploadResume, analyzeResume } from "../slices/ResumeSlice";
+import { createProfile } from "../slices/ProfileSlice";
+import { jobRoles, specializations } from "../constants/jobOptions";
 
-export default function UserProfile(){
-
-    const { user, loading } = useSelector(
-            (state) => state.auth
-        );
+export default function UserProfile() {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const [formData,setFormData] = useState({  education:"",  experience:"",preferredJobRole:"", preferredLocation:"", linkedin:"" });
+    const { user, loading: authLoading } = useSelector((state) =>{
+        return state.auth
+    });
 
-    const [resume,setResume] = useState(null);
-    const [resumeUploaded,setResumeUploaded] = useState(false);
-    const [error,setError] = useState("");
-    const [message,setMessage] = useState("");
-    const [isUploading,setIsUploading] = useState(false);
-    const [isSubmitting,setIsSubmitting] = useState(false);
+    const { uploadLoading, uploadSuccess, uploadError, analysisLoading, analysisError } = useSelector((state) =>{
+        return  state.resume
+    });
 
-    if(loading){
+    const { loading: profileLoading, error: profileError } = useSelector((state )=>{
+        return state.profile
+    });
+    
+    const [formData, setFormData] = useState({ education: "", experience: "", preferredJobRole: "", preferredSpecialization: [], preferredLocation: "", linkedin: "" });
+    const [resume, setResume] = useState(null);
+    const [error, setError] = useState("");
+    const [message, setMessage] = useState("");
+
+    if (authLoading) {
         return <p>Loading...</p>;
     }
 
-    function handleFormData(e){
-        const name = e.target.name;
-        const value = e.target.value;
-        setFormData({...formData, [name]:value});
+    function handleFormData(e) {
+        const { name, value, selectedOptions } = e.target;
+        if (name === "preferredJobRole") {
+            setFormData({ ...formData, preferredJobRole: value, preferredSpecialization: [] });
+            return;
+        }
+        if (name === "preferredSpecialization") {
+            setFormData({ ...formData, preferredSpecialization: Array.from(selectedOptions, option => option.value) });
+            return;
+        }
+        setFormData({ ...formData, [name]: value });
     }
 
-    function handleResume(e){
+    function handleResume(e) {
         const file = e.target.files[0];
-        if(file){
+        if (file) {
             setResume(file);
-            setResumeUploaded(false);
-            setMessage("");
             setError("");
+            setMessage("");
         }
     }
 
-    async function handleUpload(){
+    async function handleUpload() {
         setError("");
         setMessage("");
-
-        if(!resume){
+        if (!resume) {
             setError("Please select a resume");
             return;
         }
-
-        try{
-            setIsUploading(true);
-            const resumeData = new FormData();
-            resumeData.append( "resume", resume );
-            const response = await axios.post( "/resume/upload", resumeData );
-
-            console.log( "Resume Upload:", response.data );
-
-            if(!response.data.success){
-                setError("Resume upload failed");
-                return;
-            }
-
-            setResumeUploaded(true);
+        try {
+            await dispatch(uploadResume(resume)).unwrap();
             setMessage("Resume uploaded successfully");
-
-        }catch(err){
-            console.log( err.response?.data?.message ||"Something went wrong");
-            setError( err.response?.data?.message || "Something went wrong" );
-        }finally{
-            setIsUploading(false);
+        } catch (err) {
+            setError(err?.message || err || "Resume upload failed");
         }
     }
 
-    async function handleSubmit(e){
+    async function handleSubmit(e) {
         e.preventDefault();
         setError("");
         setMessage("");
 
-        if(!formData.education.trim()){
-            setError("Education is required");
-            return;
+        if (!formData.education.trim()) {
+            return setError("Education is required");
         }
 
-        if(!formData.experience.trim()){
-            setError("Experience is required");
-            return;
+        if (!formData.experience.trim()) {
+            return setError("Experience is required");
         }
 
-        if(!formData.preferredJobRole.trim()){
-            setError("Preferred job role is required");
-            return;
+        if (!formData.preferredJobRole) {
+            return setError("Preferred job role is required");
         }
 
-        if(!formData.preferredLocation.trim()){
-            setError("Preferred location is required");
-            return;
+        if (!formData.preferredSpecialization.length) {
+            return setError("Please select at least one specialization");
         }
 
-        if(!resumeUploaded){
-            setError("Please upload your resume first");
-            return;
+        if (!formData.preferredLocation.trim()) {
+            return setError("Preferred location is required");
         }
 
-        try{
-            setIsSubmitting(true);
-            const analysisResponse = await axios.post( "/resume/analyze",{ preferredJobRole:formData.preferredJobRole } );
+        if (!uploadSuccess) {
+            return setError("Please upload your resume first");
+        }
 
-            console.log( "Resume Analysis:", analysisResponse.data);
-
-            if(!analysisResponse.data.success){
-                setError("Resume analysis failed");
-                return;
-            }
-            const profileResponse = await axios.post( "/user/profile", formData );
-            console.log("Profile:",profileResponse.data);
-
-            if(!profileResponse.data.success){
-                setError("Profile creation failed");
-                return;
-            }
+        try {
+            await dispatch(analyzeResume({ preferredJobRole: formData.preferredJobRole, preferredSpecialization: formData.preferredSpecialization })).unwrap();
+            await dispatch(createProfile(formData)).unwrap();
             navigate("/user/dashboard");
-        }catch(err){
-            console.log( err.response?.data?.message || "Something went wrong" );
-            setError( err.response?.data?.message || "Something went wrong" );
-
-        }finally{
-            setIsSubmitting(false);
+        } catch (err) {
+            setError(err?.message || err || "Something went wrong");
         }
     }
 
-    return(
-        <>
-        <h1>Profile Form</h1>
-        {error && ( <p style={{color:"red"}}> {error}</p>)}
-        {message && ( <p style={{color:"green"}}> {message} </p>)}
-
+    return (
         <form onSubmit={handleSubmit}>
+            <h2>User Profile</h2>
 
-            <label>Username:</label>{" "}
-                <input  type="text"  value={user?.username || ""}  readOnly/>
-                <br />
+            <p>Username: {user?.username}</p>
+
+            {error && <p style={{ color: "red" }}>{error}</p>}
+
+            {message && <p style={{ color: "green" }}>{message}</p>}
+
             <label>Education:</label>
-                <input type="text" name="education" value={formData.education} onChange={handleFormData}/>
-                <br />
-            <label>Experience:</label>
-                <input type="text" name="experience" value={formData.experience} onChange={handleFormData}/>
-                <br />
-            <label>Preferred Job Role:</label>
-                <input type="text" name="preferredJobRole"  value={formData.preferredJobRole} onChange={handleFormData} />
-                <br />
-            <label>Preferred Location:</label>
-                <input type="text" name="preferredLocation" value={formData.preferredLocation} onChange={handleFormData} />
-                <br />
-            <label>LinkedIn:</label>
-                <input type="text" name="linkedin" value={formData.linkedin} onChange={handleFormData} />
-                <br />
-            <label>Resume:</label>
-                <input type="file" accept=".pdf"  onChange={handleResume} />
-                <br />
-                
-            {!resumeUploaded && (
-                <button type="button" onClick={handleUpload} disabled={isUploading}>
-                    {isUploading ? "Uploading..." : "Upload File"}
-                </button>
-            )}
+            <input type="text" name="education" value={formData.education} onChange={handleFormData} placeholder="Enter your education" required />
+            <br />
 
-            {resumeUploaded && (
-                <button  type="submit" disabled={isSubmitting}  >
-                    {isSubmitting ? "Analyzing..." : "Create Profile"  }
-                </button>
-            )}
+            <label>Experience:</label>
+            <input type="text" name="experience" value={formData.experience} onChange={handleFormData} placeholder="Enter your experience" required />
+            <br />
+
+            <label>Preferred Job Role:</label>
+            <select name="preferredJobRole" value={formData.preferredJobRole} onChange={handleFormData} required>
+                <option value="">Select Job Role</option>
+                {jobRoles.map(role => <option key={role} value={role}>{role}</option>)}
+            </select>
+            <br />
+
+            <label>Preferred Specialization:</label>
+            <select name="preferredSpecialization" multiple value={formData.preferredSpecialization} onChange={handleFormData} required>
+                {formData.preferredJobRole && specializations[formData.preferredJobRole]?.map(specialization => <option key={specialization} value={specialization}>{specialization}</option>)}
+            </select>
+            <br />
+
+            <label>Preferred Location:</label>
+            <input type="text" name="preferredLocation" value={formData.preferredLocation} onChange={handleFormData} placeholder="Enter preferred location" required />
+            <br />
+
+            <label>LinkedIn:</label>
+            <input type="url" name="linkedin" value={formData.linkedin} onChange={handleFormData} placeholder="LinkedIn profile URL" />
+            <br />
+
+            <label>Resume:</label>
+            <input type="file" accept=".pdf" onChange={handleResume} />
+            <br />
+
+            <button type="button" onClick={handleUpload} disabled={uploadLoading}>{uploadLoading ? "Uploading..." : "Upload Resume"}</button>
+            <br />
+
+            {uploadSuccess && <p style={{ color: "green" }}>Resume uploaded successfully</p>}
+
+            {uploadError && <p style={{ color: "red" }}>{uploadError?.message || uploadError}</p>}
+
+            <button type="submit" disabled={analysisLoading || profileLoading || uploadLoading}>{analysisLoading ? "Analyzing Resume..." : profileLoading ? "Creating Profile..." : "Create Profile"}</button>
         </form>
-        </>
     );
 }
-
