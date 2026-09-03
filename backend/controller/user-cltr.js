@@ -186,18 +186,10 @@ export const deleteUser = async (req, res) => {
 };
 
 export const createProfile = async (req, res) => {
-  const {
-    education,
-    experience,
-    preferredJobRole,
-    preferredLocation,
-    linkedin
-  } = req.body;
+  const { education, experience, preferredJobRole, preferredSpecialization, preferredLocation, linkedin } = req.body;
 
   try {
-    const existingProfile = await UserProfile.findOne({
-      userId: req.userId
-    });
+    const existingProfile = await UserProfile.findOne({ userId: req.userId });
 
     if (existingProfile) {
       return res.status(409).json({
@@ -211,6 +203,7 @@ export const createProfile = async (req, res) => {
       education,
       experience,
       preferredJobRole,
+      preferredSpecialization,
       preferredLocation,
       linkedin
     });

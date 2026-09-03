@@ -7,30 +7,25 @@ const interviewQuestionSchema = new mongoose.Schema(
             ref: "User",
             required: true
         },
-
         role: {
             type: String,
             required: true
         },
-
         questionDifficulty: {
             type: String,
             enum: ["beginner", "intermediate", "advanced"],
             default: "beginner"
         },
-
         questions: [
             {
                 question: {
                     type: String,
                     required: true
                 },
-
                 answer: {
-                    type: String,
+                    type: [String],
                     required: true
                 },
-
                 difficulty: {
                     type: String,
                     enum: ["beginner", "intermediate", "advanced"],
@@ -38,15 +33,8 @@ const interviewQuestionSchema = new mongoose.Schema(
                 }
             }
         ]
-    },
-    {
-        timestamps: true
-    }
+    }, { timestamps: true }
 );
 
-const InterviewQuestions = mongoose.model(
-    "InterviewQuestions",
-    interviewQuestionSchema
-);
-
+const InterviewQuestions = mongoose.model("InterviewQuestions",interviewQuestionSchema);
 export default InterviewQuestions;

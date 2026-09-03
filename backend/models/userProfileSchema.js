@@ -1,39 +1,43 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
-const userProfileSchema=new mongoose.Schema({
-    userId:{
+const userProfileSchema = new mongoose.Schema({
+
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
-    education:{
-        type: String,
-        required:true
-    },
-    experience:{
-        type: String,
-        required:true
-    },
-    preferredJobRole:{
-        type:String,
-        required:true
-    },
-    preferredLocation:{
-        type:String,
-        required:true
-    },
-    linkedin:{
-        type:String,
-    },
-    activeStreak: {
-        type: Number,
-        default: 1 // Default to 1 day for new users
-    },
-    xp: {
-        type: Number,
-        default: 20 // Default to 20 XP for new users
-    }
-})
-const UserProfile = mongoose.model("UserProfile", userProfileSchema)
 
-export default UserProfile
+    education: {
+        type: String,
+        required: true
+    },
+
+    experience: {
+        type: String,
+        required: true
+    },
+
+    preferredJobRole: {
+        type: String,
+        required: true
+    },
+
+    preferredSpecialization: {
+        type: [String],
+        required: true
+    },
+
+    preferredLocation: {
+        type: String,
+        required: true
+    },
+
+    linkedin: {
+        type: String
+    }
+},{timestamps:true});
+
+const UserProfile = mongoose.model("UserProfile", userProfileSchema);
+
+export default UserProfile;

@@ -7,27 +7,43 @@ import ResumeAnalysis from "../models/resumeAnalysisSchema.js";
 export const uploadResume = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({success: false,error: "Please upload a PDF"});
-    }
-
-    // Check if this user already has a resume
-    const existingResume = await Resume.findOne({userId: req.userId});
-   
-    if (existingResume) {
-      // Delete the newly uploaded file
-      try {
-        await fs.unlink(req.file.path);
-      } catch (err) {
-        console.warn("Could not delete newly uploaded resume:",err.message);
-      }
-
-      return res.status(409).json({
+      return res.status(400).json({
         success: false,
-        message: "You have already uploaded a resume"
+        message: "Please upload a PDF"
       });
     }
 
-    // Create new resume
+    const existingResume = await Resume.findOne({
+      userId: req.userId
+    });
+
+    // If resume already exists, replace it
+    if (existingResume) {
+
+      // Delete old physical resume file
+      try {
+        await fs.unlink(existingResume.filePath);
+      } catch (err) {
+        console.warn(
+          "Could not delete old resume:",
+          err.message
+        );
+      }
+
+      // Update existing resume document
+      existingResume.fileName = req.file.originalname;
+      existingResume.filePath = req.file.path;
+
+      const updatedResume = await existingResume.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Resume updated successfully",
+        data: updatedResume
+      });
+    }
+
+    // No existing resume → create new one
     const resume = await Resume.create({
       userId: req.userId,
       fileName: req.file.originalname,
@@ -41,16 +57,16 @@ export const uploadResume = async (req, res) => {
     });
 
   } catch (err) {
+
     console.error("UPLOAD ERROR:", err.message);
 
-    // If something fails after Multer saved the file,
-    // try to remove that file
+    // Delete newly uploaded file if something failed
     if (req.file?.path) {
       try {
         await fs.unlink(req.file.path);
       } catch (err) {
         console.warn(
-          "Could not delete uploaded file:",
+          "Could not delete uploaded resume:",
           err.message
         );
       }
@@ -65,233 +81,134 @@ export const uploadResume = async (req, res) => {
 
 
 export const generateResumeAnalysis = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const resumeText = req.resumeText;
-    const {preferredJobRole} = req.body;
-    const prompt = `
-        You are an expert ATS resume analyzer and career advisor.
+    try {
+        const userId = req.userId;
+        const resumeText = req.resumeText;
 
-        Your task is to analyze the candidate's resume specifically for the candidate's preferred job role.
+        const {
+            preferredJobRole,
+            preferredSpecialization
+        } = req.body;
 
-        PREFERRED JOB ROLE:
-        ${preferredJobRole}
-
-        RESUME:
-        ${resumeText}
-
-        IMPORTANT:
-        Do NOT provide a generic resume score.
-
-        The ATS score must represent how suitable this resume is for the specific preferred job role:
-        "${preferredJobRole}"
-
-        Evaluate the resume based on:
-
-        1. Technical skills relevant to the preferred job role
-        2. Required skills that the candidate already possesses
-        3. Relevant projects
-        4. Work experience
-        5. Education
-        6. ATS keywords
-        7. Missing skills and technologies relevant to the preferred job role
-        8. Value-adding skills and technologies already present in the resume
-        9. Role relevance
-        10. Resume structure
-        11. Overall suitability for the preferred job role
-
-
-        RETURN EXACTLY THIS JSON STRUCTURE:
-
-        {
-          "roleAnalysis": {
-            "role": "${preferredJobRole}",
-            "atsScore": 0,
-            "strengths": [],
-            "weaknesses": [],
-            "suggestions": [],
-            "missingSkills": [],
-            "valueAddingSkills": []
-          }
+        if (!preferredJobRole) {
+            return res.status(400).json({
+                success: false,
+                message: "Preferred job role is required"
+            });
         }
 
-
-        STRICT RULES:
-
-
-        1. ROLE
-
-        - The "role" field must contain exactly:
-          "${preferredJobRole}"
-
-        - Do not modify, shorten, or rename the role.
-
-
-        2. ATS SCORE
-
-        - "atsScore" must be a number between 0 and 100.
-        - The score must represent how well the resume matches the preferred job role.
-        - Consider technical skills, ATS keywords, projects, experience, education, and overall role relevance.
-
-
-        3. STRENGTHS
-
-        - "strengths" must be an array of strings.
-        - Identify the strongest aspects of the resume for the preferred job role.
-        - Strengths may contain short explanations.
-        - minimum 4 points is mandatory.
-
-
-        4. WEAKNESSES
-
-        - "weaknesses" must be an array of strings.
-        - Identify weaknesses or limitations of the resume for the preferred job role.
-        - Weaknesses may contain short explanations.
-        - minimum 4 points is mandatory. 
-
-
-        5. SUGGESTIONS
-
-        - "suggestions" must be an array of strings.
-        - Provide actionable recommendations for improving the resume for the preferred job role.
-        - Suggestions may contain short explanations.
-        - minimum 4 points is mandatory. 
-
-
-        6. MISSING SKILLS
-
-        - "missingSkills" must contain ONLY keywords.
-        - Each item must be a skill, technology, tool, framework, library, platform, certification, or ATS keyword.
-        - Each item must be short, preferably 1-3 words.
-        - Do NOT write sentences.
-        - Do NOT provide explanations.
-        - Do NOT provide reasons.
-        - Do NOT provide recommendations.
-        - Do NOT include phrases such as "The candidate should learn..."
-        - Only include skills that are relevant or commonly required for "${preferredJobRole}" AND are absent from the resume.
-        - Do not include a skill if it is already clearly present in the resume.
-        - Do not duplicate skills.
-
-        Example:
-
-        ["TypeScript", "Docker", "AWS", "Jest"]
-
-
-        7. VALUE-ADDING SKILLS
-
-        - "valueAddingSkills" must contain ONLY keywords.
-        - Each item must be a skill, technology, tool, framework, library, platform, certification, or ATS keyword.
-        - Each item must be short, preferably 1-3 words.
-        - Do NOT write sentences.
-        - Do NOT provide explanations.
-        - Do NOT provide reasons.
-        - Do NOT provide recommendations.
-        - Only include skills that are clearly present in the resume AND provide a competitive advantage for "${preferredJobRole}".
-        - Do not include skills that are absent from the resume.
-        - Do not duplicate skills.
-
-        Example:
-
-        ["React", "Node.js", "MongoDB", "Express.js"]
-
-
-        8. IMPORTANT DISTINCTION
-
-        - missingSkills = relevant skills required for the preferred job role but ABSENT from the resume.
-
-        - valueAddingSkills = relevant skills already PRESENT in the resume that provide a competitive advantage.
-
-        - Never put the same skill in both arrays.
-
-        - Never invent skills that are not present in the resume for valueAddingSkills.
-
-
-        9. OUTPUT FORMAT
-
-        - Return ONLY valid JSON.
-        - Do NOT return Markdown.
-        - Do NOT wrap the JSON in \`\`\`json.
-        - Do NOT include any text before or after the JSON.
-        - Do NOT add additional fields.
-
-        Use exactly these fields:
-
-        role
-        atsScore
-        strengths
-        weaknesses
-        suggestions
-        missingSkills
-        valueAddingSkills
-
-
-        EXPECTED FORMAT:
-
-        {
-          "roleAnalysis": {
-            "role": "${preferredJobRole}",
-            "atsScore": 75,
-            "strengths": [
-              "Strong experience with relevant technologies"
-            ],
-            "weaknesses": [
-              "Limited experience with cloud deployment"
-            ],
-            "suggestions": [
-              "Add relevant cloud deployment projects"
-            ],
-            "missingSkills": [
-              "Docker",
-              "AWS",
-              "TypeScript"
-            ],
-            "valueAddingSkills": [
-              "React",
-              "Node.js",
-              "MongoDB",
-              "Express.js"
-            ]
-          }
+        if (
+            !preferredSpecialization ||
+            !Array.isArray(preferredSpecialization) ||
+            preferredSpecialization.length === 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Preferred specialization is required"
+            });
         }
 
-        Return only the JSON object.
-        `;
+        if (!resumeText) {
+            return res.status(400).json({
+                success: false,
+                message: "Resume text not found"
+            });
+        }
 
+        const specialization = preferredSpecialization.join(", ");
 
-    // Send prompt to Gemini
-    const analysisResult = await aiService(prompt);
+        const prompt = `
+              You are an expert ATS resume analyzer and career advisor.
 
-    // Save / overwrite existing analysis
-    const savedAnalysis = await ResumeAnalysis.findOneAndUpdate(
-      {
-        userId: userId,
-        resumeId: req.resumeData._id,
-      },
-      {
-        $set: {
-          roleAnalysis: analysisResult.roleAnalysis,
-        },
-      },
-      {
-        returnDocument: "after",
-        upsert: true,
-        runValidators: true,
-      }
-    );
+              Analyze the candidate's resume specifically for the candidate's preferred job role and preferred specialization.
 
-    return res.status(200).json({
-      success: true,
-      message: "Resume analyzed successfully",
-      data: savedAnalysis,
-    });
-    
-  } catch (err) {
-    console.error("RESUME ANALYSIS ERROR:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
-  }
+              PREFERRED JOB ROLE:
+              ${preferredJobRole}
+
+              PREFERRED SPECIALIZATION:
+              ${specialization}
+
+              RESUME:
+              ${resumeText}
+
+              Analyze the resume based ONLY on:
+
+              1. Preferred Job Role
+              2. Preferred Specialization
+
+              Do not consider location, salary, company, or any other personal preference.
+
+              Requirements:
+
+              - Generate an ATS score from 0 to 100.
+              - Evaluate how well the resume matches the preferred job role.
+              - Evaluate how well the candidate's skills match the preferred specialization.
+              - Identify the candidate's strengths relevant to the role and specialization.
+              - Identify weaknesses or gaps relevant to the role and specialization.
+              - Provide practical suggestions to improve the resume.
+              - Identify important skills required for the role and specialization that are missing from the resume.
+              - Identify valuable skills already present in the resume that strengthen the candidate's profile.
+              - Do not mark a skill as missing if the candidate already has it in the resume.
+              - Focus only on skills relevant to the preferred role and specialization.
+              - Do not penalize the candidate because of missing location information.
+              - Do not invent skills that are not present in the resume.
+              - Keep missingSkills and valueAddingSkills as skill/keyword lists.
+              - Provide at least 4 strengths.
+              - Provide at least 4 weaknesses.
+              - Provide at least 4 suggestions.
+              - Return ONLY valid JSON.
+              - Do not use markdown.
+              - Do not wrap the JSON inside a code block.
+
+              Return exactly this structure:
+
+              {
+                  "roleAnalysis": {
+                      "role": "${preferredJobRole}",
+                      "specialization": "${specialization}",
+                      "atsScore": 0,
+                      "strengths": [],
+                      "weaknesses": [],
+                      "suggestions": [],
+                      "missingSkills": [],
+                      "valueAddingSkills": []
+                  }
+              }
+              `;
+
+        const analysisResult = await aiService(prompt);
+
+        const savedAnalysis = await ResumeAnalysis.findOneAndUpdate(
+            {
+                userId: userId,
+                resumeId: req.resumeData._id
+            },
+            {
+                $set: {
+                    roleAnalysis: analysisResult.roleAnalysis
+                }
+            },
+            {
+                returnDocument: "after",
+                upsert: true,
+                runValidators: true
+            }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Resume analyzed successfully",
+            data: savedAnalysis
+        });
+
+    } catch (err) {
+        console.error("RESUME ANALYSIS ERROR:", err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
 };
 
 

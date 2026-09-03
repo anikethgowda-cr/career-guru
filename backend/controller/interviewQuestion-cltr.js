@@ -29,9 +29,7 @@ export const generateInterviewQuestions = async (req, res) => {
         const role = userRecord.preferredJobRole;
 
         const prompt = `You are an expert technical interviewer.
-
             Generate interview questions for a candidate interested in the following role:
-
             Role: ${role}
 
             Requested difficulty level: ${questionDifficulty}
@@ -45,6 +43,13 @@ export const generateInterviewQuestions = async (req, res) => {
             - Focus on technical and role-specific knowledge.
             - Provide an answer for every question.
             - Each question must have its own difficulty.
+            - The answer for every question MUST be an array of strings.
+            - Each string inside the answer array must represent one separate point of the answer.
+            - Provide approximately 6 to 7 clear and concise points for each answer.
+            - Each answer point should contain useful technical information.
+            - Do not write the entire answer as one long string.
+            - Do not combine all answer points into a single string.
+            - The answer points should be suitable for displaying individually in a UI using a map function.
             - Do not provide unnecessary explanations outside the JSON.
             - Return ONLY valid JSON.
             - Do not use markdown.
@@ -61,12 +66,28 @@ export const generateInterviewQuestions = async (req, res) => {
                 "questions": [
                     {
                         "question": "Question 1",
-                        "answer": "Answer 1",
+                        "answer": [
+                            "Answer point 1",
+                            "Answer point 2",
+                            "Answer point 3",
+                            "Answer point 4",
+                            "Answer point 5",
+                            "Answer point 6",
+                            "Answer point 7"
+                        ],
                         "difficulty": "${questionDifficulty}"
                     },
                     {
                         "question": "Question 2",
-                        "answer": "Answer 2",
+                        "answer": [
+                            "Answer point 1",
+                            "Answer point 2",
+                            "Answer point 3",
+                            "Answer point 4",
+                            "Answer point 5",
+                            "Answer point 6",
+                            "Answer point 7"
+                        ],
                         "difficulty": "${questionDifficulty}"
                     }
                 ]
