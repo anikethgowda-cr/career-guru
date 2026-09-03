@@ -27,10 +27,15 @@ export const generateInterviewQuestions = async (req, res) => {
         }
 
         const role = userRecord.preferredJobRole;
+        const specialization = userRecord.preferredSpecialization.join(", ");
 
         const prompt = `You are an expert technical interviewer.
-            Generate interview questions for a candidate interested in the following role:
+
+            Generate interview questions for a candidate interested in the following role and specialization:
+
             Role: ${role}
+
+            Preferred Specialization: ${specialization}
 
             Requested difficulty level: ${questionDifficulty}
 
@@ -39,6 +44,8 @@ export const generateInterviewQuestions = async (req, res) => {
             Requirements:
 
             - Questions must be relevant to the candidate's preferred job role.
+            - Questions must be specifically relevant to the candidate's preferred specialization.
+            - Questions should cover the technologies, tools, concepts, and technical knowledge related to the preferred specialization.
             - Questions must match the requested difficulty level.
             - Focus on technical and role-specific knowledge.
             - Provide an answer for every question.
