@@ -33,8 +33,9 @@ const aiService = async (context) => {
       text = text.replace(/\s*```$/, "");
     }
 
+    
     const result = JSON.parse(text);
-
+    
     return result;
 
   } catch (error) {

@@ -102,11 +102,10 @@ export const generateInterviewQuestions = async (req, res) => {
 
         const aiReport = await aiService(prompt);
 
-        console.log("AI REPORT:", aiReport);
+        c/* onsole.log("AI REPORT:", aiReport); */
 
         const result = await InterviewQuestions.findOneAndUpdate(
             { userId },
-
             {
                 userId,
                 role: aiReport.role,
@@ -120,7 +119,7 @@ export const generateInterviewQuestions = async (req, res) => {
                 runValidators: true
             }
         );
-
+        
         return res.status(200).json({
             success: true,
             message: "Interview questions generated successfully",
@@ -128,12 +127,7 @@ export const generateInterviewQuestions = async (req, res) => {
         });
 
     } catch (err) {
-
-        console.error(
-            "GENERATE INTERVIEW QUESTIONS ERROR:",
-            err.message
-        );
-
+        console.error("GENERATE INTERVIEW QUESTIONS ERROR:", err.message);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"
