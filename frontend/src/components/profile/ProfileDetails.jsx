@@ -51,7 +51,7 @@ export default function ProfileDetails({ data }) {
                     <label>Experience</label>
                     <input
                         type="text"
-                        value={profile?.experience || ""}
+                        value={profile?.experience || 0}
                         readOnly
                     />
                 </div>
