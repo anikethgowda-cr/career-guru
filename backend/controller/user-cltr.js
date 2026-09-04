@@ -212,6 +212,7 @@ export const createProfile = async (req, res) => {
       success: true,
       message: "Successfully created profile",
       data: profileDetails
+      
     });
 
   } catch (err) {

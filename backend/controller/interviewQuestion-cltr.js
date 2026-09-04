@@ -102,7 +102,7 @@ export const generateInterviewQuestions = async (req, res) => {
 
         const aiReport = await aiService(prompt);
 
-        c/* onsole.log("AI REPORT:", aiReport); */
+        /* onsole.log("AI REPORT:", aiReport); */
 
         const result = await InterviewQuestions.findOneAndUpdate(
             { userId },

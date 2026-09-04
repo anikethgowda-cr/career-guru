@@ -205,9 +205,7 @@ export const createMentorProfile = async (req, res) => {
             });
         }
 
-        const existingProfile = await MentorProfile.findOne({
-            userId
-        });
+        const existingProfile = await MentorProfile.findOne({ userId });
 
         if (existingProfile) {
             return res.status(409).json({
@@ -217,26 +215,32 @@ export const createMentorProfile = async (req, res) => {
         }
 
         const {
-            designation,
-            company,
-            yearsOfExperience,
+            name,
+            education,
+            workType,
+            experience,
+            expertIn,
             specialization,
             bio,
-            hourlyRate,
-            availableSlots,
-            languages
+            languages,
+            organization,
+            designation,
+            origin
         } = req.body;
 
         const mentorProfile = await MentorProfile.create({
             userId,
-            designation,
-            company,
-            yearsOfExperience,
+            name,
+            education,
+            workType,
+            experience,
+            expertIn,
             specialization,
             bio,
-            hourlyRate,
-            availableSlots,
-            languages
+            languages,
+            organization,
+            designation,
+            origin
         });
 
         return res.status(201).json({
@@ -247,6 +251,32 @@ export const createMentorProfile = async (req, res) => {
 
     } catch (err) {
         console.error("Create mentor profile error:", err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const showMentors = async (req, res) => {
+    try {
+        const mentors = await MentorProfile.find();
+
+        if (mentors.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No mentors found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+             mentors
+        });
+
+    } catch (err) {
+        console.log(err);
 
         return res.status(500).json({
             success: false,
@@ -301,3 +331,8 @@ export const showMentorProfile = async (req, res) => {
         });
     }
 };
+
+
+
+
+ 
