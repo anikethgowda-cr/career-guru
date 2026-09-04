@@ -1,380 +1,240 @@
 import { useState } from "react";
-import { useSelector } from "react-redux";
-import axios from "../config/axios-config";
+import { jobRoles, specializations } from "../constants/jobOptions";
+import { createProfile } from "../slices/ProfileSlice";
+import { useDispatch ,useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-export default function MentorProfile() {
+const languages = [
+    "English",
+    "Hindi",
+    "Kannada",
+    "Tamil",
+    "Telugu",
+    "Malayalam"
+];
 
-    const { user, loading } = useSelector(
-        (state) => state.auth
-    );
-    const navigate = useNavigate();
+const MentorProfileForm = () => {
+    const dispatch =useDispatch()
+    const navigate =useNavigate()
+
+    const {user} = useSelector((state)=>{
+        return state.auth
+    })
 
     const [formData, setFormData] = useState({
-        designation: "",
-        company: "",
-        yearsOfExperience: "",
-        specialization: "",
+        name: "",
+        education: "",
+        workType: "",
+        experience: "",
+        expertIn: [],
+        specialization: [],
         bio: "",
-        hourlyRate: "",
-        availableSlots: [],
-        languages: ""
+        languages: [],
+        organization: "",
+        designation: "",
+        origin: ""
     });
 
-    const [slot, setSlot] = useState({
-        date: "",
-        startTime: "",
-        endTime: ""
-    });
+    const handleChange = (e) => {
+        const { name, value, selectedOptions, multiple } = e.target;
 
-    const [error, setError] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+        const values = multiple
+            ? Array.from(selectedOptions, option => option.value)
+            : value;
 
-    if (loading) {
-        return <p>Loading...</p>;
-    }
-
-    function handleFormData(e) {
-
-        const name = e.target.name;
-        const value = e.target.value;
-
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-    }
-
-    function handleSlot(e) {
-
-        const name = e.target.name;
-        const value = e.target.value;
-
-        setSlot({
-            ...slot,
-            [name]: value
-        });
-    }
-
-    function handleAddSlot() {
-
-        if (!slot.date) {
-            setError("Date is required");
-            return;
-        }
-
-        if (!slot.startTime) {
-            setError("Start time is required");
-            return;
-        }
-
-        if (!slot.endTime) {
-            setError("End time is required");
-            return;
-        }
-
-        if (slot.startTime >= slot.endTime) {
-            setError("End time must be after start time");
-            return;
-        }
-
-        setFormData({
-            ...formData,
-            availableSlots: [
-                ...formData.availableSlots,
-                {
-                    date: slot.date,
-                    startTime: slot.startTime,
-                    endTime: slot.endTime
-                }
-            ]
-        });
-
-        setSlot({
-            date: "",
-            startTime: "",
-            endTime: ""
-        });
-
-        setError("");
-    }
-
-    function handleRemoveSlot(index) {
-
-        const updatedSlots = formData.availableSlots.filter(
-            (_, slotIndex) => slotIndex !== index
-        );
-
-        setFormData({
-            ...formData,
-            availableSlots: updatedSlots
-        });
-    }
-
-    async function handleSubmit(e) {
-
-        e.preventDefault();
-
-        setError("");
-
-        if (!formData.designation.trim()) {
-            setError("Designation is required");
-            return;
-        }
-
-        if (!formData.company.trim()) {
-            setError("Company is required");
-            return;
-        }
-
-        if (!formData.yearsOfExperience) {
-            setError("Years of experience is required");
-            return;
-        }
-
-        if (!formData.specialization.trim()) {
-            setError("Specialization is required");
-            return;
-        }
-
-        if (!formData.bio.trim()) {
-            setError("Bio is required");
-            return;
-        }
-
-        if (!formData.hourlyRate) {
-            setError("Hourly rate is required");
-            return;
-        }
-
-        if (formData.availableSlots.length === 0) {
-            setError("At least one available slot is required");
-            return;
-        }
-
-        if (!formData.languages.trim()) {
-            setError("Languages are required");
-            return;
-        }
-
-        try {
-
-            setIsSubmitting(true);
-
-            const data = {
-                designation: formData.designation,
-                company: formData.company,
-                yearsOfExperience: Number(formData.yearsOfExperience),
-                specialization: formData.specialization,
-                bio: formData.bio,
-                hourlyRate: Number(formData.hourlyRate),
-                availableSlots: formData.availableSlots,
-                languages: formData.languages
-                    .split(",")
-                    .map(language => language.trim())
-                    .filter(language => language !== "")
-            };
-
-            const response = await axios.post(
-                "/mentor/profile",
-                data
-            );
-
-            console.log(response.data);
-
-            if (!response.data.success) {
-                setError("Profile creation failed");
-                return;
+        setFormData(prev => {
+            if (name === "workType") {
+                return {
+                    ...prev,
+                    workType: value,
+                    organization: "",
+                    designation: "",
+                    origin: ""
+                };
             }
 
-            navigate("/mentor/dashboard");
+            if (name === "expertIn") {
+                const available = [
+                    ...new Set(
+                        values.flatMap(
+                            role => specializations[role] || []
+                        )
+                    )
+                ];
 
-        } catch (err) {
+                return {
+                    ...prev,
+                    expertIn: values,
+                    specialization: prev.specialization.filter(
+                        item => available.includes(item)
+                    )
+                };
+            }
 
-            console.log(
-                err.response?.data?.message ||
-                "Something went wrong"
-            );
+            return {
+                ...prev,
+                [name]: values
+            };
+        });
+    };
 
-            setError(
-                err.response?.data?.message ||
-                "Something went wrong"
-            );
+    const handleCheckboxChange = (e, type) => {
+        const { value, checked } = e.target;
 
-        } finally {
+        setFormData(prev => ({
+            ...prev,
+            [type]: checked
+                ? [...prev[type], value]
+                : prev[type].filter(item => item !== value)
+        }));
+    };
 
-            setIsSubmitting(false);
+    const availableSpecializations = [
+        ...new Set(
+            formData.expertIn.flatMap(
+                role => specializations[role] || []
+            )
+        )
+    ];
 
-        }
-    }
+    async function handleSubmit(e){
+        e.preventDefault();
+        console.log(formData);
+        try{
+            dispatch(createProfile({profileData:formData,role:user.role})).unwrap()
+            navigate("/mentor/dashboard")
+        }catch(err){
+            console.log(err)
+        } 
+    };
 
     return (
-        <>
-            <h1>Mentor Profile</h1>
+        <form onSubmit={handleSubmit} className="mentor-profile-form">
 
-            {error && (
-                <p style={{ color: "red" }}>
-                    {error}
-                </p>
+            <div className="form-group">
+                <label>Name</label>
+                <input name="name" value={formData.name} onChange={handleChange} />
+            </div>
+
+            <div className="form-group">
+                <label>Education</label>
+                <input name="education" value={formData.education} onChange={handleChange} />
+            </div>
+
+            <div className="form-group">
+                <label>Work Type</label>
+                <select name="workType" value={formData.workType} onChange={handleChange}>
+                    <option value="">Select work type</option>
+                    <option value="employee">Employee</option>
+                    <option value="self-employed">Self Employed</option>
+                    <option value="freelancer">Freelancer</option>
+                </select>
+            </div>
+
+            {formData.workType === "employee" && (
+                <>
+                    <div className="form-group">
+                        <label>Organization</label>
+                        <input name="organization" value={formData.organization} onChange={handleChange} />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Designation</label>
+                        <input name="designation" value={formData.designation} onChange={handleChange} />
+                    </div>
+                </>
             )}
 
-            <form onSubmit={handleSubmit}>
-
-                <label>Username:</label>{" "}
-                <input
-                    type="text"
-                    value={user?.username || ""}
-                    readOnly
-                />
-
-                <br />
-
-                <label>Designation:</label>
-                <input
-                    type="text"
-                    name="designation"
-                    value={formData.designation}
-                    onChange={handleFormData}
-                />
-
-                <br />
-
-                <label>Company:</label>
-                <input
-                    type="text"
-                    name="company"
-                    value={formData.company}
-                    onChange={handleFormData}
-                />
-
-                <br />
-
-                <label>Years of Experience:</label>
-                <input
-                    type="number"
-                    name="yearsOfExperience"
-                    min="0"
-                    value={formData.yearsOfExperience}
-                    onChange={handleFormData}
-                />
-
-                <br />
-
-                <label>Specialization:</label>
-                <input
-                    type="text"
-                    name="specialization"
-                    value={formData.specialization}
-                    onChange={handleFormData}
-                />
-
-                <br />
-
-                <label>Bio:</label>
-                <textarea
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleFormData}
-                />
-
-                <br />
-
-                <label>Hourly Rate:</label>
-                <input
-                    type="number"
-                    name="hourlyRate"
-                    min="0"
-                    value={formData.hourlyRate}
-                    onChange={handleFormData}
-                />
-
-                <br />
-
-                <h3>Available Slots</h3>
-
-                <label>Date:</label>
-                <input
-                    type="date"
-                    name="date"
-                    value={slot.date}
-                    onChange={handleSlot}
-                />
-
-                <br />
-
-                <label>Start Time:</label>
-                <input
-                    type="time"
-                    name="startTime"
-                    value={slot.startTime}
-                    onChange={handleSlot}
-                />
-
-                <br />
-
-                <label>End Time:</label>
-                <input
-                    type="time"
-                    name="endTime"
-                    value={slot.endTime}
-                    onChange={handleSlot}
-                />
-
-                <br />
-
-                <button
-                    type="button"
-                    onClick={handleAddSlot}
-                >
-                    Add Slot
-                </button>
-
-                <br />
-                <br />
-
-                {formData.availableSlots.map((slot, index) => (
-                    <div key={index}>
-
-                        <span>
-                            {slot.date} | {slot.startTime} - {slot.endTime}
-                        </span>
-
-                        {" "}
-
-                        <button
-                            type="button"
-                            onClick={() => handleRemoveSlot(index)}
-                        >
-                            Remove
-                        </button>
-
+            {formData.workType === "self-employed" && (
+                <>
+                    <div className="form-group">
+                        <label>Business / Profession</label>
+                        <input name="origin" value={formData.origin} onChange={handleChange} />
                     </div>
-                ))}
 
-                <br />
+                    <div className="form-group">
+                        <label>Designation</label>
+                        <input name="designation" value={formData.designation} onChange={handleChange} />
+                    </div>
+                </>
+            )}
 
-                <label>Languages:</label>
-                <input
-                    type="text"
-                    name="languages"
-                    placeholder="English, Kannada, Hindi"
-                    value={formData.languages}
-                    onChange={handleFormData}
-                />
+            {formData.workType === "freelancer" && (
+                <div className="form-group">
+                    <label>Designation</label>
+                    <input name="designation" value={formData.designation} onChange={handleChange} />
+                </div>
+            )}
 
-                <br />
+            <div className="form-group">
+                <label>Years of Experience</label>
+                <input type="number" name="experience" min="0" value={formData.experience} onChange={handleChange} />
+            </div>
 
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting
-                        ? "Creating Profile..."
-                        : "Create Profile"
-                    }
-                </button>
+            <div className="form-group">
+                <label>Expert In </label>
+                <small>cltr + click for multiple select</small>
 
-            </form>
-        </>
+                <select name="expertIn"  value={formData.expertIn} onChange={handleChange} multiple>
+                    {jobRoles.map(role => (
+                        <option key={role.value} value={role.value}>
+                            {role.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {formData.expertIn.length > 0 && (
+                <div className="form-group">
+                    <label>Specialization</label>
+
+                    <div className="checkbox-container">
+                        {availableSpecializations.map(item => (
+                            <label key={item} className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    value={item}
+                                    checked={formData.specialization.includes(item)}
+                                    onChange={(e) =>
+                                        handleCheckboxChange(e, "specialization")
+                                    }
+                                />
+                                {item}
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div className="form-group">
+                <label>Bio</label>
+                <textarea name="bio" value={formData.bio} onChange={handleChange} rows="5" />
+            </div>
+
+            <div className="form-group">
+                <label>Languages</label>
+
+                <div className="checkbox-container">
+                    {languages.map(language => (
+                        <label key={language} className="checkbox-item">
+                            <input
+                                type="checkbox"
+                                value={language}
+                                checked={formData.languages.includes(language)}
+                                onChange={(e) =>
+                                    handleCheckboxChange(e, "languages")
+                                }
+                            />
+                            {language}
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            <button type="submit">Save Profile</button>
+
+        </form>
     );
-}
+};
+
+export default MentorProfileForm;

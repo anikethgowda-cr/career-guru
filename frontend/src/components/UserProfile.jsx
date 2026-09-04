@@ -9,16 +9,16 @@ export default function UserProfile() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { user, loading: authLoading } = useSelector((state) =>{
-        return state.auth
+    const { user, loading: authLoading } = useSelector((state) => {
+        return state.auth;
     });
 
-    const { uploadLoading, uploadSuccess, uploadError, analysisLoading, analysisError } = useSelector((state) =>{
-        return  state.resume
+    const { uploadLoading, uploadSuccess, uploadError, analysisLoading, analysisError } = useSelector((state) => {
+        return state.resume;
     });
 
-    const { loading: profileLoading, error: profileError } = useSelector((state )=>{
-        return state.profile
+    const { loading: profileLoading, error: profileError } = useSelector((state) => {
+        return state.profile;
     });
     
     const [formData, setFormData] = useState({ education: "", experience: "", preferredJobRole: "", preferredSpecialization: [], preferredLocation: "", linkedin: "" });
@@ -28,6 +28,10 @@ export default function UserProfile() {
 
     if (authLoading) {
         return <p>Loading...</p>;
+    }
+
+    if (!user) {
+        return <p>Unauthorized. Please log in.</p>;
     }
 
     function handleFormData(e) {
@@ -61,7 +65,6 @@ export default function UserProfile() {
         }
         try {
             await dispatch(uploadResume(resume)).unwrap();
-            setMessage("Resume uploaded successfully");
         } catch (err) {
             setError(err?.message || err || "Resume upload failed");
         }
@@ -72,33 +75,16 @@ export default function UserProfile() {
         setError("");
         setMessage("");
 
-        if (!formData.education.trim()) {
-            return setError("Education is required");
-        }
-
-        if (!formData.experience.trim()) {
-            return setError("Experience is required");
-        }
-
-        if (!formData.preferredJobRole) {
-            return setError("Preferred job role is required");
-        }
-
-        if (!formData.preferredSpecialization.length) {
-            return setError("Please select at least one specialization");
-        }
-
-        if (!formData.preferredLocation.trim()) {
-            return setError("Preferred location is required");
-        }
-
-        if (!uploadSuccess) {
-            return setError("Please upload your resume first");
-        }
+        if (!formData.education.trim()) return setError("Education is required");
+        if (!formData.experience.trim()) return setError("Experience is required");
+        if (!formData.preferredJobRole) return setError("Preferred job role is required");
+        if (!formData.preferredSpecialization.length) return setError("Please select at least one specialization");
+        if (!formData.preferredLocation.trim()) return setError("Preferred location is required");
+        if (!uploadSuccess) return setError("Please upload your resume first");
 
         try {
             await dispatch(analyzeResume({ preferredJobRole: formData.preferredJobRole, preferredSpecialization: formData.preferredSpecialization })).unwrap();
-            await dispatch(createProfile(formData)).unwrap();
+            await dispatch(createProfile({profileData:formData, role: user?.role})).unwrap();
             navigate("/user/dashboard");
         } catch (err) {
             setError(err?.message || err || "Something went wrong");
@@ -109,30 +95,52 @@ export default function UserProfile() {
         <form onSubmit={handleSubmit}>
             <h2>User Profile</h2>
 
-            <p>Username: {user?.username}</p>
-
             {error && <p style={{ color: "red" }}>{error}</p>}
+            {profileError && <p style={{ color: "red" }}>{profileError?.message || profileError}</p>}
+            {analysisError && <p style={{ color: "red" }}>{analysisError?.message || analysisError}</p>}
 
-            {message && <p style={{ color: "green" }}>{message}</p>}
+            <label>Username:</label>
+            <input type="text" value={user?.username || ""} readOnly />
+            <br />
 
             <label>Education:</label>
             <input type="text" name="education" value={formData.education} onChange={handleFormData} placeholder="Enter your education" required />
             <br />
 
             <label>Experience:</label>
-            <input type="text" name="experience" value={formData.experience} onChange={handleFormData} placeholder="Enter your experience" required />
+            <input type="number" name="experience" value={formData.experience} onChange={handleFormData} placeholder="Enter your experience" required />
             <br />
 
             <label>Preferred Job Role:</label>
             <select name="preferredJobRole" value={formData.preferredJobRole} onChange={handleFormData} required>
                 <option value="">Select Job Role</option>
-                {jobRoles.map(role => <option key={role} value={role}>{role}</option>)}
+                {jobRoles.map((role, index) => {
+                    // Handles both string arrays and object arrays
+                    const roleValue = typeof role === "object" ? role.value : role;
+                    const roleLabel = typeof role === "object" ? role.label : role;
+                    
+                    return (
+                        <option key={roleValue || index} value={roleValue}>
+                            {roleLabel}
+                        </option>
+                    );
+                })}
             </select>
             <br />
 
             <label>Preferred Specialization:</label>
             <select name="preferredSpecialization" multiple value={formData.preferredSpecialization} onChange={handleFormData} required>
-                {formData.preferredJobRole && specializations[formData.preferredJobRole]?.map(specialization => <option key={specialization} value={specialization}>{specialization}</option>)}
+                {formData.preferredJobRole && specializations[formData.preferredJobRole]?.map((spec, index) => {
+                    // Handles both string arrays and object arrays
+                    const specValue = typeof spec === "object" ? spec.value : spec;
+                    const specLabel = typeof spec === "object" ? spec.label : spec;
+                    
+                    return (
+                        <option key={specValue || index} value={specValue}>
+                            {specLabel}
+                        </option>
+                    );
+                })}
             </select>
             <br />
 
@@ -148,14 +156,17 @@ export default function UserProfile() {
             <input type="file" accept=".pdf" onChange={handleResume} />
             <br />
 
-            <button type="button" onClick={handleUpload} disabled={uploadLoading}>{uploadLoading ? "Uploading..." : "Upload Resume"}</button>
+            <button type="button" onClick={handleUpload} disabled={uploadLoading}>
+                {uploadLoading ? "Uploading..." : "Upload Resume"}
+            </button>
             <br />
 
             {uploadSuccess && <p style={{ color: "green" }}>Resume uploaded successfully</p>}
-
             {uploadError && <p style={{ color: "red" }}>{uploadError?.message || uploadError}</p>}
 
-            <button type="submit" disabled={analysisLoading || profileLoading || uploadLoading}>{analysisLoading ? "Analyzing Resume..." : profileLoading ? "Creating Profile..." : "Create Profile"}</button>
+            <button type="submit" disabled={analysisLoading || profileLoading || uploadLoading || !uploadSuccess}>
+                {analysisLoading ? "Analyzing Resume..." : profileLoading ? "Creating Profile..." : "Create Profile"}
+            </button>
         </form>
     );
 }
