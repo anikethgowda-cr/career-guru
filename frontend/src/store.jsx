@@ -6,6 +6,9 @@ import dashboardReducer from "./slices/DashboardSlice"
 import LearningReducer from './slices/LearningPlanSlice'
 import InterviewQuestionsReducer from "./slices/InterviewQuestionsSlice"
 import JobsReducer from "./slices/JobsSlice"
+import MentorsReducer from "./slices/MentorSlice"
+import mentorChatReducer from "./slices/MentorChatSlice";
+
 import ProfileReducer from "./slices/ProfileSlice"
 
 const store = configureStore({
@@ -17,6 +20,8 @@ const store = configureStore({
         interviewQuestions: InterviewQuestionsReducer,
         jobs: JobsReducer,
         profile:ProfileReducer,
+        mentor:MentorsReducer,
+        mentorChat: mentorChatReducer,
         
     }
 })
