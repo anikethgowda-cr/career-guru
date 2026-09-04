@@ -8,22 +8,26 @@ const initialState = {
     success: false
 };
 
-export const fetchProfileDetails = createAsyncThunk( "profile/fetchProfileDetails", async (_, thunkAPI) => {
-        try {
-            const response = await axios.get("/user/profile");
-            return response.data;
-        } catch (err) {
-            return thunkAPI.rejectWithValue(
-                err.response?.data?.message ||
-                "Failed to fetch profile"
-            );
-        }
-    }
-);
+export const fetchProfileDetails = createAsyncThunk("profile/fetchProfileDetails", async (role, thunkAPI) => {
+    const endPoint = role === "user" ? "/user/profile" : "/mentor/profile";
 
-export const createProfile = createAsyncThunk("profile/createProfile", async (profileData, thunkAPI) => {
+    try {
+        const response = await axios.get(endPoint);
+        return response.data;
+    } catch (err) {
+        return thunkAPI.rejectWithValue(
+            err.response?.data?.message ||
+            "Failed to fetch profile"
+        );
+    }
+});
+
+export const createProfile = createAsyncThunk("profile/createProfile", async ({profileData,role}, thunkAPI) => {
+    console.log(role)
+
+    const endPoint  = role === "user" ? "/user/profile" : "/mentor/profile"
         try {
-            const response = await axios.post( "/user/profile",  profileData );
+            const response = await axios.post( endPoint,  profileData );
             return response.data;
         } catch (err) {
             return thunkAPI.rejectWithValue(
