@@ -1,0 +1,302 @@
+.mentor-heading {
+    color: #f5f5f5;
+    margin: 20px;
+    font-size: 28px;
+}
+
+.mentor-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    padding: 20px;
+    box-sizing: border-box;
+    align-items: stretch;
+}
+
+.mentor-card {
+    width: 100%;
+    height: 560px;
+    background: #1c1d21;
+    border: 1px solid #303238;
+    border-radius: 14px;
+    padding: 22px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    color: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.mentor-card:hover {
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+    transform: translateY(-2px);
+}
+
+/* ---------- Header ---------- */
+
+.mentor-header {
+    width: 100%;
+    height: 82px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.mentor-avatar {
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+    border-radius: 50%;
+    background: #172d4d;
+    color: #4f8ee8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.mentor-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.mentor-title h2 {
+    margin: 0 0 5px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mentor-title p {
+    margin: 0 0 5px;
+    font-size: 14px;
+    color: #c6c6c6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mentor-company {
+    width: 100%;
+    height: 18px;
+    font-size: 13px;
+    color: #a0a0a0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Expertise pills (new: surfaces mentor.expertIn) ---------- */
+
+.mentor-roles {
+    width: 100%;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.role-pill {
+    background: rgba(79, 142, 232, 0.12);
+    border: 1px solid rgba(79, 142, 232, 0.35);
+    color: #7db0f0;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ---------- Experience / Work type ---------- */
+
+.mentor-info {
+    width: 100%;
+    height: 82px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.info-item {
+    background: #24262b;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.info-item span {
+    margin-bottom: 7px;
+    font-size: 11px;
+    color: #858585;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.info-item strong {
+    font-size: 15px;
+    color: #eeeeee;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Specialization (the section that was breaking alignment) ---------- */
+
+.mentor-section {
+    width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.specialization-section {
+    height: 142px;
+    margin-bottom: 16px;
+}
+
+.languages-section {
+    height: 56px;
+}
+
+/* Sum check @ 560px card (22px padding top+bottom = 44):
+   header 82+16 | roles 26+16 | info 82+20 | spec 142+16 | lang 56 | buttons ~58
+   = 98 + 42 + 102 + 158 + 56 + 58 + 44 = 558px, fits with a 2px buffer */
+
+.section-title {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #999999;
+    font-weight: 600;
+}
+
+.tag-container {
+    width: 100%;
+    height: 106px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 7px;
+    overflow: hidden;
+}
+
+.tag {
+    background: #272a30;
+    border: 1px solid #34373e;
+    color: #c8c8c8;
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    box-sizing: border-box;
+    height: fit-content;
+}
+
+.tag-more {
+    background: #24262b;
+    border-style: dashed;
+    color: #8f8f8f;
+}
+
+.tag-empty {
+    color: #6a6a6a;
+    font-style: italic;
+    border-style: dashed;
+}
+
+/* ---------- Languages ---------- */
+
+.languages {
+    margin: 0;
+    height: 20px;
+    font-size: 13px;
+    color: #b8b8b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Buttons: pinned to the bottom of every card ---------- */
+
+.mentor-buttons {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 17px;
+    border-top: 1px solid #303238;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.mentor-buttons button {
+    flex: 1;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.view-btn {
+    background: transparent;
+    border-color: #44474e;
+    color: #c8c8c8;
+}
+
+.view-btn:hover {
+    border-color: #4f8ee8;
+    color: #4f8ee8;
+}
+
+.talk-btn {
+    background: #2467c5;
+    border-color: #2467c5;
+    color: #ffffff;
+}
+
+.talk-btn:hover {
+    background: #1d57a8;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1000px) {
+    .mentor-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .mentor-container {
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+
+    .mentor-card {
+        height: 560px;
+        padding: 18px;
+    }
+}
