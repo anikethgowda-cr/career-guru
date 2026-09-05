@@ -2,22 +2,22 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 
-import Dashboard from "./pages/Dashboard";
-import LearningPlan from "./pages/LearningPlan";
-import InterviewQuestions from "./pages/InterviewQuestions";
-import JobsBoard from "./pages/JobsBoard";
-import Mentor from "./pages/Mentor";
-import MentorChat from "./components/users-mentor/MentorChat";
-import Profile from "./pages/Profile";
-import WeekPlan from "./components/learningplan/WeekPlan";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import UserProfile from "./components/UserProfile";
-import MentorProfile from "./components/MentorProfile";
-import MentorDashboard from "./pages/mentor-pages/MentorDashboard";
-import Mentees from "./pages/mentor-pages/Mentees";
-import MentorConversations from "./components/mentor-component/mentees/MentorConversations"
-import MentorSideChat from "./components/mentor-component/mentees/MentorSideChat";
+import Dashboard from "./pages/user/Dashboard";
+import LearningPlan from "./pages/user/LearningPlan";
+import InterviewQuestions from "./pages/user/InterviewQuestions";
+import JobsBoard from "./pages/user/JobsBoard";
+import Mentor from "./pages/user/Mentor";
+import MentorChat from "./components/user/mentor/MentorChat";
+import Profile from "./pages/user/Profile";
+import WeekPlan from "./components/user/learningPlan/WeekPlan";
+import Register from "./pages/auth/Register";
+import Login from "./pages/auth/Login";
+import UserProfile from "./components/shared/UserProfile";
+import MentorProfile from "./components/shared/MentorProfile";
+import MentorDashboard from "./pages/mentor/MentorDashboard";
+import Mentees from "./pages/mentor/Mentees";
+import MentorConversations from "./components/mentor/mentees/MentorConversations";
+import MentorSideChat from "./components/mentor/mentees/MentorSideChat";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleProtectedRoute from "./routes/RoleProtectedRoute";

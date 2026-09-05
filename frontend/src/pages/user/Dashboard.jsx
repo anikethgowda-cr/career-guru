@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchResumeAnalysis } from "../slices/DashboardSlice";
+import { fetchResumeAnalysis } from "../../slices/DashboardSlice";
 
-import Strengths from "../components/dashboard/Strengths";
-import Weakness from "../components/dashboard/Weakness";
-import Suggestion from "../components/dashboard/Suggestions";
-import Skills from "../components/dashboard/Skills";
-import AtsSpeedometer from "../components/dashboard/AtsSpeedometor.jsx.jsx";
-import MissingSkills from "../components/dashboard/MissingSkills.jsx";
+import Strengths from "../../components/user/dashboard/Strengths";
+import Weakness from "../../components/user/dashboard/Weakness";
+import Suggestion from "../../components/user/dashboard/Suggestions";
+import Skills from "../../components/user/dashboard/Skills";
+import AtsSpeedometer from "../../components/user/dashboard/AtsSpeedometor.jsx.jsx";
+import MissingSkills from "../../components/user/dashboard/MissingSkills.jsx";
 
 export default function Dashboard() {
   const dispatch = useDispatch();

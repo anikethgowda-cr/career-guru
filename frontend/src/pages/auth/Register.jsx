@@ -1,5 +1,5 @@
 import {useState} from "react"
-import axios from "../config/axios-config"
+import axios from "../../config/axios-config"
 import {useNavigate,Link} from "react-router-dom"
 
 export default function Register(){

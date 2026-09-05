@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { jobRoles, specializations } from "../constants/jobOptions";
-import { createProfile } from "../slices/ProfileSlice";
+import { jobRoles, specializations } from "../../constants/jobOptions";
+import { createProfile } from "../../slices/ProfileSlice";
 import { useDispatch ,useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 

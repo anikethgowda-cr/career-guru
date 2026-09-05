@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import {fetchLearningPlan,generateLearningPlan} from "../slices/LearningPlanSlice";
-import WeeksPlan from "../components/learningplan/WeeksPlan";
+import {fetchLearningPlan,generateLearningPlan} from "../../slices/LearningPlanSlice";
+import WeeksPlan from "../../components/user/learningPlan/WeeksPlan";
 
 export default function LearningPlan() {
     const dispatch = useDispatch();

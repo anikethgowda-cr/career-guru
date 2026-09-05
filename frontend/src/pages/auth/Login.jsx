@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 
-import { loginUser } from "../slices/AuthSlice";
+import { loginUser } from "../../slices/AuthSlice";
 
 export default function Login() {
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchInterviewQuestions, generateInterviewQuestions } from "../slices/InterviewQuestionsSlice";
-import Questions from "../components/interviewQuestions/Questions";
+import { fetchInterviewQuestions, generateInterviewQuestions } from "../../slices/InterviewQuestionsSlice";
+import Questions from "../../components/user/interviewQuestions/Questions";
 
 export default function InterviewQuestions() {
     const dispatch = useDispatch();

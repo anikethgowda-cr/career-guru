@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { logout } from "../slices/AuthSlice";
+import { logout } from "../../slices/AuthSlice";
 
 export default function UserSidebar() {
 
