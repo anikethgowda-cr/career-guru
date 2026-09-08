@@ -1,4 +1,4 @@
-import axios from "../config/axios-config"
+import axios from "../../config/axios-config"
 import {createSlice,createAsyncThunk} from "@reduxjs/toolkit"
 
 const initialState={
@@ -10,13 +10,10 @@ const initialState={
 export const fetchResumeAnalysis=createAsyncThunk("dashboard/fetchResumeAnalysis",async(_,thunkAPI)=>{
     try{
         const response=await axios.get("/resume/analysis")
-       /*  console.log(response.data.data.roleAnalysis) */
         return response.data?.data
     }catch(err){
-        
-        const status =err.response.status
-        const message = err.response.data.message
-        console.log(err.response)
+        const status =err.response?.status
+        const message = err.response?.data?.message
         return thunkAPI.rejectWithValue({status,message})
     }
 })

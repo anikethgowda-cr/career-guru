@@ -1,6 +1,6 @@
 import "./MentorProfileModal.css";
 
-export default function MentorProfileModal({ mentor, onClose }) {
+export default function MentorProfileModal({ mentor, onClose, onTalkToMentor }) {
     return (
         <div className="modal-overlay" onClick={onClose}>
 
@@ -104,7 +104,13 @@ export default function MentorProfileModal({ mentor, onClose }) {
                 </div>
 
                 <div className="modal-footer">
-                    <button className="modal-talk-btn">
+                    <button
+                        className="modal-talk-btn"
+                        onClick={() => {
+                            onClose();
+                            onTalkToMentor();
+                        }}
+                    >
                         Talk to Mentor
                     </button>
                 </div>

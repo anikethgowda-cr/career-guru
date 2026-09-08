@@ -1,6 +1,6 @@
 import {useSelector,useDispatch} from "react-redux"
 import {useEffect} from "react"
-import { fetchJobs } from "../../slices/JobsSlice"
+import { fetchJobs } from "../../slices/user/JobsSlice"
 import JobCard from "../../components/user/jobsBoard/JobCard"
 
 export default function JobsBoard(){

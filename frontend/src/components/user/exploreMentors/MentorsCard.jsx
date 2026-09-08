@@ -14,7 +14,12 @@ export default function MentorsCard({ mentor }) {
     }
 
     function handleTalkToMentor() {
-        navigate(`/user/mentor/chat/${mentor.userId}`);
+        navigate(`/user/mentor/chat/${mentor.userId}`, {
+            state: {
+                mentorName: mentor.name,
+                mentorInitial: mentor.name?.charAt(0).toUpperCase() || "M"
+            }
+        });
     }
 
     return (
@@ -97,6 +102,7 @@ export default function MentorsCard({ mentor }) {
                 <MentorProfileModal
                     mentor={mentor}
                     onClose={() => setShowModal(false)}
+                    onTalkToMentor={handleTalkToMentor}
                 />
             )}
         </>

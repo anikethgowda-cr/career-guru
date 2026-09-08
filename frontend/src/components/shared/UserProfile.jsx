@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { uploadResume, analyzeResume } from "../../slices/ResumeSlice";
+import { uploadResume, analyzeResume } from "../../slices/user/ResumeSlice";
 import { createProfile } from "../../slices/ProfileSlice";
 import { jobRoles, specializations } from "../../constants/jobOptions";
 

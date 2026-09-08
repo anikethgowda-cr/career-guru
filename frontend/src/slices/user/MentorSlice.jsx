@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "../config/axios-config";
+import axios from "../../config/axios-config";
 
 const initialState = {
     mentors: null,
@@ -10,11 +10,8 @@ const initialState = {
 export const fetchMentors = createAsyncThunk("mentors/fetchMentors", async (_, thunkAPI) => {
     try {
         const response = await axios.get("/mentors");
-        console.log(response.data);
         return response.data;
     } catch (err) {
-        console.log(err.response?.data?.message);
-
         return thunkAPI.rejectWithValue({
             status: err.response?.status,
             message: err.response?.data?.message || "Failed to fetch mentors"

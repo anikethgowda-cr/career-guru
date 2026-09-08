@@ -3,7 +3,6 @@ import { useDispatch } from "react-redux";
 import { logout } from "../../slices/AuthSlice";
 
 export default function UserSidebar() {
-
     const dispatch = useDispatch();
 
     return (
@@ -15,8 +14,8 @@ export default function UserSidebar() {
                 <Link to="/user/dashboard">Dashboard</Link>{" "}
                 <Link to="/user/learning-plan">Learning Plan</Link>{" "}
                 <Link to="/user/interview-questions">Interview Questions</Link>{" "}
-                <Link to="/user/jobs-board">Jobs Board</Link>{" "}
-                <Link to="/user/mentor">Mentor</Link>{" "}
+                <Link to="/user/explore-mentors">Explore Mentors</Link>{" "}
+                <Link to="/user/my-mentors">My Mentors</Link>{" "}
                 <Link to="/user/profile">Profile</Link>
 
                 <button onClick={() => dispatch(logout())}>
@@ -26,4 +25,3 @@ export default function UserSidebar() {
         </>
     );
 }
-

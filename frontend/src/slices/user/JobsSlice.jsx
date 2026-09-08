@@ -1,5 +1,5 @@
 import {createSlice,createAsyncThunk} from "@reduxjs/toolkit"
-import axios from "../config/axios-config"
+import axios from "../../config/axios-config"
 
 const initialState={
     data:null,
@@ -13,15 +13,12 @@ export const fetchJobs = createAsyncThunk("jobs/fetchJobs",async(_ ,thunkAPI)=>{
         return response.data
 
     }catch(err){
-        console.log(err.response?.data)
         return thunkAPI.rejectWithValue({
             status:err.response?.status || 500, 
             message:err.response?.data?.message || "something went wrong"
         })
     }
 })
-
-
 
 const jobsSlice =createSlice({
     name:"jobs",
@@ -46,4 +43,4 @@ const jobsSlice =createSlice({
     }
 })
 
-export default jobsSlice.reducer
+export default jobsSlice.reducer;

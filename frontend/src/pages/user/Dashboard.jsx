@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchResumeAnalysis } from "../../slices/DashboardSlice";
+import { fetchResumeAnalysis } from "../../slices/user/DashboardSlice";
 
 import Strengths from "../../components/user/dashboard/Strengths";
 import Weakness from "../../components/user/dashboard/Weakness";

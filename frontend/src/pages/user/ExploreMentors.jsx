@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMentors } from "../../slices/MentorSlice";
-import MentorsCard from "../../components/user/mentor/MentorsCard";
+import { fetchMentors } from "../../slices/user/MentorSlice";
+import MentorsCard from "../../components/user/exploreMentors/MentorsCard";
 
-export default function Mentor() {
+export default function ExploreMentors() {
     const dispatch = useDispatch();
     const { mentors, loading, serverError } = useSelector((state) => state.mentor);
 
@@ -21,7 +21,7 @@ export default function Mentor() {
 
     return (
         <>
-            <h1>Find a Mentor</h1>
+            <h1>Explore Mentors</h1>
 
             <div className="mentor-container">
                 {mentors?.map((mentor) => (

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "../config/axios-config";
+import axios from "../../config/axios-config";
 
 const initialState = {
     data: null,
@@ -17,9 +17,6 @@ export const fetchLearningPlan = createAsyncThunk("learningPlan/fetchLearningPla
             return response?.data;
 
         } catch (err) {
-            // 404 means:
-            // User doesn't have a learning plan yet.
-            // This is NOT an actual application error.
             if (err.response?.status === 404) {
                 return {
                     noPlan: true,
@@ -27,7 +24,6 @@ export const fetchLearningPlan = createAsyncThunk("learningPlan/fetchLearningPla
                 };
             }
             
-            // Actual error
             return thunkAPI.rejectWithValue({
                 status: err.response?.status || 500,
                 message:err.response?.data?.message ||"Failed to fetch learning plan"
@@ -64,7 +60,6 @@ const LearningPlanSlice = createSlice({
                     state.loading = false;
                     state.serverError = null;
 
-                    // No learning plan
                     if (action.payload.noPlan) {
                         state.data = null;
                         state.targetRole =action.payload.data?.targetRole || null;
@@ -72,7 +67,6 @@ const LearningPlanSlice = createSlice({
                         return
                     }
                 
-                    // Learning plan exists
                     state.data = action.payload.data;
                     state.loading=false
                     state.serverError=null
@@ -92,10 +86,8 @@ const LearningPlanSlice = createSlice({
                     state.generating = false;
                     state.serverError = null;
 
-                    // Store generated plan
                     state.data = action.payload.data;
 
-                    // These are no longer needed
                     state.targetRole = null;
                     state.missingSkills = [];
                 }
@@ -107,6 +99,5 @@ const LearningPlanSlice = createSlice({
             );
     }
 });
-
 
 export default LearningPlanSlice.reducer;

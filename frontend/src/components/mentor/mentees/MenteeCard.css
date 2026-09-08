@@ -1,0 +1,212 @@
+/* Detailed Mentee Profile Card Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+.mentees-page {
+    padding: 32px;
+    min-height: 100vh;
+    background: #0f1117;
+    font-family: 'Inter', sans-serif;
+    color: #f0f1f5;
+}
+
+.mentees-page h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: #f0f1f5;
+}
+
+.mentees-subtitle {
+    color: #8b8fa8;
+    font-size: 14px;
+    margin: 0 0 28px;
+}
+
+.mentees-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* Card */
+.mentee-card {
+    background: #1a1d27;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.mentee-card:hover {
+    border-color: rgba(108,99,255,0.35);
+    transform: translateY(-2px);
+}
+
+/* Header */
+.mentee-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.mentee-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #48cae4, #6c63ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.mentee-title h2 {
+    margin: 0 0 3px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f0f1f5;
+}
+
+.mentee-title p {
+    margin: 0;
+    font-size: 13px;
+    color: #8b8fa8;
+}
+
+/* Info grid */
+.mentee-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.mentee-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.mentee-info-item span {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b6f85;
+}
+
+.mentee-info-item strong {
+    font-size: 13px;
+    font-weight: 500;
+    color: #c0c4d6;
+}
+
+/* Tags section */
+.mentee-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mentee-section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b6f85;
+}
+
+.mentee-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mentee-tag {
+    background: rgba(108,99,255,0.15);
+    color: #a99cf7;
+    border: 1px solid rgba(108,99,255,0.25);
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 12px;
+}
+
+.mentee-no-profile {
+    font-size: 13px;
+    color: #8b8fa8;
+    font-style: italic;
+    margin: 0;
+}
+
+/* Buttons */
+.mentee-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.mentee-chat-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #6c63ff, #5a54d9);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.mentee-chat-btn:hover {
+    opacity: 0.88;
+}
+
+.mentee-linkedin-btn {
+    background: rgba(10,102,194,0.15);
+    color: #7bb3e8;
+    border: 1px solid rgba(10,102,194,0.3);
+    padding: 10px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.mentee-linkedin-btn:hover {
+    background: rgba(10,102,194,0.25);
+}
+
+/* States */
+.mentees-loading, .mentees-error {
+    color: #8b8fa8;
+    font-size: 14px;
+    padding: 40px 0;
+}
+
+.mentees-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 60px 0;
+    gap: 8px;
+    color: #8b8fa8;
+}
+
+.mentees-empty h3 {
+    margin: 0;
+    color: #c0c4d6;
+    font-size: 20px;
+}
+
+.mentees-empty p {
+    margin: 0;
+    font-size: 14px;
+}
