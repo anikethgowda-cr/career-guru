@@ -1,5 +1,5 @@
 import express from "express"
-import { mentorRegister, mentorLogin, deleteMentor,createMentorProfile,showMentorProfile, showMentors,getCurrentMentor} from "../controller/mentor-cltr.js"
+import { mentorRegister, mentorLogin, deleteMentor, createMentorProfile, showMentorProfile, showMentors, getCurrentMentor, getMentees, getMentorDashboardData, updateMentorAvailability } from "../controller/mentor-cltr.js"
 import authenticateUser from "../middleware/authentication.js"
 import authenticateMentor from "../middleware/authenticateMentor.js"
 
@@ -15,5 +15,8 @@ mentorRouter.delete("/mentor/delete", authenticateUser, authenticateMentor,delet
 
 mentorRouter.post("/mentor/profile",authenticateUser, authenticateMentor,createMentorProfile)
 mentorRouter.get("/mentor/profile", authenticateUser, authenticateMentor, showMentorProfile)
+mentorRouter.get("/mentor/mentees", authenticateUser, authenticateMentor, getMentees)
+mentorRouter.get("/mentor/dashboard", authenticateUser, authenticateMentor, getMentorDashboardData)
+mentorRouter.patch("/mentor/availability", authenticateUser, authenticateMentor, updateMentorAvailability)
 
-export default mentorRouter
+export default mentorRouter

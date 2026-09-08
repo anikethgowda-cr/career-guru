@@ -62,7 +62,13 @@ const mentorProfileSchema = new mongoose.Schema(
 
         origin: {
             type: String
+        },
+
+        isAvailable: {
+            type: Boolean,
+            default: true
         }
+        
     }, { timestamps: true }
 );
 

@@ -1,5 +1,8 @@
 import User from "../models/userSchema.js";
 import MentorProfile from "../models/mentorProfileSchema.js";
+import UserProfile from "../models/userProfileSchema.js";
+import Conversation from "../models/conversationSchema.js";
+import Message from "../models/messageSchema.js";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -261,7 +264,7 @@ export const createMentorProfile = async (req, res) => {
 
 export const showMentors = async (req, res) => {
     try {
-        const mentors = await MentorProfile.find();
+        const mentors = await MentorProfile.find({ isAvailable: { $ne: false } });
 
         if (mentors.length === 0) {
             return res.status(404).json({
@@ -333,6 +336,147 @@ export const showMentorProfile = async (req, res) => {
 };
 
 
+export const getMentees = async (req, res) => {
+    try {
+        const mentorId = req.userId;
 
+        const conversations = await Conversation.find({ mentor: mentorId })
+            .populate("student", "username email phone")
+            .sort({ updatedAt: -1 });
 
- 
+        // Build mentees list — only include conversations with at least one message
+        const menteesData = await Promise.all(
+            conversations.map(async (conv) => {
+                const lastMessage = await Message.findOne({ conversation: conv._id })
+                    .sort({ createdAt: -1 })
+                    .select("message createdAt");
+
+                if (!lastMessage) return null; // skip empty conversations
+
+                const profile = await UserProfile.findOne({ userId: conv.student._id });
+
+                return {
+                    conversationId: conv._id,
+                    student: conv.student,
+                    profile: profile || null,
+                    lastMessage: {
+                        message: lastMessage.message,
+                        createdAt: lastMessage.createdAt
+                    }
+                };
+            })
+        );
+
+        const filtered = menteesData.filter(Boolean);
+
+        return res.status(200).json({
+            success: true,
+            data: filtered
+        });
+
+    } catch (err) {
+        console.error("GET MENTEES ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const getMentorDashboardData = async (req, res) => {
+    try {
+        const mentorId = req.userId;
+
+        const conversations = await Conversation.find({ mentor: mentorId })
+            .populate("student", "username email phone")
+            .sort({ updatedAt: -1 });
+
+        const mentorProfile = await MentorProfile.findOne({ userId: mentorId });
+
+        const menteesData = await Promise.all(
+            conversations.map(async (conv) => {
+                if (!conv.student) return null;
+
+                const lastMessage = await Message.findOne({ conversation: conv._id })
+                    .sort({ createdAt: -1 })
+                    .select("message createdAt");
+
+                if (!lastMessage) return null;
+
+                const profile = await UserProfile.findOne({ userId: conv.student._id });
+
+                return {
+                    conversationId: conv._id,
+                    student: conv.student,
+                    profile: profile || null,
+                    lastMessage: {
+                        message: lastMessage.message,
+                        createdAt: lastMessage.createdAt
+                    }
+                };
+            })
+        );
+
+        const filteredMentees = menteesData.filter(Boolean);
+
+        // Sort by lastMessage.createdAt descending so latest message mentees are first
+        filteredMentees.sort((a, b) => {
+            const timeA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
+            const timeB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
+            return timeB - timeA;
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                stats: {
+                    totalConversations: conversations.length,
+                    totalMentees: filteredMentees.length
+                },
+                availability: {
+                    isAvailable: mentorProfile ? (mentorProfile.isAvailable !== false) : true
+                },
+                recentMentees: filteredMentees.slice(0, 4)
+            }
+        });
+    } catch (err) {
+        console.error("GET MENTOR DASHBOARD ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const updateMentorAvailability = async (req, res) => {
+    try {
+        const mentorId = req.userId;
+        const { isAvailable } = req.body;
+
+        const mentorProfile = await MentorProfile.findOneAndUpdate(
+            { userId: mentorId },
+            { isAvailable },
+            { new: true }
+        );
+
+        if (!mentorProfile) {
+            return res.status(404).json({
+                success: false,
+                message: "Mentor profile not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Availability updated successfully",
+            data: { isAvailable: mentorProfile.isAvailable }
+        });
+    } catch (err) {
+        console.error("UPDATE AVAILABILITY ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+

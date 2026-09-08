@@ -215,6 +215,26 @@ const chatSocket = (io) => {
                 }
 
 
+                // Enforce private 1-on-1: verify sender matches their role's
+                // field in this conversation. Blocks cross-role impersonation.
+                const isAuthorized =
+                    socket.role === "mentor"
+                        ? conversation.mentor.toString() === socket.userId
+                        : conversation.student.toString() === socket.userId;
+
+                if (!isAuthorized) {
+
+                    const response = {
+                        success: false,
+                        message: "You are not authorized to send messages in this conversation"
+                    };
+
+                    if (callback) callback(response);
+
+                    return socket.emit("chatError", response);
+                }
+
+
                 // Save message to MongoDB
                 const newMessage = await Message.create({
 
