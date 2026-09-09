@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import Resume from "../models/resumeSchema.js";
 import aiService from "../services/aiServices.js";
 import ResumeAnalysis from "../models/resumeAnalysisSchema.js";
-
+import cloudinary from "../config/cloudinary.js";
 
 export const uploadResume = async (req, res) => {
   try {
@@ -17,22 +17,18 @@ export const uploadResume = async (req, res) => {
       userId: req.userId
     });
 
-    // If resume already exists, replace it
     if (existingResume) {
-
-      // Delete old physical resume file
       try {
-        await fs.unlink(existingResume.filePath);
+        await cloudinary.uploader.destroy(existingResume.publicId, {
+          resource_type: "raw"
+        });
       } catch (err) {
-        console.warn(
-          "Could not delete old resume:",
-          err.message
-        );
+        console.warn("Could not delete old resume:", err.message);
       }
 
-      // Update existing resume document
       existingResume.fileName = req.file.originalname;
       existingResume.filePath = req.file.path;
+      existingResume.publicId = req.file.filename;
 
       const updatedResume = await existingResume.save();
 
@@ -43,11 +39,11 @@ export const uploadResume = async (req, res) => {
       });
     }
 
-    // No existing resume → create new one
     const resume = await Resume.create({
       userId: req.userId,
       fileName: req.file.originalname,
-      filePath: req.file.path
+      filePath: req.file.path,
+      publicId: req.file.filename
     });
 
     return res.status(201).json({
@@ -57,20 +53,7 @@ export const uploadResume = async (req, res) => {
     });
 
   } catch (err) {
-
     console.error("UPLOAD ERROR:", err.message);
-
-    // Delete newly uploaded file if something failed
-    if (req.file?.path) {
-      try {
-        await fs.unlink(req.file.path);
-      } catch (err) {
-        console.warn(
-          "Could not delete uploaded resume:",
-          err.message
-        );
-      }
-    }
 
     return res.status(500).json({
       success: false,

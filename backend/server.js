@@ -20,6 +20,8 @@ import interviewQuestionsRoutes from "./routes/interviewQuestionsRoutes.js"
 import jobsRoutes from "./routes/jobsRoutes.js"
 import conversationRouter from "./routes/conversationRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
+import cloudinary from "./config/cloudinary.js";
+
 
 const app=express()
 const server = http.createServer(app);
@@ -50,7 +52,13 @@ app.use("/api",interviewQuestionsRoutes)
 app.use("/api",jobsRoutes)
 app.use("/api", conversationRouter)
 app.use("/api", paymentRouter);
+
+cloudinary.api.ping()
+    .then((result) => console.log("Cloudinary connected:", result))
+    .catch((error) => console.error("Cloudinary connection failed:", error));
+
 //Start Server
+
 server.listen(process.env.PORT,()=>{
     console.log("Server Is Running On Port "+ process.env.PORT);
 })
