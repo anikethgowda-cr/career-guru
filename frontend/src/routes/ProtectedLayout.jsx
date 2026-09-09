@@ -1,8 +1,11 @@
-import { Outlet } from "react-router-dom";
-import UserSidebar from "../components/shared/UserSidebar";
-import MentorSidebar from "../components/shared/MentorSidebar";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
+import { Outlet } from "react-router-dom";
+
+import UserSidebar from "../components/shared/UserSidebar";
+import MentorSidebar from "../components/shared/MentorSidebar";
+import Chatbot from "../components/shared/Chatbot";
+
 import { checkMentorAccess } from "../slices/user/PaymentSlice";
 
 export default function ProtectedLayout() {
@@ -24,6 +27,7 @@ export default function ProtectedLayout() {
                 <>
                     <UserSidebar />
                     <Outlet />
+                    <Chatbot />
                 </>
             ) : (
                 <>
