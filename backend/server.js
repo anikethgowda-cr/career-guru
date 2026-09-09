@@ -1,10 +1,10 @@
 import express from "express"
+import "dotenv/config";
 import cors from "cors"
 import http from "http";
 import { Server } from "socket.io";
 
-import dotenv from "dotenv"
-dotenv.config()
+
 
 import configureDb from "./config/db.js"
 configureDb()
@@ -19,6 +19,7 @@ import coursePlanRouter from "./routes/coursePlanRoutes.js";
 import interviewQuestionsRoutes from "./routes/interviewQuestionsRoutes.js"
 import jobsRoutes from "./routes/jobsRoutes.js"
 import conversationRouter from "./routes/conversationRoutes.js";
+import paymentRouter from "./routes/paymentRoutes.js";
 
 const app=express()
 const server = http.createServer(app);
@@ -48,7 +49,7 @@ app.use("/api", coursePlanRouter);
 app.use("/api",interviewQuestionsRoutes)
 app.use("/api",jobsRoutes)
 app.use("/api", conversationRouter)
-
+app.use("/api", paymentRouter);
 //Start Server
 server.listen(process.env.PORT,()=>{
     console.log("Server Is Running On Port "+ process.env.PORT);
