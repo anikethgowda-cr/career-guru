@@ -21,7 +21,7 @@ import jobsRoutes from "./routes/jobsRoutes.js"
 import conversationRouter from "./routes/conversationRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
 import cloudinary from "./config/cloudinary.js";
-
+import chatbotRouter from "./routes/chatbotRoutes.js";
 
 const app=express()
 const server = http.createServer(app);
@@ -52,6 +52,8 @@ app.use("/api",interviewQuestionsRoutes)
 app.use("/api",jobsRoutes)
 app.use("/api", conversationRouter)
 app.use("/api", paymentRouter);
+app.use("/api/chatbot", chatbotRouter);
+
 
 cloudinary.api.ping()
     .then((result) => console.log("Cloudinary connected:", result))
