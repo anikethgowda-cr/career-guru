@@ -1,10 +1,8 @@
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector,useDispatch } from "react-redux";
 import { fetchLearningPlan } from "../../../slices/user/LearningPlanSlice"
-import Topics from "./Topics";
-import Skills from "./Skills";
-import Materials from "./Materials";
+
 
 export default function WeekPlan() {
     const dispatch =useDispatch()
@@ -33,32 +31,33 @@ export default function WeekPlan() {
 
             {!loading && !serverError && week && (
                 <>
-                    <h1>Week {week.weekNumber}</h1>
-                    <h2>{week.overview}</h2>
-                
+                    <small>Week {week.weekNumber} - {week.overview}</small>
                     <table border={1}>
-
-                        <thead>
-                            <tr>
-                                <th>title</th>
-                                <th>topics</th>
-                                <th>skills</th>
-                                <th>reference</th>
-                            </tr>
-                        </thead>
-                        
-                        <tbody>
-                            {week.sessions.map((session,index)=>{
-                                return (
-                                    <tr key={index}>
-                                        <td>{session.title}</td>
-                                        <td><Topics topics={session.topics}/></td>
-                                        <td><Skills skills={session.skills}/></td>
-                                        <td><Materials materials={session.materials}/></td>
-                                    </tr>    
-                                )
-                            })}
-                        </tbody>
+                        {week?.sessions.map((plan,index)=>{
+                            return(
+                                <Fragment key={index}>
+                                    <thead>
+                                        <tr>
+                                            <th>Title:{plan.title} {"  "} <i>Skills{" "}:</i>{plan.skills.join(", ")}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Topics:{plan.topics.join(", ")}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <ol>{plan.materials.map((material,index)=>{
+                                                    return (
+                                                        <li key ={index}><a href={material.url} target="_blank">{material.name}</a>{" "}<small> {material.type}</small></li>
+                                                    )
+                                                })} </ol>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </Fragment>
+                            )
+                        })}
                     </table>
                 </>
             )} 

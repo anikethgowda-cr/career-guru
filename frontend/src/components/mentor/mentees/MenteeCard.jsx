@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import "./MenteeCard.css";
 
-export default function MenteeCard({ mentee }) {
+export default function MenteeCard({mentee,studentId}) {
     const navigate = useNavigate();
+
 
     const { conversationId, student, profile } = mentee;
 
@@ -10,6 +11,10 @@ export default function MenteeCard({ mentee }) {
 
     function handleViewChat() {
         navigate(`/mentor/chat/${conversationId}`);
+    }
+
+    function handleViewReport(){
+        navigate(`/mentor/mentees/report/${studentId}`)
     }
 
     return (
@@ -81,10 +86,18 @@ export default function MenteeCard({ mentee }) {
             <div className="mentee-buttons">
                 <button
                     className="mentee-chat-btn"
+                    onClick={handleViewReport}
+                >
+                    View Report
+                </button>
+                
+                <button
+                    className="mentee-chat-btn"
                     onClick={handleViewChat}
                 >
                     View Chat
                 </button>
+                
 
                 {profile?.linkedin && (
                     <a

@@ -149,7 +149,7 @@ export default function UserProfile() {
             <br />
 
             <label>LinkedIn:</label>
-            <input type="url" name="linkedin" value={formData.linkedin} onChange={handleFormData} placeholder="LinkedIn profile URL" />
+            <input type="text" name="linkedin" value={formData.linkedin} onChange={handleFormData} placeholder="LinkedIn profile URL" />
             <br />
 
             <label>Resume:</label>

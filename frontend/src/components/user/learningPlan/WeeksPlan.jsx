@@ -13,6 +13,7 @@ export default function WeeksPlan(){
     function handleNavigation(weekNumber){
         navigate(`/user/learning-plan/week/${weekNumber}`)
     }
+
     return (
         <>
         <h1>Weeks Plan</h1>

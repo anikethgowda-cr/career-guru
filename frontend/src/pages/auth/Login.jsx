@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
+import { checkMentorAccess } from "../../slices/user/PaymentSlice";
 
 import { loginUser } from "../../slices/AuthSlice";
 
@@ -26,6 +27,7 @@ export default function Login() {
 
         try {
             const result = await dispatch( loginUser({ formData, role })).unwrap();
+            dispatch(checkMentorAccess());
             setFormData({ email: "", password: "" });
 
             if (role === "user") {

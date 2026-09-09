@@ -12,6 +12,7 @@ import learningReducer from "./slices/user/LearningPlanSlice";
 import interviewQuestionsReducer from "./slices/user/InterviewQuestionsSlice";
 import jobsReducer from "./slices/user/JobsSlice";
 import mentorsReducer from "./slices/user/MentorSlice";
+import paymentReducer from "./slices/user/PaymentSlice";
 
 // Mentor slices
 import menteesReducer from "./slices/mentor/MenteesSlice";
@@ -30,6 +31,7 @@ const store = configureStore({
         interviewQuestions: interviewQuestionsReducer,
         jobs: jobsReducer,
         mentor: mentorsReducer,
+        payment: paymentReducer,
 
         // Mentor
         mentees: menteesReducer,

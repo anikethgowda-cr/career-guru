@@ -28,6 +28,7 @@ export default function Mentees() {
             </div>
         );
     }
+    
 
     return (
         <div className="mentees-page">
@@ -42,7 +43,7 @@ export default function Mentees() {
             ) : (
                 <div className="mentees-container">
                     {mentees.map((mentee) => (
-                        <MenteeCard key={mentee.conversationId} mentee={mentee} />
+                        <MenteeCard key={mentee.conversationId} mentee={mentee} studentId={mentee?.student._id}/>
                     ))}
                 </div>
             )}
