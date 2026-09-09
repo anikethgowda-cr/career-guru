@@ -16,6 +16,7 @@ export default function MenteeCard({mentee,studentId}) {
     function handleViewReport(){
         navigate(`/mentor/mentees/report/${studentId}`)
     }
+    
 
     return (
         <div className="mentee-card">
@@ -97,12 +98,11 @@ export default function MenteeCard({mentee,studentId}) {
                 >
                     View Chat
                 </button>
-                
 
                 {profile?.linkedin && (
                     <a
                         className="mentee-linkedin-btn"
-                        href={profile.linkedin}
+                        href={profile.linkedin.startsWith("http") ? profile.linkedin : `https://${profile.linkedin}`}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
