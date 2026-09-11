@@ -9,6 +9,7 @@ import ErrorBoundary from "../components/shared/ErrorBoundary";
 import Footer from "../components/shared/Footer";
 
 import { checkMentorAccess } from "../slices/user/PaymentSlice";
+import socket from "../services/socket";
 
 export default function ProtectedLayout() {
     const dispatch = useDispatch();
@@ -22,6 +23,22 @@ export default function ProtectedLayout() {
             dispatch(checkMentorAccess());
         }
     }, [user, dispatch]);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            socket.auth = { token };
+            if (!socket.connected) {
+                socket.connect();
+            }
+        }
+
+        return () => {
+            if (socket.connected) {
+                socket.disconnect();
+            }
+        };
+    }, [user]);
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex transition-colors duration-300">

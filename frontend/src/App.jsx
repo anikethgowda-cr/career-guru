@@ -34,6 +34,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleProtectedRoute from "./routes/RoleProtectedRoute";
 import ProtectedLayout from "./routes/ProtectedLayout";
 import MentorAccessRoute from "./routes/MentorAccessRoute";
+import { CallProvider } from "./context/CallContext.jsx";
 
 import { checkAuth } from "./slices/AuthSlice";
 
@@ -45,8 +46,9 @@ export default function App() {
     }, [dispatch]);
 
     return (
-        <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+        <CallProvider>
+            <Routes>
+                <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
 
@@ -91,5 +93,6 @@ export default function App() {
 
             </Route>
         </Routes>
+    </CallProvider>
     );
 }
