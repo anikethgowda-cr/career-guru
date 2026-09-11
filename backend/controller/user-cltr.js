@@ -1,6 +1,12 @@
 import User from "../models/userSchema.js";
 import UserProfile from "../models/userProfileSchema.js";
 import ResumeAnalysis from "../models/resumeAnalysisSchema.js";
+import CoursePlan from "../models/coursePlanSchema.js";
+import InterviewQuestions from "../models/interviewQuestionsSchema.js";
+import Resume from "../models/resumeSchema.js";
+import aiService from "../services/aiServices.js";
+import axios from "axios";
+import { PDFParse } from "pdf-parse";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -258,6 +264,194 @@ export const showProfile = async (req, res) => {
 
         console.error("SHOW PROFILE ERROR:", err);
 
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const updateProfile = async (req, res) => {
+    const userId = req.userId;
+    const {
+        username,
+        phone,
+        education,
+        experience,
+        preferredJobRole,
+        preferredSpecialization,
+        preferredLocation,
+        linkedin
+    } = req.body;
+
+    try {
+        const existingProfile = await UserProfile.findOne({ userId });
+
+        if (!existingProfile) {
+            return res.status(404).json({
+                success: false,
+                message: "Profile not found"
+            });
+        }
+
+        // Detect if preferredJobRole or preferredSpecialization changed
+        const currentRole = existingProfile.preferredJobRole || "";
+        const newRole = preferredJobRole || currentRole;
+
+        const currentSpecs = Array.isArray(existingProfile.preferredSpecialization)
+            ? [...existingProfile.preferredSpecialization].sort()
+            : [];
+        const newSpecs = Array.isArray(preferredSpecialization)
+            ? [...preferredSpecialization].sort()
+            : currentSpecs;
+
+        const roleChanged = currentRole !== newRole;
+        const specChanged = JSON.stringify(currentSpecs) !== JSON.stringify(newSpecs);
+        const careerTargetChanged = roleChanged || specChanged;
+
+        let reanalyzed = false;
+
+        if (careerTargetChanged) {
+            // Delete old Learning Plan and Interview Questions
+            await CoursePlan.deleteMany({ userId });
+            await InterviewQuestions.deleteMany({ userId });
+            await ResumeAnalysis.deleteMany({ userId });
+
+            // Check if user has uploaded resume in database
+            const userResume = await Resume.findOne({ userId });
+
+            if (userResume && userResume.filePath) {
+                try {
+                    const response = await axios.get(userResume.filePath, {
+                        responseType: "arraybuffer"
+                    });
+                    const parser = new PDFParse({ data: Buffer.from(response.data) });
+                    const parsed = await parser.getText();
+                    await parser.destroy();
+
+                    const resumeText = parsed.text;
+                    const specString = newSpecs.join(", ");
+
+                    const prompt = `
+              You are an expert ATS resume analyzer and career advisor.
+
+              Analyze the candidate's resume specifically for the candidate's preferred job role and preferred specialization.
+
+              PREFERRED JOB ROLE:
+              ${newRole}
+
+              PREFERRED SPECIALIZATION:
+              ${specString}
+
+              RESUME:
+              ${resumeText}
+
+              Analyze the resume based ONLY on:
+
+              1. Preferred Job Role
+              2. Preferred Specialization
+
+              Do not consider location, salary, company, or any other personal preference.
+
+              Requirements:
+
+              - Generate an ATS score from 0 to 100.
+              - Evaluate how well the resume matches the preferred job role.
+              - Evaluate how well the candidate's skills match the preferred specialization.
+              - Identify the candidate's strengths relevant to the role and specialization.
+              - Identify weaknesses or gaps relevant to the role and specialization.
+              - Provide practical suggestions to improve the resume.
+              - Identify important skills required for the role and specialization that are missing from the resume.
+              - Identify valuable skills already present in the resume that strengthen the candidate's profile.
+              - Do not mark a skill as missing if the candidate already has it in the resume.
+              - Focus only on skills relevant to the preferred role and specialization.
+              - Do not penalize the candidate because of missing location information.
+              - Do not invent skills that are not present in the resume.
+              - Keep missingSkills and valueAddingSkills as skill/keyword lists.
+              - Provide at least 4 strengths.
+              - Provide at least 4 weaknesses.
+              - Provide at least 4 suggestions.
+              - Return ONLY valid JSON.
+              - Do not use markdown.
+              - Do not wrap the JSON inside a code block.
+
+              Return exactly this structure:
+
+              {
+                  "roleAnalysis": {
+                      "role": "${newRole}",
+                      "specialization": "${specString}",
+                      "atsScore": 0,
+                      "strengths": [],
+                      "weaknesses": [],
+                      "suggestions": [],
+                      "missingSkills": [],
+                      "valueAddingSkills": []
+                  }
+              }
+              `;
+
+                    const analysisResult = await aiService(prompt);
+
+                    await ResumeAnalysis.create({
+                        userId,
+                        resumeId: userResume._id,
+                        roleAnalysis: analysisResult.roleAnalysis
+                    });
+
+                    reanalyzed = true;
+                } catch (aiErr) {
+                    console.error("AUTO RE-ANALYSIS ERROR ON PROFILE UPDATE:", aiErr.message);
+                }
+            }
+        }
+
+        // Update profile fields
+        if (education !== undefined) existingProfile.education = education;
+        if (experience !== undefined) existingProfile.experience = Number(experience);
+        if (preferredJobRole !== undefined) existingProfile.preferredJobRole = preferredJobRole;
+        if (preferredSpecialization !== undefined) existingProfile.preferredSpecialization = preferredSpecialization;
+        if (preferredLocation !== undefined) existingProfile.preferredLocation = preferredLocation;
+        if (linkedin !== undefined) existingProfile.linkedin = linkedin;
+
+        const updatedProfile = await existingProfile.save();
+
+        // Update User account fields if changed
+        const user = await User.findById(userId);
+        if (user) {
+            if (phone !== undefined) user.phone = phone;
+            if (username && username.trim() && username !== user.username) {
+                const usernameConflict = await User.findOne({
+                    username,
+                    role: "user",
+                    _id: { $ne: userId }
+                });
+                if (!usernameConflict) {
+                    user.username = username;
+                }
+            }
+            await user.save();
+        }
+
+        const userDetails = await User.findById(userId).select("username email phone role");
+
+        return res.status(200).json({
+            success: true,
+            message: careerTargetChanged
+                ? (reanalyzed
+                    ? "Profile updated. Career targets changed: old learning plan and interview questions were reset, and a new Resume Analysis was generated on the fly."
+                    : "Profile updated. Career targets changed: old learning plan and interview questions were reset. Please upload a resume to calculate ATS analysis.")
+                : "Profile updated successfully.",
+            careerTargetChanged,
+            reanalyzed,
+            data: {
+                user: userDetails,
+                profile: updatedProfile
+            }
+        });
+
+    } catch (err) {
+        console.error("UPDATE PROFILE ERROR:", err);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"

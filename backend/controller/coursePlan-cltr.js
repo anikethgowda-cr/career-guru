@@ -36,208 +36,343 @@ export const generateCoursePlan = async (req, res) => {
         } = roleAnalysis;
 
         const prompt = `
-              You are an expert career learning planner and technical mentor.
+            You are an expert career learning planner and technical mentor.
 
-              Create a personalized ${durationWeeks}-week learning plan for a candidate
-              preparing for the following role.
+            Create a personalized ${durationWeeks}-week learning plan for a candidate
+            preparing for the following role.
 
-              ROLE:
-              ${role}
+            ROLE:
+            ${role}
 
-              STRENGTHS:
-              ${JSON.stringify(strengths)}
+            STRENGTHS:
+            ${JSON.stringify(strengths)}
 
-              VALUE-ADDING SKILLS:
-              ${JSON.stringify(valueAddingSkills)}
+            VALUE-ADDING SKILLS:
+            ${JSON.stringify(valueAddingSkills)}
 
-              WEAKNESSES:
-              ${JSON.stringify(weaknesses)}
+            WEAKNESSES:
+            ${JSON.stringify(weaknesses)}
 
-              MISSING SKILLS:
-              ${JSON.stringify(missingSkills)}
+            MISSING SKILLS:
+            ${JSON.stringify(missingSkills)}
 
-              LEARNING STRATEGY:
+            LEARNING STRATEGY:
 
-              Week 1 must primarily focus on relevant existing skills, fundamentals,
-              revision and strengthening the candidate's current knowledge.
+            Week 1 must primarily focus on relevant existing skills, fundamentals,
+            revision and strengthening the candidate's current knowledge.
 
-              Use STRENGTHS and VALUE-ADDING SKILLS to determine which technologies
-              and concepts are actually relevant to the target role.
+            Use STRENGTHS and VALUE-ADDING SKILLS to determine which technologies
+            and concepts are actually relevant to the target role.
 
-              Do not include irrelevant skills simply because they appear in the
-              candidate's resume.
+            Do not include irrelevant skills simply because they appear in the
+            candidate's resume.
 
-              From Week 2 onwards, prioritize:
+            From Week 2 onwards, prioritize:
 
-              - Weaknesses
-              - Missing skills
-              - Important role-specific technologies
-              - Advanced concepts
+            - Weaknesses
+            - Missing skills
+            - Important role-specific technologies
+            - Advanced concepts
 
-              Follow a logical progression from fundamentals to intermediate and
-              advanced concepts.
+            Follow a logical progression from fundamentals to intermediate and
+            advanced concepts.
 
-              Always consider prerequisites.
+            Always consider prerequisites.
 
-              For example:
+            For example:
 
-              Docker
-              → Docker Compose
-              → CI/CD
-              → CI/CD with Docker
-              → Deployment
+            Docker
+            → Docker Compose
+            → CI/CD
+            → CI/CD with Docker
+            → Deployment
 
-              Do not teach advanced topics before their required fundamentals.
+            Do not teach advanced topics before their required fundamentals.
 
-              WEEK REQUIREMENTS:
+            WEEK REQUIREMENTS:
 
-              Generate exactly ${durationWeeks} weeks.
+            Generate exactly ${durationWeeks} weeks.
 
-              Week numbers must be:
+            Week numbers must be:
 
-              1, 2, 3, 4, 5, 6
+            1, 2, 3, 4, 5, 6
 
-              Do not generate fewer or more weeks.
+            Do not generate fewer or more weeks.
 
-              Do not use a fixed number of sessions per week.
+            Do not use a fixed number of sessions per week.
 
-              The number of sessions should depend on the complexity of the topics.
+            The number of sessions should depend on the complexity of the topics.
 
-              SESSION REQUIREMENTS:
+            SESSION REQUIREMENTS:
 
-              Every session must contain:
+            Every session must contain:
 
-              - title
-              - topics
-              - skills
-              - materials
+            - title
+            - topics
+            - skills
+            - materials
 
-              MATERIAL REQUIREMENTS:
+            MATERIAL REQUIREMENTS:
 
-              Every session should contain 2-4 useful learning resources.
+            Every session must contain 2-4 useful learning resources.
 
-              Resources may include:
+            IMPORTANT MATERIAL ORDER RULE:
 
-              - YouTube
-              - Official Documentation
-              - GitHub
-              - Research Paper
-              - Technical Article
-              - Book
-              - Practice Resource
+            The FIRST material in EVERY session MUST ALWAYS be a YouTube video.
 
-              Only include resources that are genuinely relevant to the session.
+            Therefore:
 
-              Prefer official and trusted resources.
+            materials[0].type MUST be exactly "YouTube".
 
-              For programming technologies, prioritize official documentation,
-              official tutorials and official GitHub repositories.
+            materials[0].url MUST be a direct YouTube video URL.
 
-              RESOURCE URL RULES:
+            The first material MUST be an actual educational YouTube video
+            directly related to the session topic.
 
-              Every URL must be a real URL.
+            YOUTUBE RECENCY REQUIREMENT:
 
-              Never invent, guess or fabricate URLs.
+            Every first YouTube video MUST have been published within the
+            previous 2 years from the current date.
 
-              Do not create fake YouTube video URLs.
+            Current date:
+            ${new Date().toISOString().split("T")[0]}
 
-              Do not create fake GitHub repository URLs.
+            Therefore, do NOT recommend videos older than 2 years.
 
-              Do not create fake research paper URLs.
+            Prefer videos published as recently as possible while still being
+            high-quality and directly relevant to the topic.
 
-              If a suitable resource cannot be verified, do not include it.
+            YOUTUBE POPULARITY REQUIREMENT:
 
-              Each material MUST contain:
+            The first YouTube video should preferably:
 
-              - name
-              - type
-              - url
-              - description
+            - Have a high number of views.
+            - Have strong viewer engagement.
+            - Come from a reputable educational or technical channel.
+            - Be widely used or recommended for learning the topic.
+            - Have clear and useful educational content.
+            - Be directly relevant to the exact session topic.
 
-              MATERIAL TYPE must be one of:
+            When multiple suitable videos exist, prioritize them in this order:
 
-              "YouTube"
-              "Official Documentation"
-              "GitHub"
-              "Research Paper"
-              "Article"
-              "Book"
-              "Practice"
+            1. Direct relevance to the session topic.
+            2. Published within the last 2 years.
+            3. High view count.
+            4. Strong viewer engagement.
+            5. Reputable educational/technical channel.
+            6. Technical accuracy.
+            7. Quality of explanation.
 
-              SCHEMA REQUIREMENTS:
+            Do NOT select an obscure or extremely low-view video if a
+            popular and trustworthy alternative exists.
 
-              The generated JSON MUST exactly match the following structure.
+            Do NOT sacrifice relevance just because another video has more views.
 
-              {
-                  "role": "${role}",
-                  "durationWeeks": ${durationWeeks},
-                  "weeks": [
-                      {
-                          "weekNumber": 1,
-                          "overview": "Short overview of the week's learning focus",
-                          "sessions": [
-                              {
-                                  "title": "Session title",
-                                  "topics": [
-                                      "Topic 1",
-                                      "Topic 2"
-                                  ],
-                                  "skills": [
-                                      "Skill 1",
-                                      "Skill 2"
-                                  ],
-                                  "materials": [
-                                      {
-                                          "name": "Resource name",
-                                          "type": "Official Documentation",
-                                          "url": "https://real-url.com",
-                                          "description": "Short explanation of the resource"
-                                      }
-                                  ]
-                              }
-                          ]
-                      }
-                  ]
-              }
+            YOUTUBE URL REQUIREMENTS:
 
-              STRICT JSON RULES:
+            Every first YouTube material MUST use one of these formats:
 
-              1. Return ONLY valid JSON.
+            https://www.youtube.com/watch?v=VIDEO_ID
 
-              2. Do not use markdown.
+            OR
 
-              3. Do not wrap the JSON inside a code block.
+            https://youtu.be/VIDEO_ID
 
-              4. Do not add explanations before or after the JSON.
+            The URL MUST point directly to a YouTube video.
 
-              5. Generate exactly ${durationWeeks} objects inside "weeks".
+            DO NOT use:
 
-              6. Every week must contain:
-                - weekNumber
-                - overview
-                - sessions
+            - YouTube channel URLs
+            - YouTube playlist URLs
+            - YouTube search URLs
+            - YouTube homepage URLs
+            - YouTube topic URLs
+            - YouTube Shorts unless they are genuinely the best educational
+              resource for the session
+            - Fake URLs
+            - Placeholder URLs
+            - Example URLs
+            - Made-up video IDs
 
-              7. Every session must contain:
-                - title
-                - topics
-                - skills
-                - materials
+            NEVER fabricate or guess a YouTube video ID.
 
-              8. Every material must contain:
+            NEVER generate a fake YouTube URL.
+
+            Only provide a YouTube URL when you can identify a real video.
+
+            REAL-TIME RESOURCE REQUIREMENT:
+
+            Learning resources should be current and relevant to modern
+            versions of the technology whenever possible.
+
+            For technologies that change frequently, prefer recently updated
+            resources.
+
+            Do not recommend outdated tutorials when a recent high-quality
+            alternative exists.
+
+            REMAINING MATERIALS:
+
+            The remaining materials may contain other useful learning resources.
+
+            Allowed resource types:
+
+            - YouTube
+            - Official Documentation
+            - GitHub
+            - Research Paper
+            - Article
+            - Book
+            - Practice
+
+            Only include resources that are genuinely relevant to the session.
+
+            Prefer official and trusted resources.
+
+            For programming technologies, prioritize:
+
+            - Official documentation
+            - Official tutorials
+            - Official GitHub repositories
+            - High-quality technical articles
+            - Reputable educational YouTube videos
+            - Current learning resources
+
+            Each material MUST contain:
+
+            - name
+            - type
+            - url
+            - description
+
+            MATERIAL TYPE must be exactly one of:
+
+            "YouTube"
+            "Official Documentation"
+            "GitHub"
+            "Research Paper"
+            "Article"
+            "Book"
+            "Practice"
+
+            SCHEMA REQUIREMENTS:
+
+            The generated JSON MUST exactly match the following structure.
+
+            {
+                "role": "${role}",
+                "durationWeeks": ${durationWeeks},
+                "weeks": [
+                    {
+                        "weekNumber": 1,
+                        "overview": "Short overview of the week's learning focus",
+                        "sessions": [
+                            {
+                                "title": "Session title",
+                                "topics": [
+                                    "Topic 1",
+                                    "Topic 2"
+                                ],
+                                "skills": [
+                                    "Skill 1",
+                                    "Skill 2"
+                                ],
+                                "materials": [
+                                    {
+                                        "name": "YouTube Video Title",
+                                        "type": "YouTube",
+                                        "url": "https://www.youtube.com/watch?v=REAL_VIDEO_ID",
+                                        "description": "Short explanation of the resource"
+                                    },
+                                    {
+                                        "name": "Official Documentation",
+                                        "type": "Official Documentation",
+                                        "url": "https://real-url.com",
+                                        "description": "Short explanation of the resource"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+
+            STRICT JSON RULES:
+
+            1. Return ONLY valid JSON.
+
+            2. Do not use markdown.
+
+            3. Do not wrap the JSON inside a code block.
+
+            4. Do not add explanations before or after the JSON.
+
+            5. Generate exactly ${durationWeeks} objects inside "weeks".
+
+            6. Week numbers MUST be exactly:
+               1, 2, 3, 4, 5, 6.
+
+            7. Every week must contain:
+               - weekNumber
+               - overview
+               - sessions
+
+            8. Every session must contain:
+               - title
+               - topics
+               - skills
+               - materials
+
+            9. Every session must contain 2-4 materials.
+
+            10. Every material must contain:
                 - name
                 - type
                 - url
                 - description
 
-              9. "topics" must always be an array of strings.
+            11. "topics" must always be an array of strings.
 
-              10. "skills" must always be an array of strings.
+            12. "skills" must always be an array of strings.
 
-              11. "materials" must always be an array of objects.
+            13. "materials" must always be an array of objects.
 
-              12. Do not add any fields that are not defined in this structure.
+            14. The FIRST material of EVERY session MUST be a YouTube video.
 
-              13. Do not add:
+            15. For EVERY session:
+                materials[0].type MUST equal "YouTube".
+
+            16. For EVERY session:
+                materials[0].url MUST be a direct YouTube video URL.
+
+            17. Every first YouTube video MUST have been published within
+                the previous 2 years.
+
+            18. Prefer highly viewed and popular YouTube videos.
+
+            19. Prefer reputable educational and technical channels.
+
+            20. Prefer recent videos when multiple videos have similar quality.
+
+            21. Never use a video older than 2 years for materials[0].
+
+            22. Never use a YouTube channel, playlist, search page or homepage
+                as materials[0].
+
+            23. Never fabricate, guess or invent YouTube video IDs.
+
+            24. Never generate fake or placeholder URLs.
+
+            25. The order of materials is important:
+
+                materials[0] = recent YouTube video
+
+                materials[1+] = other relevant learning resources
+
+            26. Do not add any fields that are not defined in this structure.
+
+            27. Do not add:
+
                 - projects
                 - assignments
                 - assessments
@@ -249,13 +384,13 @@ export const generateCoursePlan = async (req, res) => {
                 - notes
                 - exercises
 
-              14. Do not change field names.
+            28. Do not change field names.
 
-              15. Do not change the data types of fields.
+            29. Do not change the data types of fields.
 
-              16. The final JSON must be directly compatible with the CoursePlan
-                  MongoDB schema.
-              `;
+            30. The final JSON must be directly compatible with the
+                CoursePlan MongoDB schema.
+        `;
 
         console.log("GENERATING COURSE PLAN...");
 
@@ -299,7 +434,7 @@ export const generateCoursePlan = async (req, res) => {
 
 export const showCoursePlan = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.userId
 
     // Check whether course plan already exists
     const coursePlan = await CoursePlan.findOne({

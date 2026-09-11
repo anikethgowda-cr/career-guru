@@ -6,7 +6,7 @@ import aiService from "../services/aiServices.js";
 export const generateInterviewQuestions = async (req, res) => {
 
     const userId = req.userId;
-    const { questionDifficulty } = req.body;
+    const { questionDifficulty, specialization: selectedSpecialization } = req.body;
 
     try {
 
@@ -27,7 +27,9 @@ export const generateInterviewQuestions = async (req, res) => {
         }
 
         const role = userRecord.preferredJobRole;
-        const specialization = userRecord.preferredSpecialization.join(", ");
+        const specialization = selectedSpecialization && selectedSpecialization !== "all"
+            ? selectedSpecialization
+            : userRecord.preferredSpecialization.join(", ");
 
         const prompt = `You are an expert technical interviewer.
 

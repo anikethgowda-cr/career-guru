@@ -242,3 +242,72 @@ export const getResumeStatus = async (req, res) => {
         });
     }
 };
+
+export const getUserResume = async (req, res) => {
+    try {
+        const resume = await Resume.findOne({ userId: req.userId });
+
+        if (!resume) {
+            return res.status(200).json({
+                success: true,
+                hasResume: false,
+                data: null
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            hasResume: true,
+            data: resume
+        });
+
+    } catch (err) {
+        console.error("GET USER RESUME ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const deleteUserResume = async (req, res) => {
+    try {
+        const resume = await Resume.findOne({ userId: req.userId });
+
+        if (!resume) {
+            return res.status(404).json({
+                success: false,
+                message: "No resume found to delete"
+            });
+        }
+
+        // Delete from Cloudinary
+        try {
+            if (resume.publicId) {
+                await cloudinary.uploader.destroy(resume.publicId, {
+                    resource_type: "raw"
+                });
+            }
+        } catch (cloudErr) {
+            console.warn("Could not delete resume from Cloudinary:", cloudErr.message);
+        }
+
+        // Delete Resume document
+        await Resume.deleteOne({ userId: req.userId });
+
+        // Delete ResumeAnalysis document
+        await ResumeAnalysis.deleteMany({ userId: req.userId });
+
+        return res.status(200).json({
+            success: true,
+            message: "Resume and analysis report deleted successfully"
+        });
+
+    } catch (err) {
+        console.error("DELETE RESUME ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
