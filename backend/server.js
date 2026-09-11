@@ -23,7 +23,7 @@ import paymentRouter from "./routes/paymentRoutes.js";
 import cloudinary from "./config/cloudinary.js";
 import chatbotRouter from "./routes/chatbotRoutes.js";
 
-const app=express()
+const app = express()
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -44,12 +44,12 @@ app.use(cors())
 app.use(express.json())
 
 //Routes
-app.use("/api",userRouter)
-app.use("/api",mentorRouter)
-app.use("/api",resumeRouter)
+app.use("/api", userRouter)
+app.use("/api", mentorRouter)
+app.use("/api", resumeRouter)
 app.use("/api", coursePlanRouter);
-app.use("/api",interviewQuestionsRoutes)
-app.use("/api",jobsRoutes)
+app.use("/api", interviewQuestionsRoutes)
+app.use("/api", jobsRoutes)
 app.use("/api", conversationRouter)
 app.use("/api", paymentRouter);
 app.use("/api/chatbot", chatbotRouter);
@@ -61,6 +61,6 @@ cloudinary.api.ping()
 
 //Start Server
 
-server.listen(process.env.PORT,()=>{
-    console.log("Server Is Running On Port "+ process.env.PORT);
+server.listen(process.env.PORT, () => {
+    console.log("Server Is Running On Port " + process.env.PORT);
 })
