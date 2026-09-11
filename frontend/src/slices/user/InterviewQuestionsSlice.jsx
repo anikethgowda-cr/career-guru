@@ -30,9 +30,12 @@ export const fetchInterviewQuestions = createAsyncThunk("interviewQuestions/fetc
     }
 );
 
-export const generateInterviewQuestions = createAsyncThunk( "interviewQuestions/generateInterviewQuestions",async ({ difficulty }, thunkAPI) => {
+export const generateInterviewQuestions = createAsyncThunk( "interviewQuestions/generateInterviewQuestions",async ({ difficulty, specialization }, thunkAPI) => {
         try {
-            const response = await axios.post("/interview-questions/generate",{questionDifficulty: difficulty});
+            const response = await axios.post("/interview-questions/generate", {
+                questionDifficulty: difficulty,
+                specialization: specialization || "all"
+            });
             return response.data;
 
         } catch (err) {

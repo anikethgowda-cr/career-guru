@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+﻿import { useSelector } from "react-redux";
 
 export default function AtsSpeedometer() {
   const { data } = useSelector((state) => {
@@ -32,111 +32,26 @@ export default function AtsSpeedometer() {
   const circumference = Math.PI * radius;
   const filledLength = (validatedScore / 100) * circumference;
 
-  const styles = {
-    card: {
-      display: "inline-flex",
-      flexDirection: "column",
-      alignItems: "center",
-      backgroundColor: "#000000",
-      border: "1px solid #27272a",
-      padding: "24px",
-      borderRadius: "16px",
-      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.4)",
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      width: "260px",
-    },
-    header: {
-      fontSize: "13px",
-      fontWeight: "600",
-      color: "#d4d4d8",
-      textTransform: "uppercase",
-      letterSpacing: "0.05em",
-      marginBottom: "15px",
-    },
-    gaugeContainer: {
-      position: "relative",
-      width: "220px",
-      height: "175px",
-    },
-    svg: {
-      position: "absolute",
-      top: "0",
-      left: "0",
-      width: "220px",
-      height: "110px",
-      overflow: "visible",
-    },
-    needle: {
-      position: "absolute",
-      bottom: "65px",
-      left: "50%",
-      width: "4px",
-      height: "82px",
-      backgroundColor: "#ffffff",
-      borderRadius: "4px",
-      transformOrigin: "bottom center",
-      transform: `translateX(-50%) rotate(${needleRotation}deg)`,
-      transition: "transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)",
-      zIndex: 3,
-    },
-    centerHub: {
-      position: "absolute",
-      bottom: "57px",
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "18px",
-      height: "18px",
-      backgroundColor: "#ffffff",
-      border: "3px solid #000000",
-      borderRadius: "50%",
-      boxShadow: "0 2px 6px rgba(255, 255, 255, 0.2)",
-      zIndex: 4,
-    },
-    readout: {
-      position: "absolute",
-      bottom: "8px",
-      left: "0",
-      width: "100%",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "baseline",
-    },
-    scoreNumber: {
-      fontSize: "36px",
-      fontWeight: "800",
-      color: themeColor,
-      lineHeight: "1",
-    },
-    scoreUnit: {
-      fontSize: "18px",
-      fontWeight: "700",
-      color: themeColor,
-      marginLeft: "2px",
-    },
-    badge: {
-      fontSize: "12px",
-      fontWeight: "700",
-      letterSpacing: "0.025em",
-      padding: "7px 16px",
-      borderRadius: "9999px",
-      textTransform: "uppercase",
-      color: "#ffffff",
-      backgroundColor: themeColor,
-      transition: "background-color 0.5s ease",
-      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
-    },
-  };
-
   return (
-    <div style={styles.card}>
-      <div style={styles.header}>ATS Match Score</div>
+    <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-500 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 p-6 flex flex-col items-center justify-between text-center min-h-[320px]">
+      <div className="w-full flex items-center justify-between pb-3 border-b border-[#E2E8F0]/80 dark:border-zinc-800/80 mb-2">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+          ATS Match Score
+        </h3>
+        <span
+          className="text-xs font-bold px-2.5 py-0.5 rounded-full text-white shadow-xs"
+          style={{ backgroundColor: themeColor }}
+        >
+          {badgeText}
+        </span>
+      </div>
 
-      <div style={styles.gaugeContainer}>
-        <svg style={styles.svg} viewBox="0 0 220 110">
+      <div className="relative w-[220px] h-[140px] my-auto flex justify-center">
+        <svg className="w-[220px] h-[110px] overflow-visible" viewBox="0 0 220 110">
           <path
             d="M 20 100 A 90 90 0 0 1 200 100"
             fill="none"
-            stroke="#3f3f46"
+            className="stroke-[#E2E8F0] dark:stroke-zinc-800"
             strokeWidth="14"
             strokeLinecap="round"
           />
@@ -153,16 +68,30 @@ export default function AtsSpeedometer() {
           />
         </svg>
 
-        <div style={styles.needle}></div>
-        <div style={styles.centerHub}></div>
+        {/* Needle */}
+        <div
+          className="absolute bottom-[40px] left-1/2 w-[3px] h-[72px] bg-slate-800 dark:bg-white rounded-full origin-bottom z-10 transition-transform duration-1000 ease-out"
+          style={{
+            transform: `translateX(-50%) rotate(${needleRotation}deg)`,
+          }}
+        />
+        {/* Center Hub */}
+        <div className="absolute bottom-[32px] left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-slate-900 dark:bg-white border-2 border-[#FFFFFF] dark:border-zinc-900 shadow-sm z-20" />
 
-        <div style={styles.readout}>
-          <span style={styles.scoreNumber}>{validatedScore}</span>
-          <span style={styles.scoreUnit}>%</span>
+        {/* Readout */}
+        <div className="absolute bottom-0 left-0 right-0 flex items-baseline justify-center">
+          <span className="text-3xl font-extrabold tracking-tight" style={{ color: themeColor }}>
+            {validatedScore}
+          </span>
+          <span className="text-lg font-bold ml-0.5" style={{ color: themeColor }}>
+            %
+          </span>
         </div>
       </div>
 
-      <div style={styles.badge}>{badgeText}</div>
+      <p className="text-xs text-slate-500 dark:text-zinc-500 mt-2">
+        Based on keyword density & role benchmarks
+      </p>
     </div>
   );
 }

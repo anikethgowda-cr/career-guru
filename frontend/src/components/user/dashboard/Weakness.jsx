@@ -1,21 +1,53 @@
-import { useSelector } from "react-redux";
+﻿import { useSelector } from "react-redux";
 
 export default function Weakness() {
   const { data, serverError } = useSelector(
     (state) => state.dashboard
   );
 
+  const weaknesses = data?.roleAnalysis?.weaknesses || [];
+
   return (
-    <>
-      <h3 style={{ color: "lightgoldenrodyellow" }}>Improvements</h3>
+    <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-amber-500 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 p-6 flex flex-col min-h-[320px]">
+      <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]/80 dark:border-zinc-800/80 mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+              Areas for Improvement
+            </h3>
+            <span className="text-[11px] text-slate-400 dark:text-zinc-500">Growth opportunities</span>
+          </div>
+        </div>
+        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60">
+          {weaknesses.length} Points
+        </span>
+      </div>
 
-      {serverError && <p style={{ color: "red" }}>{serverError.status} - {serverError.message}</p>}
+      {serverError && (
+        <p className="mb-3 p-2 text-xs rounded-lg bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400">
+          {serverError?.status ? `${serverError.status} - ` : ""}{serverError?.message || (typeof serverError === "string" ? serverError : "Failed to load growth areas")}
+        </p>
+      )}
 
-      <ol style={{ color: "lightgoldenrodyellow" }}>
-        {data?.roleAnalysis?.weaknesses?.map((weakness, index) => (
-          <li key={index}>{weakness}</li>
-        ))}
-      </ol>
-    </>
+      {weaknesses.length === 0 ? (
+        <p className="text-xs text-slate-400 dark:text-zinc-500 my-auto text-center py-6">
+          No improvement areas identified.
+        </p>
+      ) : (
+        <ul className="space-y-2.5 flex-1">
+          {weaknesses.map((weakness, index) => (
+            <li key={index} className="flex items-start gap-2.5 p-2 rounded-xl bg-amber-50/40 dark:bg-zinc-800/30 border border-[#E2E8F0]/60 dark:border-zinc-800/60 text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+              <span className="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0" />
+              <span>{weakness}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

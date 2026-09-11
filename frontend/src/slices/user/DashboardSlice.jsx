@@ -22,7 +22,11 @@ export const dashboardSlice=createSlice({
     name:"dashboard",
     initialState,
     reducers:{
-
+        clearDashboardAnalysis: (state) => {
+            state.data = null;
+            state.loading = false;
+            state.serverError = null;
+        }
     },
     extraReducers:(builder)=>{
         builder.addCase(fetchResumeAnalysis.pending,(state,action)=>{
@@ -39,5 +43,7 @@ export const dashboardSlice=createSlice({
         })
     }
 })
+
+export const { clearDashboardAnalysis } = dashboardSlice.actions;
 
 export default dashboardSlice.reducer;

@@ -1,10 +1,27 @@
+﻿import { useEffect } from "react";
+
 export default function JobDetailsModal({ job, onClose }) {
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                onClose();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
 
     if (!job) return null;
 
     const formatSalary = () => {
         if (!job.salary_min && !job.salary_max) return null;
-        const fmt = (n) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+        const fmt = (n) =>
+            new Intl.NumberFormat("en-IN", {
+                style: "currency",
+                currency: "INR",
+                maximumFractionDigits: 0
+            }).format(n);
+
         if (job.salary_min && job.salary_max) return `${fmt(job.salary_min)} – ${fmt(job.salary_max)}`;
         if (job.salary_min) return `From ${fmt(job.salary_min)}`;
         if (job.salary_max) return `Up to ${fmt(job.salary_max)}`;
@@ -15,183 +32,142 @@ export default function JobDetailsModal({ job, onClose }) {
 
     const formatDate = (d) => {
         if (!d) return null;
-        try { return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }); }
-        catch { return d; }
+        try {
+            return new Date(d).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            });
+        } catch {
+            return d;
+        }
     };
 
     const getInitials = (name) => {
         if (!name) return "CG";
         const parts = name.trim().split(/\s+/);
-        return parts.length === 1 ? parts[0].slice(0, 2).toUpperCase() : (parts[0][0] + parts[1][0]).toUpperCase();
+        return parts.length === 1
+            ? parts[0].slice(0, 2).toUpperCase()
+            : (parts[0][0] + parts[1][0]).toUpperCase();
     };
-
-    /* ── shared tokens (mirrors JobCard) ── */
-    const cardBg     = "#E6F4FE";
-    const cardBorder = "#BFE2F8";
-    const blue       = "#1A5FC4";
-    const white      = "#FFFFFF";
-    const textDark   = "#181818";
-    const textMuted  = "#6B6B68";
-    const divider    = "#EEEDE7";
-    const overlayBg  = "rgba(15, 23, 42, 0.55)";
-    const shadow     = "0 12px 32px rgba(26,95,196,0.12)";
-    const btnHoverBg = "#D0E9FB";
-    const fontStack  = "'Segoe UI', system-ui, sans-serif";
 
     return (
         <div
             role="dialog"
             aria-modal="true"
-            tabIndex={-1}
-            autoFocus
-            onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
-            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-            style={{
-                position: "fixed", inset: 0,
-                backgroundColor: overlayBg,
-                backdropFilter: "blur(4px)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                zIndex: 1000, padding: 20, boxSizing: "border-box",
-                outline: "none",
+            aria-labelledby="job-modal-title"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose();
             }}
+            className="fixed inset-0 z-50 bg-slate-900/60 dark:bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
         >
-            <div
-                style={{
-                    background: cardBg,
-                    border: `1px solid ${cardBorder}`,
-                    borderRadius: 12,
-                    width: "100%", maxWidth: 560,
-                    maxHeight: "90vh",
-                    display: "flex", flexDirection: "column",
-                    boxShadow: shadow,
-                    overflow: "hidden",
-                    fontFamily: fontStack,
-                }}
-            >
-                {/* ── Header ── */}
-                <div style={{ padding: "20px 22px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-                    {/* Initials badge — same as JobCard */}
-                    <div
-                        style={{
-                            width: 44, height: 44, borderRadius: 10,
-                            background: white,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontWeight: 600, fontSize: 15, color: blue, flexShrink: 0,
-                        }}
-                    >
+            <div className="relative w-full max-w-xl bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-left transition-colors duration-300">
+                {/* Header */}
+                <div className="p-5 sm:p-6 flex items-start gap-3.5 border-b border-[#E2E8F0]/80 dark:border-zinc-800">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 dark:from-indigo-600 dark:to-indigo-700 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
                         {getInitials(job.company?.display_name)}
                     </div>
 
-                    {/* Title + Company */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 16, fontWeight: 600, color: textDark, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {job.company?.display_name || "Confidential Company"}
-                        </div>
-                        <div style={{ fontSize: 14, color: textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div className="flex-1 min-w-0 pr-2">
+                        <h3
+                            id="job-modal-title"
+                            className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate"
+                        >
                             {job.title}
-                        </div>
+                        </h3>
+                        <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 truncate mt-0.5">
+                            {job.company?.display_name || "Confidential Employer"}
+                        </p>
                     </div>
 
-                    {/* Close button */}
                     <button
+                        type="button"
                         onClick={onClose}
-                        aria-label="Close"
-                        style={{
-                            background: "none", border: "none", cursor: "pointer",
-                            fontSize: 18, color: textMuted, lineHeight: 1,
-                            padding: "4px 6px", borderRadius: 6, flexShrink: 0,
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = textDark; e.currentTarget.style.background = btnHoverBg; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = textMuted; e.currentTarget.style.background = "none"; }}
+                        aria-label="Close modal"
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-slate-200/50 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
                     >
-                        ✕
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
 
-                {/* ── Divider ── */}
-                <div style={{ height: 1, background: divider, margin: "0 22px" }} />
+                {/* Scrollable Content Body */}
+                <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-left text-xs sm:text-sm">
+                    {/* Location & Metadata Chips */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-zinc-400 text-xs font-medium">
+                            <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>{job.location?.display_name || "Location not specified"}</span>
+                        </div>
 
-                {/* ── Body (scrollable) ── */}
-                <div style={{ padding: "18px 22px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}>
-
-                    {/* Location row */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: textMuted }}>
-                        📍 {job.location?.display_name || "Location not specified"}
+                        <div className="flex flex-wrap gap-2">
+                            {job.category?.label && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-zinc-800 text-indigo-900 dark:text-zinc-300 border border-indigo-100 dark:border-zinc-700">
+                                    <span>🏷️</span>
+                                    <span>{job.category.label}</span>
+                                </span>
+                            )}
+                            {job.contract_time && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 capitalize">
+                                    <span>⏱️</span>
+                                    <span>{job.contract_time.replace(/_/g, " ")}</span>
+                                </span>
+                            )}
+                            {job.contract_type && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 capitalize">
+                                    <span>📄</span>
+                                    <span>{job.contract_type.replace(/_/g, " ")}</span>
+                                </span>
+                            )}
+                            {job.created && (
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700">
+                                    <span>📅</span>
+                                    <span>Posted {formatDate(job.created)}</span>
+                                </span>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Info chips: category, contract, date */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {job.category?.label && (
-                            <span style={{ fontSize: 13, fontWeight: 500, color: blue, background: white, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: "4px 12px" }}>
-                                🏷️ {job.category.label}
-                            </span>
-                        )}
-                        {job.contract_time && (
-                            <span style={{ fontSize: 13, fontWeight: 500, color: textMuted, background: white, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: "4px 12px", textTransform: "capitalize" }}>
-                                ⏱️ {job.contract_time.replace(/_/g, " ")}
-                            </span>
-                        )}
-                        {job.contract_type && (
-                            <span style={{ fontSize: 13, fontWeight: 500, color: textMuted, background: white, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: "4px 12px", textTransform: "capitalize" }}>
-                                📄 {job.contract_type.replace(/_/g, " ")}
-                            </span>
-                        )}
-                        {job.created && (
-                            <span style={{ fontSize: 13, fontWeight: 500, color: textMuted, background: white, border: `1px solid ${cardBorder}`, borderRadius: 8, padding: "4px 12px" }}>
-                                📅 {formatDate(job.created)}
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Salary */}
+                    {/* Salary Highlight Card */}
                     {formattedSalary && (
-                        <div style={{ background: white, border: `1px solid ${cardBorder}`, borderRadius: 10, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div className="p-4 rounded-xl bg-white dark:bg-zinc-950/60 border border-[#E2E8F0] dark:border-zinc-800 flex items-center justify-between">
                             <div>
-                                <div style={{ fontSize: 11, fontWeight: 600, color: textMuted, textTransform: "uppercase", letterSpacing: "0.5px" }}>Salary</div>
-                                <div style={{ fontSize: 16, fontWeight: 700, color: blue, marginTop: 2 }}>{formattedSalary}</div>
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">
+                                    Offered Compensation
+                                </span>
+                                <div className="text-base sm:text-lg font-extrabold text-indigo-700 dark:text-indigo-400 mt-0.5">
+                                    {formattedSalary}
+                                </div>
                             </div>
                             {job.salary_is_predicted === "1" && (
-                                <span style={{ fontSize: 12, color: textMuted, background: cardBg, border: `1px solid ${cardBorder}`, padding: "3px 8px", borderRadius: 6 }}>
+                                <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-50/60 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/60">
                                     Estimated
                                 </span>
                             )}
                         </div>
                     )}
 
-                    {/* Divider before description */}
-                    <div style={{ height: 1, background: divider }} />
-
                     {/* Description */}
-                    <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: textMuted, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                    <div className="space-y-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300">
                             Job Description
-                        </div>
-                        <div
-                            style={{
-                                fontSize: 14, lineHeight: 1.7, color: textDark,
-                                whiteSpace: "pre-line", maxHeight: 260, overflowY: "auto",
-                            }}
-                        >
-                            {job.description || "No description provided."}
+                        </h4>
+                        <div className="p-4 rounded-xl bg-white/70 dark:bg-zinc-950/40 border border-[#E2E8F0]/80 dark:border-zinc-800/80 max-h-64 overflow-y-auto text-slate-700 dark:text-zinc-300 text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+                            {job.description || "No full job description provided by the posting board."}
                         </div>
                     </div>
                 </div>
 
-                {/* ── Footer ── */}
-                <div
-                    style={{
-                        padding: "14px 22px",
-                        borderTop: `1px solid ${divider}`,
-                        display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10,
-                    }}
-                >
+                {/* Footer Actions */}
+                <div className="p-4 sm:p-5 border-t border-[#E2E8F0]/80 dark:border-zinc-800 flex items-center justify-end gap-3 bg-[#F8FAFC]/50 dark:bg-zinc-900/50">
                     <button
+                        type="button"
                         onClick={onClose}
-                        style={{
-                            padding: "8px 18px", borderRadius: 8,
-                            border: `1px solid ${cardBorder}`, background: white,
-                            color: textMuted, fontSize: 14, fontWeight: 500, cursor: "pointer",
-                        }}
+                        className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-200/60 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700 transition-colors cursor-pointer"
                     >
                         Close
                     </button>
@@ -201,15 +177,12 @@ export default function JobDetailsModal({ job, onClose }) {
                             href={job.redirect_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{
-                                display: "inline-flex", alignItems: "center",
-                                padding: "8px 20px", borderRadius: 8,
-                                background: blue, color: white,
-                                fontSize: 14, fontWeight: 500,
-                                textDecoration: "none", cursor: "pointer",
-                            }}
+                            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-violet-700 dark:from-indigo-600 dark:to-indigo-700 dark:hover:from-indigo-700 dark:hover:to-indigo-800 text-white font-semibold text-xs sm:text-sm shadow-md shadow-indigo-600/20 dark:shadow-indigo-600/30 transition-all duration-200 cursor-pointer"
                         >
-                            Apply ↗
+                            <span>Apply on Adzuna</span>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
                         </a>
                     )}
                 </div>

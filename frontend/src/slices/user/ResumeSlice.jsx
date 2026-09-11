@@ -44,6 +44,34 @@ export const analyzeResume = createAsyncThunk(  "resume/analyzeResume",async({ p
     }
 );
 
+export const fetchUserResume = createAsyncThunk(
+    "resume/fetchUserResume",
+    async (_, thunkAPI) => {
+        try {
+            const response = await axios.get("/resume");
+            return response.data;
+        } catch (err) {
+            return thunkAPI.rejectWithValue(
+                err.response?.data?.message || "Failed to fetch resume"
+            );
+        }
+    }
+);
+
+export const deleteUserResume = createAsyncThunk(
+    "resume/deleteUserResume",
+    async (_, thunkAPI) => {
+        try {
+            const response = await axios.delete("/resume");
+            return response.data;
+        } catch (err) {
+            return thunkAPI.rejectWithValue(
+                err.response?.data?.message || "Failed to delete resume"
+            );
+        }
+    }
+);
+
 const ResumeSlice = createSlice({
     name: "resume",
     initialState,
@@ -102,6 +130,19 @@ const ResumeSlice = createSlice({
                 state.analysisLoading = false;
                 state.analysisSuccess = false;
                 state.analysisError = action.payload;
+            })
+
+            // Fetch user resume
+            .addCase(fetchUserResume.fulfilled, (state, action) => {
+                state.data = action.payload.data;
+            })
+
+            // Delete user resume
+            .addCase(deleteUserResume.fulfilled, (state) => {
+                state.data = null;
+                state.analysis = null;
+                state.uploadSuccess = false;
+                state.analysisSuccess = false;
             });
     }
 });
