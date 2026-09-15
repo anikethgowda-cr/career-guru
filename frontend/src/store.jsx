@@ -13,10 +13,12 @@ import interviewQuestionsReducer from "./slices/user/InterviewQuestionsSlice";
 import jobsReducer from "./slices/user/JobsSlice";
 import mentorsReducer from "./slices/user/MentorSlice";
 import paymentReducer from "./slices/user/PaymentSlice";
+import userAssessmentReducer from "./slices/user/UserAssessmentSlice"
 
 // Mentor slices
 import menteesReducer from "./slices/mentor/MenteesSlice";
 import mentorDashboardReducer from "./slices/mentor/MentorDashboardSlice";
+import mentorAssessmentReducer from "./slices/mentor/MentorAssessmentSlice"
 
 const store = configureStore({
     reducer: {
@@ -31,11 +33,13 @@ const store = configureStore({
         interviewQuestions: interviewQuestionsReducer,
         jobs: jobsReducer,
         mentor: mentorsReducer,
+        userAssessment:userAssessmentReducer,
         payment: paymentReducer,
 
         // Mentor
         mentees: menteesReducer,
-        mentorDashboard: mentorDashboardReducer
+        mentorDashboard: mentorDashboardReducer,
+        mentorAssessment:mentorAssessmentReducer
     }
 })
 

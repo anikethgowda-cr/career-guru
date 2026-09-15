@@ -15,6 +15,8 @@ import MentorPayment from "./pages/user/MentorPayment";
 import ExploreMentors from "./pages/user/ExploreMentors";
 import MyMentors from "./pages/user/MyMentors";
 import UserChat from "./pages/user/UserChat";
+import Assessment from "./pages/user/Assessment";
+import Interview from "./components/user/assessment/Interview";
 import Profile from "./pages/user/Profile";
 import WeekPlan from "./components/user/learningPlan/WeekPlan";
 
@@ -24,6 +26,9 @@ import Mentees from "./pages/mentor/Mentees";
 import MenteesReport from "./pages/mentor/MenteesReport";
 import MentorMessages from "./pages/mentor/MentorMessages";
 import MentorChat from "./pages/mentor/MentorChat";
+import MentorAssessment from "./pages/mentor/MentorAssessment"
+import ManualAssessment from "./components/mentor/assessment/ManualAssessment";
+import AiAssessment from "./components/mentor/assessment/AiAssessment";
 
 // Shared
 import UserProfile from "./components/shared/UserProfile";
@@ -71,6 +76,8 @@ export default function App() {
                         <Route path="/user/mentor" element={<Navigate to="/user/explore-mentors" replace />} />
                         
                         <Route path="/user/mentor/chat/:mentorId" element={<UserChat />} />
+                        <Route path="/user/assessment" element={<Assessment />}/>
+                        <Route path="/user/assessment/:assessmentId/interview" element={<Interview/>}/>
                         <Route path="/user/profile" element={<Profile />} />
                     </Route>
                 </Route>
@@ -85,6 +92,9 @@ export default function App() {
                         <Route path="/mentor/mentees/report/:studentId" element={<MenteesReport />}/>
                         <Route path="/mentor/messages" element={<MentorMessages />} />
                         <Route path="/mentor/chat/:conversationId" element={<MentorChat />} />
+                        <Route path="/mentor/assessment" element={<MentorAssessment />} />
+                        <Route path="/mentor/assessment/manual" element={<ManualAssessment/>} />
+                        <Route path="/mentor/assessment/ai" element={<AiAssessment />}/>
                         <Route path="/mentor/profile" element={<Profile />} />
                     </Route>
                 </Route>

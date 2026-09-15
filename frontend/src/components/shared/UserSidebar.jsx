@@ -89,6 +89,24 @@ export default function UserSidebar() {
             )
         },
         {
+            name: "Assessment",
+            path: "/user/assessment",
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6.586a2 2 0 011.414.586l3.414 3.414A2 2 0 0119 8.414V19a2 2 0 01-2 2z" />
+                </svg>
+            )
+        },
+        {
+            name: "Assessment Report",
+            path: "/user/assessment/report",
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a3 3 0 006 0M9 5h6m-6 8l2 2 4-4" />
+                </svg>
+            )
+        },
+        {
             name: "Profile",
             path: "/user/profile",
             icon: (
