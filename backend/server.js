@@ -22,6 +22,7 @@ import conversationRouter from "./routes/conversationRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
 import cloudinary from "./config/cloudinary.js";
 import chatbotRouter from "./routes/chatbotRoutes.js";
+import assessmentRouter from "./routes/assessmentRoutes.js";
 
 const app=express()
 const server = http.createServer(app);
@@ -53,6 +54,7 @@ app.use("/api",jobsRoutes)
 app.use("/api", conversationRouter)
 app.use("/api", paymentRouter);
 app.use("/api/chatbot", chatbotRouter);
+app.use("/api",assessmentRouter)
 
 
 cloudinary.api.ping()
