@@ -1,7 +1,9 @@
 import Assessment from "../models/assessmentSchema.js";
 import AssessmentAttempt from "../models/assessmentAttemptSchema.js";
+import AssessmentReport from "../models/assessmentReportSchema.js";
 import aiService from "../services/aiServices.js";
 import cloudinary from "../config/cloudinary.js";
+import { Readable } from "stream";
 
 export const createManualAssessment = async(req,res)=>{
     try{
@@ -193,18 +195,12 @@ export const getStudentsAssessments = async(req,res)=>{
         })
         .populate("studentId","username")
         .populate("mentorId","username")
-
-        if(!assessment.length){
-            return res.status(404).json({
-                success:false,
-                message:"No Assessment Found"
-            })
-        }
+        .sort({ createdAt: -1 });
 
         return res.status(200).json({
             success:true,
             message:"Assessments Found",
-            data:assessment
+            data:assessment || []
         })
 
     }catch(err){
@@ -400,24 +396,30 @@ export const submitAssessment = async(req,res)=>{
         // Save responses
         attempt.responses = parsedResponses
 
-        // Upload video to Cloudinary
-        const uploadResult = await new Promise((resolve,reject)=>{
+        // Upload video to Cloudinary using chunked streaming to avoid timeout
+        const uploadResult = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder:"careerguru/interviews",
-                    resource_type:"video"
+                    folder: "careerguru/interviews",
+                    resource_type: "video",
+                    chunk_size: 6 * 1024 * 1024, // 6 MB chunks
+                    timeout: 120000              // 120 seconds per chunk
                 },
-                (error,result)=>{
-                    if(error){
-                        reject(error)
-                    }else{
-                        resolve(result)
+                (error, result) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result);
                     }
                 }
-            )
+            );
 
-            uploadStream.end(req.file.buffer)
-        })
+            // Convert buffer to readable stream and pipe — prevents single-shot timeout
+            const readableStream = new Readable();
+            readableStream.push(req.file.buffer);
+            readableStream.push(null);
+            readableStream.pipe(uploadStream);
+        });
 
         console.log("Cloudinary upload successful")
         console.log("Cloudinary URL:",uploadResult.secure_url)
@@ -453,4 +455,282 @@ export const submitAssessment = async(req,res)=>{
     }
 }
 
+export const getMentorAssessments = async (req, res) => {
+    try {
+        const mentorId = req.userId;
 
+        const assessments = await Assessment.find({
+            mentorId
+        })
+            .populate("studentId", "username email")
+            .populate("mentorId", "username email")
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            message: "Mentor assessments found",
+            data: assessments
+        });
+    } catch (err) {
+        console.log("Get Mentor Assessments Error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const getAssessmentReport = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { assessmentId } = req.params;
+
+        if (!assessmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "Assessment ID is required"
+            });
+        }
+
+        const assessment = await Assessment.findById(assessmentId)
+            .populate("studentId", "username email")
+            .populate("mentorId", "username email");
+
+        if (!assessment) {
+            return res.status(404).json({
+                success: false,
+                message: "Assessment Not Found"
+            });
+        }
+
+        // Validate access: must be the student or mentor of this assessment
+        const studentUserId = String(assessment.studentId?._id || assessment.studentId);
+        const mentorUserId = String(assessment.mentorId?._id || assessment.mentorId);
+
+        if (studentUserId !== String(userId) && mentorUserId !== String(userId)) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to view this report"
+            });
+        }
+
+        // 1. Check if report already exists in DB
+        const existingReport = await AssessmentReport.findOne({ assessmentId })
+            .populate("studentId", "username email")
+            .populate("mentorId", "username email")
+            .populate("assessmentId", "title targetRole difficulty questions status");
+
+        if (existingReport) {
+            return res.status(200).json({
+                success: true,
+                message: "Assessment report fetched from database",
+                data: existingReport
+            });
+        }
+
+        // 2. Report not in DB -> Check completed attempt
+        const attempt = await AssessmentAttempt.findOne({
+            assessmentId,
+            status: "completed"
+        });
+
+        if (!attempt) {
+            return res.status(400).json({
+                success: false,
+                message: "Assessment has not been completed yet."
+            });
+        }
+
+        const responses = attempt.responses || [];
+        if (!responses.length) {
+            return res.status(400).json({
+                success: false,
+                message: "No question responses found for this assessment."
+            });
+        }
+
+        // 3. Generate AI report based on question and speech transcript (no video)
+        const prompt = `
+You are an expert technical interviewer and hiring evaluator.
+Analyze the candidate's interview responses for each question and provide an overall assessment report.
+Evaluation must be based ONLY on the question text and candidate's transcribed answers provided below.
+
+Assessment Context:
+- Target Role: ${assessment.targetRole}
+- Assessment Title: ${assessment.title}
+- Difficulty Level: ${assessment.difficulty}
+
+Questions and Candidate Transcripts:
+${JSON.stringify(
+    responses.map((r, i) => ({
+        questionIndex: i + 1,
+        questionId: String(r.questionId),
+        question: r.question,
+        transcript: r.transcript ? r.transcript.trim() : "No answer spoken or recorded"
+    })),
+    null,
+    2
+)}
+
+Instructions:
+1. For EACH question:
+   - score: Rating from 1 to 10 based on relevance, technical accuracy, clarity, and depth. (Give 1-3 if transcript is empty, incoherent, or missing).
+   - feedback: 2-3 constructive sentences detailing what was good and what was lacking.
+   - strengths: Array of 1-3 bullet points highlighting positive elements.
+   - improvements: Array of 1-3 bullet points highlighting clear improvement points.
+   - idealAnswer: A concise summary paragraph of what a strong, ideal answer for this question should cover.
+2. For OVERALL performance:
+   - overallScore: Integer from 0 to 100 (weighted aggregate of question scores).
+   - technicalScore: Integer from 0 to 100 representing technical knowledge demonstrated.
+   - communicationScore: Integer from 0 to 100 representing clarity and articulation.
+   - overallSummary: A comprehensive 3-5 sentence executive summary of the candidate's interview performance against the target role of ${assessment.targetRole}.
+   - strengths: Array of 3-5 high-level strengths observed across the whole interview.
+   - areasForImprovement: Array of 3-5 actionable recommendations for the candidate.
+   - finalRecommendation: Strictly one of: "Strong Hire", "Hire", "Needs Practice", "Not Ready".
+
+Return ONLY a valid JSON object strictly matching this format:
+{
+    "overallReport": {
+        "overallScore": 82,
+        "technicalScore": 80,
+        "communicationScore": 85,
+        "overallSummary": "...",
+        "strengths": ["...", "..."],
+        "areasForImprovement": ["...", "..."],
+        "finalRecommendation": "Hire"
+    },
+    "questionAnalysis": [
+        {
+            "questionId": "...",
+            "question": "...",
+            "transcript": "...",
+            "score": 8,
+            "feedback": "...",
+            "strengths": ["..."],
+            "improvements": ["..."],
+            "idealAnswer": "..."
+        }
+    ]
+}
+`;
+
+        console.log("Generating AI assessment report for assessment:", assessmentId);
+        const aiResult = await aiService(prompt);
+
+        if (!aiResult || !aiResult.overallReport) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to generate AI evaluation report"
+            });
+        }
+
+        // Align questionId properly with original responses
+        const formattedQuestionAnalysis = (aiResult.questionAnalysis || []).map((qAnalysis, index) => {
+            const original = responses[index] || {};
+            return {
+                questionId: original.questionId || qAnalysis.questionId,
+                question: original.question || qAnalysis.question,
+                transcript: original.transcript || qAnalysis.transcript || "",
+                score: typeof qAnalysis.score === "number" ? qAnalysis.score : 0,
+                feedback: qAnalysis.feedback || "",
+                strengths: Array.isArray(qAnalysis.strengths) ? qAnalysis.strengths : [],
+                improvements: Array.isArray(qAnalysis.improvements) ? qAnalysis.improvements : [],
+                idealAnswer: qAnalysis.idealAnswer || ""
+            };
+        });
+
+        // 4. Save the generated report to MongoDB
+        const newReport = await AssessmentReport.create({
+            assessmentId: assessment._id,
+            attemptId: attempt._id,
+            studentId: assessment.studentId._id || assessment.studentId,
+            mentorId: assessment.mentorId._id || assessment.mentorId,
+            targetRole: assessment.targetRole,
+            videoURL: attempt.videoURL || "",
+            overallReport: {
+                overallScore: aiResult.overallReport.overallScore || 0,
+                technicalScore: aiResult.overallReport.technicalScore || 0,
+                communicationScore: aiResult.overallReport.communicationScore || 0,
+                overallSummary: aiResult.overallReport.overallSummary || "",
+                strengths: Array.isArray(aiResult.overallReport.strengths) ? aiResult.overallReport.strengths : [],
+                areasForImprovement: Array.isArray(aiResult.overallReport.areasForImprovement) ? aiResult.overallReport.areasForImprovement : [],
+                finalRecommendation: aiResult.overallReport.finalRecommendation || "Needs Practice"
+            },
+            questionAnalysis: formattedQuestionAnalysis
+        });
+
+        // Update overall score in attempt
+        attempt.overAllScore = newReport.overallReport.overallScore;
+        await attempt.save();
+
+        const populatedReport = await AssessmentReport.findById(newReport._id)
+            .populate("studentId", "username email")
+            .populate("mentorId", "username email")
+            .populate("assessmentId", "title targetRole difficulty questions status");
+
+        console.log("AI assessment report saved to DB successfully:", newReport._id);
+
+        return res.status(201).json({
+            success: true,
+            message: "Assessment report generated and saved successfully",
+            data: populatedReport
+        });
+
+    } catch (err) {
+        console.log("Get/Generate Assessment Report Error:", err);
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Internal Server Error"
+        });
+    }
+};
+
+export const deleteAssessment = async (req, res) => {
+    try {
+        const mentorId = req.userId;
+        const { assessmentId } = req.params;
+
+        if (!assessmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "Assessment ID is required"
+            });
+        }
+
+        const assessment = await Assessment.findById(assessmentId);
+
+        if (!assessment) {
+            return res.status(404).json({
+                success: false,
+                message: "Assessment not found"
+            });
+        }
+
+        // Verify that this mentor owns the assessment
+        if (String(assessment.mentorId) !== String(mentorId)) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to delete this assessment"
+            });
+        }
+
+        // Remove associated attempts and reports if any
+        await AssessmentAttempt.deleteMany({ assessmentId });
+        await AssessmentReport.deleteMany({ assessmentId });
+
+        // Delete the assessment
+        await Assessment.findByIdAndDelete(assessmentId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Assessment deleted successfully",
+            data: { assessmentId }
+        });
+    } catch (err) {
+        console.log("Delete Assessment Error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
