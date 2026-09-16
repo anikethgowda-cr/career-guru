@@ -4,6 +4,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import authReducer from "./slices/AuthSlice";
 import profileReducer from "./slices/ProfileSlice";
 import mentorChatReducer from "./slices/MentorChatSlice";
+import assessmentReportReducer from "./slices/AssessmentReportSlice";
 
 // User slices
 import resumeReducer from "./slices/user/ResumeSlice";
@@ -25,6 +26,7 @@ const store = configureStore({
         auth: authReducer,
         profile: profileReducer,
         mentorChat: mentorChatReducer,
+        assessmentReport: assessmentReportReducer,
 
         // User
         resume: resumeReducer,

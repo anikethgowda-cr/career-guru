@@ -63,7 +63,12 @@ export const submitAssessment = createAsyncThunk(
     "userAssessment/submitAssessment",
     async (formData, thunkAPI) => {
         try {
-            const response = await axios.post("/assessment/submit", formData);
+            const response = await axios.post("/assessment/submit", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                },
+                timeout: 5 * 60 * 1000 // 5 minutes timeout for video upload
+            });
             return response.data;
         } catch (err) {
             return thunkAPI.rejectWithValue({
@@ -92,7 +97,15 @@ const UserAssessmentSlice = createSlice({
                 state.serverError = null;
             })
             .addCase(fetchAssessments.rejected, (state, action) => {
-                state.serverError = action.payload;
+                if (action.payload?.status === 404) {
+                    state.assessments = [];
+                    state.serverError = null;
+                } else {
+                    state.serverError =
+                        typeof action.payload === "string"
+                            ? action.payload
+                            : action.payload?.message || "Failed to fetch assessments";
+                }
                 state.loading = false;
             })
             .addCase(createAssessmentAttempt.pending, (state) => {
