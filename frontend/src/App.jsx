@@ -18,6 +18,7 @@ import UserChat from "./pages/user/UserChat";
 import Assessment from "./pages/user/Assessment";
 import Interview from "./components/user/assessment/Interview";
 import AssessmentReport from "./pages/user/AssessmentReport";
+import AssessmentReportFullPage from "./components/shared/AssessmentReportFullPage";
 import Profile from "./pages/user/Profile";
 import WeekPlan from "./components/user/learningPlan/WeekPlan";
 
@@ -80,7 +81,8 @@ export default function App() {
                         <Route path="/user/mentor/chat/:mentorId" element={<UserChat />} />
                         <Route path="/user/assessment" element={<Assessment />}/>
                         <Route path="/user/assessment/:assessmentId/interview" element={<Interview/>}/>
-                        <Route path="/user/assessment-report" element={<AssessmentReport/>}  />
+                        <Route path="/user/assessment-report" element={<AssessmentReport />} />
+                        <Route path="/user/assessment-report/:assessmentId" element={<AssessmentReportFullPage role="user" />} />
                         <Route path="/user/profile" element={<Profile />} />
                     </Route>
                 </Route>
@@ -99,6 +101,7 @@ export default function App() {
                         <Route path="/mentor/assessment/manual" element={<ManualAssessment/>} />
                         <Route path="/mentor/assessment/ai" element={<AiAssessment />}/>
                         <Route path="/mentor/assessment-report" element={<MentorAssessmentReport/>}/>
+                        <Route path="/mentor/assessment-report/:assessmentId" element={<AssessmentReportFullPage role="mentor" />} />
                         <Route path="/mentor/profile" element={<Profile />} />
                     </Route>
                 </Route>

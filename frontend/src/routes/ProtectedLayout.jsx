@@ -24,7 +24,7 @@ export default function ProtectedLayout() {
     }, [user, dispatch]);
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex transition-colors duration-300">
+        <div className="min-h-screen bg-bg-app text-text-primary flex theme-transition">
             {user?.role === "user" ? (
                 <>
                     <UserSidebar />
@@ -53,4 +53,4 @@ export default function ProtectedLayout() {
             )}
         </div>
     );
-}
+}

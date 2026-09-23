@@ -31,17 +31,17 @@ export default function Questions() {
     const getDifficultyBadge = (difficulty) => {
         const diff = (difficulty || "").toLowerCase();
         if (diff === "beginner") {
-            return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/50";
+            return "bg-status-success-subtle text-status-success border border-status-success/20";
         }
         if (diff === "advanced") {
-            return "bg-purple-100/80 text-purple-800 dark:bg-purple-950/60 dark:text-purple-400 border border-purple-200/60 dark:border-purple-900/50";
+            return "bg-status-warning-subtle text-status-warning border border-status-warning/20";
         }
-        return "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50";
+        return "bg-brand-subtle text-brand-primary border border-brand-primary/20";
     };
 
     if (questions.length === 0) {
         return (
-            <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 rounded-2xl p-8 text-center text-slate-500 dark:text-zinc-400 text-xs">
+            <div className="bg-bg-surface border border-border-default rounded-xl p-8 text-center text-text-muted text-xs shadow-subtle">
                 No interview questions found for this configuration.
             </div>
         );
@@ -50,11 +50,11 @@ export default function Questions() {
     return (
         <div className="space-y-4 text-left">
             {/* Header info */}
-            <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]/80 dark:border-zinc-800">
-                <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+            <div className="flex items-center justify-between pb-2 border-b border-border-default">
+                <span className="text-xs font-semibold text-text-secondary">
                     {questions.length} Question{questions.length === 1 ? "" : "s"} Curated
                 </span>
-                <span className="text-[11px] text-slate-400 dark:text-zinc-500">
+                <span className="text-[11px] text-text-muted">
                     Click any question to view the model response
                 </span>
             </div>
@@ -67,10 +67,10 @@ export default function Questions() {
                     return (
                         <div
                             key={ele._id || index}
-                            className={`bg-[#FFFFFF] dark:bg-zinc-900 border rounded-2xl shadow-xs transition-all duration-200 overflow-hidden ${
+                            className={`bg-bg-surface border rounded-xl shadow-subtle transition-all duration-200 overflow-hidden ${
                                 isOpen
-                                    ? "border-indigo-400 dark:border-indigo-500 shadow-sm"
-                                    : "border-[#E2E8F0] dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-zinc-700"
+                                    ? "border-brand-primary/60 shadow-card"
+                                    : "border-border-default hover:border-border-strong"
                             }`}
                         >
                             {/* Question Header Button */}
@@ -81,7 +81,7 @@ export default function Questions() {
                             >
                                 <div className="space-y-2.5 flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700">
+                                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-bg-muted text-text-secondary border border-border-default">
                                             Q{index + 1 < 10 ? `0${index + 1}` : index + 1}
                                         </span>
 
@@ -90,25 +90,25 @@ export default function Questions() {
                                         </span>
                                     </div>
 
-                                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors leading-snug">
+                                    <h3 className="text-sm sm:text-base font-bold text-text-primary group-hover:text-brand-primary transition-colors leading-snug">
                                         {ele.question}
                                     </h3>
                                 </div>
 
                                 <div className="flex items-center gap-2 shrink-0 pt-1">
-                                    <span className="hidden sm:inline text-xs font-semibold text-slate-500 dark:text-zinc-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                    <span className="hidden sm:inline text-xs font-medium text-text-muted group-hover:text-brand-primary">
                                         {isOpen ? "Hide Answer" : "View Answer"}
                                     </span>
-                                    <div className="w-8 h-8 rounded-xl bg-indigo-50/60 dark:bg-zinc-800 flex items-center justify-center border border-indigo-100 dark:border-zinc-700/60 group-hover:bg-indigo-100/70 dark:group-hover:bg-zinc-700 transition-colors">
+                                    <div className="w-8 h-8 rounded-lg bg-bg-muted flex items-center justify-center border border-border-default group-hover:border-brand-primary/40 transition-colors">
                                         <svg
-                                            className={`w-4 h-4 text-slate-600 dark:text-zinc-300 transition-transform duration-200 ${
-                                                isOpen ? "rotate-180 text-indigo-600 dark:text-indigo-400" : ""
+                                            className={`w-4 h-4 text-text-muted transition-transform duration-200 ${
+                                                isOpen ? "rotate-180 text-brand-primary" : ""
                                             }`}
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor"
                                         >
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M19 9l-7 7-7-7" />
                                         </svg>
                                     </div>
                                 </div>
@@ -116,11 +116,11 @@ export default function Questions() {
 
                             {/* Collapsible Model Answer */}
                             {isOpen && (
-                                <div className="px-5 sm:px-6 pb-6 pt-2 bg-indigo-50/60 dark:bg-zinc-950/60 border-t border-[#E2E8F0]/80 dark:border-zinc-800/80 space-y-4 text-left">
+                                <div className="px-5 sm:px-6 pb-6 pt-2 bg-bg-muted/40 border-t border-border-default space-y-4 text-left">
                                     <div className="flex items-center justify-between pt-2">
-                                        <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-2">
-                                            <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <span className="text-xs font-bold text-text-primary flex items-center gap-2">
+                                            <svg className="w-4 h-4 text-status-success shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Model Answer & Talking Points
                                         </span>
@@ -129,20 +129,20 @@ export default function Questions() {
                                             <button
                                                 type="button"
                                                 onClick={() => handleCopyAnswer(ele.answer, ele._id)}
-                                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-700 shadow-2xs hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+                                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-text-secondary hover:text-text-primary bg-bg-surface border border-border-default shadow-xs hover:bg-bg-muted transition-all cursor-pointer"
                                                 title="Copy talking points"
                                             >
                                                 {copiedId === ele._id ? (
                                                     <>
-                                                        <svg className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                                        <svg className="w-3.5 h-3.5 text-status-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M5 13l4 4L19 7" />
                                                         </svg>
-                                                        <span className="text-emerald-600 dark:text-emerald-400">Copied</span>
+                                                        <span className="text-status-success">Copied</span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <svg className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                        <svg className="w-3.5 h-3.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                         </svg>
                                                         <span>Copy</span>
                                                     </>
@@ -156,15 +156,15 @@ export default function Questions() {
                                             {ele.answer.map((item, aIdx) => (
                                                 <li
                                                     key={aIdx}
-                                                    className="flex items-start gap-3 p-2.5 rounded-xl bg-white/70 dark:bg-zinc-900/60 border border-[#E2E8F0]/60 dark:border-zinc-800/60 text-xs sm:text-sm text-slate-700 dark:text-zinc-300 leading-relaxed shadow-2xs"
+                                                    className="flex items-start gap-3 p-3 rounded-lg bg-bg-surface border border-border-default text-xs sm:text-sm text-text-secondary leading-relaxed shadow-xs"
                                                 >
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0"></span>
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-status-success mt-2 shrink-0"></span>
                                                     <span>{item}</span>
                                                 </li>
                                             ))}
                                         </ul>
                                     ) : (
-                                        <p className="text-xs sm:text-sm text-slate-700 dark:text-zinc-300">
+                                        <p className="text-xs sm:text-sm text-text-secondary">
                                             {ele.answer}
                                         </p>
                                     )}

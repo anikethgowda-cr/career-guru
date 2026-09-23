@@ -53,6 +53,21 @@ export const updateProfileDetails = createAsyncThunk(
     }
 );
 
+export const deleteUserAccount = createAsyncThunk(
+    "profile/deleteUserAccount",
+    async (_, thunkAPI) => {
+        try {
+            const response = await axios.delete("/user/delete");
+            return response.data;
+        } catch (err) {
+            return thunkAPI.rejectWithValue(
+                err.response?.data?.message ||
+                "Failed to delete user account"
+            );
+        }
+    }
+);
+
 const ProfileSlice = createSlice({
     name: "profile",
     initialState,
@@ -117,6 +132,23 @@ const ProfileSlice = createSlice({
                 state.success = true;
             })
             .addCase(updateProfileDetails.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+                state.success = false;
+            })
+
+            // Delete user account
+            .addCase(deleteUserAccount.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteUserAccount.fulfilled, (state) => {
+                state.loading = false;
+                state.data = null;
+                state.error = null;
+                state.success = true;
+            })
+            .addCase(deleteUserAccount.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
                 state.success = false;

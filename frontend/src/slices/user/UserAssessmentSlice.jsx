@@ -61,14 +61,10 @@ export const fetchAssessmentById = createAsyncThunk("userAssessment/fetchAssessm
 
 export const submitAssessment = createAsyncThunk(
     "userAssessment/submitAssessment",
-    async (formData, thunkAPI) => {
+    async (payload, thunkAPI) => {
         try {
-            const response = await axios.post("/assessment/submit", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                },
-                timeout: 5 * 60 * 1000 // 5 minutes timeout for video upload
-            });
+            // payload = { attemptId, responses, videoURL, videoPublicId }
+            const response = await axios.post("/assessment/submit", payload);
             return response.data;
         } catch (err) {
             return thunkAPI.rejectWithValue({
@@ -78,6 +74,7 @@ export const submitAssessment = createAsyncThunk(
         }
     }
 );
+
 
 const UserAssessmentSlice = createSlice({
     name:"userAssessment",

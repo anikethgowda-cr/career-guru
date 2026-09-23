@@ -29,9 +29,9 @@ export const dashboardSlice=createSlice({
         }
     },
     extraReducers:(builder)=>{
-        builder.addCase(fetchResumeAnalysis.pending,(state,action)=>{
-            state.loading=true
-            state.serverError=null
+        builder.addCase(fetchResumeAnalysis.pending, (state) => {
+            state.loading = true;
+            state.serverError = null;
         })
         .addCase(fetchResumeAnalysis.fulfilled, (state, action) => {
             state.loading = false

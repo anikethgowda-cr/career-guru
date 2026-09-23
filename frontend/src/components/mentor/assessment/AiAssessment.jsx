@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchMentees, generateAiQuestions, createAiAssessment } from "../../../slices/mentor/MentorAssessmentSlice";
+import {
+    fetchMentees,
+    generateAiQuestions,
+    createAiAssessment
+} from "../../../slices/mentor/MentorAssessmentSlice";
 
 export default function AiAssessment() {
     const dispatch = useDispatch();
@@ -15,51 +19,35 @@ export default function AiAssessment() {
         noOfQuestions: ""
     });
 
-    const [assessmentData, setAssessmentData] = useState({
-        studentId: "",
-        title: "",
-        difficulty: "",
-        targetRole: "",
-        questions: []
-    });
-
-    const [questionNumberError, setQuestionNumberError] = useState("");
     const [aiQuestions, setAiQuestions] = useState([]);
-    const [newQuestion, setNewQuestion] = useState("");
     const [editingIndex, setEditingIndex] = useState(null);
     const [editedQuestion, setEditedQuestion] = useState("");
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [serverMessage,setServerMessage]=useState("");
+    const [newQuestion, setNewQuestion] = useState("");
+    const [questionNumberError, setQuestionNumberError] = useState("");
+    const [serverMessage, setServerMessage] = useState("");
 
-    const { mentees,message,serverError,loading } = useSelector((state) => {
-        return state.mentorAssessment;
-    });
+    const { mentees, generatedQuestions, message, serverError, loading, isGenerating } =
+        useSelector((state) => state.mentorAssessment);
 
     useEffect(() => {
         dispatch(fetchMentees());
     }, [dispatch]);
 
     useEffect(() => {
-        setAssessmentData({
-            studentId: questionsGeneration.studentId,
-            title: questionsGeneration.title,
-            difficulty: questionsGeneration.difficulty,
-            targetRole: questionsGeneration.targetRole,
-            questions: aiQuestions
-        });
-    }, [questionsGeneration, aiQuestions]);
+        if (generatedQuestions && generatedQuestions.length > 0) {
+            setAiQuestions(generatedQuestions);
+        }
+    }, [generatedQuestions]);
 
     useEffect(() => {
-            if (message) {
-                setServerMessage(message);
-    
-                const timer = setTimeout(() => {
-                    setServerMessage("");
-                }, 2000);
-    
-                return () => clearTimeout(timer);
-            }
-        }, [message]);
+        if (message) {
+            setServerMessage(message);
+            const timer = setTimeout(() => {
+                setServerMessage("");
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
 
     function handleFormData(e) {
         setQuestionsGeneration((prev) => ({
@@ -68,35 +56,17 @@ export default function AiAssessment() {
         }));
     }
 
-    async function handleQuestionGeneration(e) {
-        try {
-            e.preventDefault();
-            setQuestionNumberError("");
+    function handleQuestionGeneration(e) {
+        e.preventDefault();
+        setQuestionNumberError("");
 
-            if (Number(questionsGeneration.noOfQuestions) <= 3) {
-                setQuestionNumberError(
-                    "Number of questions should be greater than 3"
-                );
-                return;
-            }
-
-            setIsGenerating(true);
-
-            const response = await dispatch(
-                generateAiQuestions(questionsGeneration)
-            ).unwrap();
-
-            setAiQuestions(response.data);
-        } catch (err) {
-            console.log(err);
-        } finally {
-            setIsGenerating(false);
+        const noOfQuestions = parseInt(questionsGeneration.noOfQuestions, 10);
+        if (isNaN(noOfQuestions) || noOfQuestions <= 3) {
+            setQuestionNumberError("Questions count must be greater than 3.");
+            return;
         }
-    }
 
-    function handleDelete(index) {
-        const newQuestions = aiQuestions.filter((_, i) => i !== index);
-        setAiQuestions(newQuestions);
+        dispatch(generateAiQuestions(questionsGeneration));
     }
 
     function handleEdit(index) {
@@ -116,7 +86,6 @@ export default function AiAssessment() {
                     question: editedQuestion.trim()
                 };
             }
-
             return item;
         });
 
@@ -137,9 +106,7 @@ export default function AiAssessment() {
 
         setAiQuestions((prev) => [
             ...prev,
-            {
-                question: newQuestion.trim()
-            }
+            { question: newQuestion.trim() }
         ]);
 
         setNewQuestion("");
@@ -152,9 +119,20 @@ export default function AiAssessment() {
         }
     }
 
+    function handleDelete(index) {
+        setAiQuestions((prev) => prev.filter((_, i) => i !== index));
+    }
+
     function handleCreateAssessment(e) {
         e.preventDefault();
-        dispatch(createAiAssessment(assessmentData));
+        const payload = {
+            studentId: questionsGeneration.studentId,
+            title: questionsGeneration.title,
+            difficulty: questionsGeneration.difficulty,
+            targetRole: questionsGeneration.targetRole,
+            questions: aiQuestions
+        };
+        dispatch(createAiAssessment(payload));
         setQuestionsGeneration({
             studentId: "",
             title: "",
@@ -162,7 +140,6 @@ export default function AiAssessment() {
             targetRole: "",
             noOfQuestions: ""
         });
-
         setAiQuestions([]);
         setNewQuestion("");
         setEditingIndex(null);
@@ -170,35 +147,64 @@ export default function AiAssessment() {
         setQuestionNumberError("");
     }
 
-    if(loading){
-        return <p>loading....</p>
+    if (loading) {
+        return (
+            <div className="p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto text-left space-y-6 animate-pulse">
+                <div className="w-44 h-8 bg-bg-muted rounded-xl"></div>
+                <div className="bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 space-y-5">
+                    <div className="w-full h-11 bg-bg-muted rounded-xl"></div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="w-full h-11 bg-bg-muted rounded-xl"></div>
+                        <div className="w-full h-11 bg-bg-muted rounded-xl"></div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto text-left space-y-6">
-            {serverMessage && <p style={{color:"green"}}>{serverMessage}</p>}
-            {serverError && <p style={{color:"red"}}>{serverError.status} - {serverError.message}</p>}
+        <div className="p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto text-left space-y-6 transition-colors duration-200">
+            {/* Feedback Alerts */}
+            {serverMessage && (
+                <div className="p-4 rounded-xl bg-status-success-subtle border border-status-success/30 text-sm font-semibold text-status-success flex items-center gap-2">
+                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{serverMessage}</span>
+                </div>
+            )}
+            {serverError && (
+                <div className="p-4 rounded-xl bg-status-danger-subtle border border-status-danger/30 text-sm font-semibold text-status-danger flex items-center gap-2">
+                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.332.192 3 1.732 3z" />
+                    </svg>
+                    <span>{serverError.message || (typeof serverError === "string" ? serverError : "Failed to process AI assessment")}</span>
+                </div>
+            )}
+
             {/* Header & Back Button */}
             <div>
                 <button
                     type="button"
                     onClick={() => navigate("/mentor/assessment")}
-                    className="mb-3 text-xs sm:text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition cursor-pointer flex items-center gap-1.5"
+                    className="mb-3 text-xs sm:text-sm font-medium text-text-muted hover:text-text-primary transition cursor-pointer flex items-center gap-1.5"
                 >
-                    &larr; Back to Assessments
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Back to Assessments</span>
                 </button>
 
-                <div className="flex items-center gap-2">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-zinc-100">
-                        Create Assessment through AI
+                <div className="flex items-center gap-2.5">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
+                        Generate Assessment with AI
                     </h1>
-
-                    <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                    <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-brand-subtle text-brand-primary border border-brand-primary/20">
                         Powered By AI
                     </span>
                 </div>
 
-                <p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">
+                <p className="mt-1 text-sm text-text-secondary">
                     Provide the assessment topic, target role, and difficulty to generate tailored questions automatically.
                 </p>
             </div>
@@ -206,12 +212,11 @@ export default function AiAssessment() {
             {/* AI Generation Form */}
             <form
                 onSubmit={handleQuestionGeneration}
-                className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-5"
+                className="bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 shadow-card space-y-5"
             >
-
                 {/* Select Student */}
                 <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                         Select Mentee
                     </label>
 
@@ -220,15 +225,11 @@ export default function AiAssessment() {
                         value={questionsGeneration.studentId}
                         onChange={handleFormData}
                         required
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-muted/50 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition"
                     >
                         <option value="">Select Mentee</option>
-
                         {mentees.map((user) => (
-                            <option
-                                key={user.student._id}
-                                value={user.student._id}
-                            >
+                            <option key={user.student._id} value={user.student._id}>
                                 {user.student.username}
                             </option>
                         ))}
@@ -237,55 +238,49 @@ export default function AiAssessment() {
 
                 {/* Title & Target Role */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-                            Title
+                        <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
+                            Assessment Title
                         </label>
-
                         <input
                             type="text"
                             name="title"
                             value={questionsGeneration.title}
                             onChange={handleFormData}
-                            placeholder="e.g. Backend API Design"
+                            placeholder="e.g. Backend Architecture & Node.js"
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-muted/50 text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                             Target Role
                         </label>
-
                         <input
                             type="text"
                             name="targetRole"
                             value={questionsGeneration.targetRole}
                             onChange={handleFormData}
-                            placeholder="e.g. Node.js Developer"
+                            placeholder="e.g. Node.js Backend Engineer"
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-muted/50 text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition"
                         />
                     </div>
-
                 </div>
 
                 {/* Difficulty & Number of Questions */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-                            Difficulty
+                        <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
+                            Difficulty Level
                         </label>
-
                         <select
                             name="difficulty"
                             value={questionsGeneration.difficulty}
                             onChange={handleFormData}
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-muted/50 text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition"
                         >
                             <option value="">Select Difficulty</option>
                             <option value="easy">Easy</option>
@@ -295,10 +290,9 @@ export default function AiAssessment() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                             Number of Questions
                         </label>
-
                         <input
                             type="number"
                             name="noOfQuestions"
@@ -307,177 +301,157 @@ export default function AiAssessment() {
                             placeholder="Must be greater than 3"
                             min="4"
                             required
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-muted/50 text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition"
                         />
-
                         {questionNumberError && (
-                            <p className="mt-1 text-xs text-red-600 dark:text-red-400 font-medium">
+                            <p className="mt-1 text-xs text-status-danger font-medium">
                                 {questionNumberError}
                             </p>
                         )}
                     </div>
-
                 </div>
 
                 {/* Generate Button */}
-                <div className="border-t border-slate-200 dark:border-zinc-800 pt-5">
+                <div className="border-t border-border-default pt-5">
                     <button
                         type="submit"
                         disabled={isGenerating}
-                        className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition cursor-pointer"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
                     >
-                        {isGenerating
-                            ? "Generating Questions..."
-                            : "Generate Questions"}
+                        {isGenerating ? (
+                            <>
+                                <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                                <span>Generating AI Questions...</span>
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span>Generate Questions with AI</span>
+                            </>
+                        )}
                     </button>
                 </div>
-
             </form>
 
             {/* Generated Questions Section */}
             {aiQuestions.length > 0 && (
-                <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
-
+                <div className="bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 shadow-card space-y-6">
                     {/* Questions Header */}
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100">
-                            Generated Questions ({aiQuestions.length})
-                        </h2>
-
-                        <span className="text-xs text-slate-500 dark:text-zinc-400">
-                            You can edit, remove, or add new questions below
-                        </span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border-default">
+                        <div>
+                            <h2 className="text-lg font-bold text-text-primary">
+                                Generated Questions ({aiQuestions.length})
+                            </h2>
+                            <p className="text-xs text-text-muted">
+                                Review, edit, remove, or append additional questions before assignment
+                            </p>
+                        </div>
                     </div>
 
                     {/* Questions List */}
                     <div className="space-y-3">
-
                         {aiQuestions.map((item, index) => (
                             <div
                                 key={index}
-                                className="p-3.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/60 dark:bg-zinc-800/50"
+                                className="p-3.5 rounded-xl border border-border-default bg-bg-muted/40"
                             >
-
                                 {editingIndex === index ? (
                                     <div className="space-y-2.5">
-
                                         <input
                                             type="text"
                                             value={editedQuestion}
-                                            onChange={(e) =>
-                                                setEditedQuestion(e.target.value)
-                                            }
-                                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                            onChange={(e) => setEditedQuestion(e.target.value)}
+                                            className="w-full px-3 py-2 text-sm rounded-lg border border-border-strong bg-bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-ring"
                                         />
 
                                         <div className="flex items-center gap-2">
-
                                             <button
                                                 type="button"
-                                                onClick={() =>
-                                                    handleSaveEdit(index)
-                                                }
-                                                className="px-3 py-1 bg-slate-900 hover:bg-slate-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 text-xs font-medium rounded-lg transition cursor-pointer"
+                                                onClick={() => handleSaveEdit(index)}
+                                                className="px-3.5 py-1.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-xs font-semibold rounded-lg transition cursor-pointer"
                                             >
                                                 Save
                                             </button>
-
                                             <button
                                                 type="button"
                                                 onClick={handleCancelEdit}
-                                                className="px-3 py-1 bg-slate-200 hover:bg-slate-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-slate-700 dark:text-zinc-300 text-xs font-medium rounded-lg transition cursor-pointer"
+                                                className="px-3.5 py-1.5 bg-bg-muted text-text-secondary border border-border-default text-xs font-medium rounded-lg hover:bg-border-default transition cursor-pointer"
                                             >
                                                 Cancel
                                             </button>
-
                                         </div>
-
                                     </div>
                                 ) : (
                                     <div className="flex items-start justify-between gap-3">
-
-                                        <p className="text-sm text-slate-800 dark:text-zinc-200 leading-relaxed">
-                                            <span className="font-semibold text-slate-500 mr-2">
+                                        <p className="text-sm text-text-primary leading-relaxed flex-1">
+                                            <span className="font-bold text-brand-primary mr-2">
                                                 {index + 1}.
                                             </span>
-
                                             {item.question}
                                         </p>
 
                                         <div className="flex items-center gap-1 shrink-0">
-
                                             <button
                                                 type="button"
                                                 onClick={() => handleEdit(index)}
-                                                className="text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 px-2 py-1 rounded hover:bg-slate-200/60 dark:hover:bg-zinc-700/60 transition cursor-pointer"
+                                                className="text-xs font-semibold text-text-muted hover:text-text-primary px-2.5 py-1 rounded-lg hover:bg-bg-muted transition cursor-pointer"
                                             >
                                                 Edit
                                             </button>
-
                                             <button
                                                 type="button"
                                                 onClick={() => handleDelete(index)}
-                                                className="text-xs font-medium text-red-600 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+                                                className="text-xs font-semibold text-status-danger hover:bg-status-danger-subtle px-2.5 py-1 rounded-lg transition cursor-pointer"
                                             >
                                                 Delete
                                             </button>
-
                                         </div>
-
                                     </div>
                                 )}
-
                             </div>
                         ))}
-
                     </div>
 
-                    {/* Add Question */}
-                    <div className="border-t border-slate-200 dark:border-zinc-800 pt-5">
-
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-                            Add Question
+                    {/* Add Custom Question */}
+                    <div className="border-t border-border-default pt-5">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
+                            Add Another Question
                         </label>
 
                         <div className="flex flex-col sm:flex-row gap-2.5">
-
                             <input
                                 type="text"
                                 value={newQuestion}
                                 onChange={(e) => setNewQuestion(e.target.value)}
                                 onKeyDown={handleQuestionKeyDown}
-                                placeholder="Enter a new question"
-                                className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                placeholder="Type a custom question and click Add"
+                                className="flex-1 px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-muted/50 text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition"
                             />
 
                             <button
                                 type="button"
                                 onClick={handleAddQuestion}
-                                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-sm font-medium rounded-xl transition cursor-pointer shrink-0"
+                                className="px-5 py-2.5 bg-bg-muted hover:bg-border-default text-text-primary text-sm font-semibold rounded-xl border border-border-default transition cursor-pointer shrink-0"
                             >
                                 Add Question
                             </button>
-
                         </div>
-
                     </div>
 
                     {/* Final Action Button */}
-                    <div className="border-t border-slate-200 dark:border-zinc-800 pt-5">
-
+                    <div className="border-t border-border-default pt-5">
                         <button
                             type="button"
                             onClick={handleCreateAssessment}
-                            className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition cursor-pointer"
+                            className="w-full sm:w-auto px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
                         >
-                            Create Assessment
+                            Finalize & Assign Assessment
                         </button>
-
                     </div>
-
                 </div>
             )}
-
         </div>
     );
 }

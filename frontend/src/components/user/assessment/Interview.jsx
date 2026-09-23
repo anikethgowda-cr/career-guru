@@ -6,6 +6,7 @@ import {
     createAssessmentAttempt,
     submitAssessment
 } from "../../../slices/user/UserAssessmentSlice";
+import { fetchAssessmentReport } from "../../../slices/AssessmentReportSlice";
 
 function Interview() {
     const { assessmentId } = useParams();
@@ -24,8 +25,7 @@ function Interview() {
     const [interviewStarted, setInterviewStarted] = useState(false);
     const [cameraStarted, setCameraStarted] = useState(false);
     const [mediaError, setMediaError] = useState("");
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordedVideoURL, setRecordedVideoURL] = useState("");
+    const [recordedVideoURL] = useState("");
     const [recordingTime, setRecordingTime] = useState(0);
 
     // Per-question transcripts storage keyed by questionId
@@ -38,8 +38,8 @@ function Interview() {
     const [speechError, setSpeechError] = useState("");
     const [isFinishing, setIsFinishing] = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [submissionStep, setSubmissionStep] = useState("idle"); // "idle" | "uploading_video" | "submitting_answers" | "generating_report" | "done" | "report_failed"
     const [submitError, setSubmitError] = useState("");
-    const [submitSuccess, setSubmitSuccess] = useState("");
 
     const videoRef = useRef(null);
     const mediaStreamRef = useRef(null);
@@ -424,7 +424,7 @@ function Interview() {
             ) {
                 try {
                     recognition.start();
-                } catch (err) {
+                } catch {
                     // Ignore restart race condition
                 }
             }
@@ -551,6 +551,7 @@ function Interview() {
             setSubmitLoading(true);
             setSubmitError("");
             setSubmitSuccess("");
+            setSubmissionStep("uploading_video");
 
             if (!attempt?._id) {
                 setSubmitError("Assessment attempt was not found.");
@@ -568,23 +569,57 @@ function Interview() {
 
             const finalResponses = buildFinalResponses();
 
-            console.log("Final responses to submit:", finalResponses);
+            // ── Step 1: Upload video directly from browser to Cloudinary ──────────
+            const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+            const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-            const formData = new FormData();
-            formData.append("attemptId", attempt._id);
-            formData.append("responses", JSON.stringify(finalResponses));
-            formData.append(
-                "video",
-                blobToUpload,
-                "interview.webm"
+            if (!cloudName || !uploadPreset) {
+                setSubmitError("Cloudinary configuration is missing. Please contact support.");
+                setSubmitLoading(false);
+                return;
+            }
+
+            const cloudinaryForm = new FormData();
+            cloudinaryForm.append("file", blobToUpload, "interview.webm");
+            cloudinaryForm.append("upload_preset", uploadPreset);
+            cloudinaryForm.append("folder", "careerguru/interviews");
+            cloudinaryForm.append("resource_type", "video");
+
+            const cloudinaryRes = await fetch(
+                `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+                { method: "POST", body: cloudinaryForm }
             );
 
-            const response = await dispatch(submitAssessment(formData)).unwrap();
+            if (!cloudinaryRes.ok) {
+                const errData = await cloudinaryRes.json().catch(() => ({}));
+                throw new Error(errData?.error?.message || "Failed to upload interview video.");
+            }
 
-            if (response.success) {
-                setSubmitSuccess("Assessment submitted successfully.");
-                console.log("Submitted responses successfully. Redirecting to reports...");
-                navigate("/user/assessment-report");
+            const cloudinaryData = await cloudinaryRes.json();
+
+            // ── Step 2: POST JSON (URL + responses) to backend ───────────────────
+            setSubmissionStep("submitting_answers");
+            const response = await dispatch(submitAssessment({
+                attemptId: attempt._id,
+                responses: finalResponses,
+                videoURL: cloudinaryData.secure_url,
+                videoPublicId: cloudinaryData.public_id
+            })).unwrap();
+
+            if (!response.success) {
+                throw new Error(response.message || "Failed to submit assessment answers.");
+            }
+
+            // ── Step 3: Trigger AI Report Auto-Generation ────────────────────────
+            setSubmissionStep("generating_report");
+            try {
+                await dispatch(fetchAssessmentReport(assessmentId)).unwrap();
+                setSubmissionStep("done");
+                setSubmitSuccess("Assessment submitted and AI report generated successfully!");
+                navigate(`/user/assessment-report/${assessmentId}`);
+            } catch (repErr) {
+                console.warn("AI report generation timed out during interview submission:", repErr);
+                setSubmissionStep("report_failed");
             }
         } catch (err) {
             console.log("Submit interview error:", err);
@@ -597,6 +632,21 @@ function Interview() {
             setSubmitLoading(false);
         }
     };
+
+    const handleRetryReportGeneration = async () => {
+        try {
+            setSubmissionStep("generating_report");
+            setSubmitError("");
+            await dispatch(fetchAssessmentReport(assessmentId)).unwrap();
+            setSubmissionStep("done");
+            navigate(`/user/assessment-report/${assessmentId}`);
+        } catch (err) {
+            console.log("Retry report generation error:", err);
+            setSubmissionStep("report_failed");
+            setSubmitError("AI report generation is still processing or timed out. You can view or generate it anytime from your Reports dashboard.");
+        }
+    };
+
 
     // AI introduction effect
     useEffect(() => {
@@ -725,13 +775,13 @@ function Interview() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-[#16171d] px-4 text-slate-900 dark:text-white transition-colors duration-300">
+            <div className="flex min-h-screen items-center justify-center bg-bg-app px-4 text-text-primary transition-colors duration-300">
                 <div className="flex flex-col items-center space-y-4">
                     <div className="relative w-14 h-14">
-                        <div className="absolute inset-0 rounded-full border-4 border-indigo-200 dark:border-indigo-950"></div>
-                        <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+                        <div className="absolute inset-0 rounded-full border-4 border-brand-subtle"></div>
+                        <div className="absolute inset-0 rounded-full border-4 border-brand-primary border-t-transparent animate-spin"></div>
                     </div>
-                    <p className="text-sm font-semibold text-slate-600 dark:text-zinc-400">
+                    <p className="text-sm font-semibold text-text-muted">
                         Preparing your assessment studio...
                     </p>
                 </div>
@@ -741,19 +791,19 @@ function Interview() {
 
     if (error) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-[#16171d] px-4 text-slate-900 dark:text-white transition-colors duration-300">
-                <div className="w-full max-w-md rounded-3xl bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/60 p-8 text-center shadow-sm space-y-4">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center">
+            <div className="flex min-h-screen items-center justify-center bg-bg-app px-4 text-text-primary transition-colors duration-300">
+                <div className="w-full max-w-md rounded-2xl bg-bg-surface border border-status-danger-border p-8 text-center shadow-sm space-y-4">
+                    <div className="w-12 h-12 mx-auto rounded-2xl bg-status-danger-subtle text-status-danger flex items-center justify-center">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                     </div>
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Assessment Error</h2>
-                    <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+                    <h2 className="text-lg font-bold text-text-primary">Assessment Error</h2>
+                    <p className="text-xs text-status-danger">{error}</p>
                     <button
                         type="button"
                         onClick={() => navigate("/user/assessment")}
-                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-semibold text-slate-700 dark:text-zinc-300 rounded-xl transition cursor-pointer"
+                        className="px-4 py-2 bg-bg-muted hover:bg-bg-surface text-xs font-semibold text-text-secondary border border-border-default rounded-xl transition cursor-pointer"
                     >
                         Return to Assessments
                     </button>
@@ -764,13 +814,13 @@ function Interview() {
 
     if (!selectedAssessment) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-[#16171d] px-4 text-slate-900 dark:text-white">
+            <div className="flex min-h-screen items-center justify-center bg-bg-app px-4 text-text-primary">
                 <div className="text-center space-y-3">
-                    <p className="text-base font-semibold text-slate-600 dark:text-zinc-400">Assessment not found.</p>
+                    <p className="text-base font-semibold text-text-muted">Assessment not found.</p>
                     <button
                         type="button"
                         onClick={() => navigate("/user/assessment")}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-xs font-semibold text-white transition shadow-xs cursor-pointer"
+                        className="px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-hover text-xs font-semibold text-white transition shadow-xs cursor-pointer"
                     >
                         Back to Assessments
                     </button>
@@ -782,39 +832,39 @@ function Interview() {
     // Welcome / Pre-Interview Briefing Stage
     if (!interviewStarted) {
         return (
-            <div className="relative min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#16171d] px-4 py-8 text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden">
-                <div className="relative z-10 w-full max-w-3xl rounded-3xl bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-500 p-6 sm:p-10 shadow-sm space-y-8 text-left">
+            <div className="relative min-h-screen flex items-center justify-center bg-bg-app px-4 py-8 text-text-primary transition-colors duration-200 overflow-hidden">
+                <div className="relative z-10 w-full max-w-3xl rounded-xl bg-bg-surface border border-border-default border-t-4 border-t-brand-primary p-6 sm:p-10 shadow-subtle space-y-8 text-left">
                     {/* Header */}
                     <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-xs font-semibold text-indigo-900 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/60 shadow-2xs">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-subtle text-xs font-semibold text-brand-primary border border-brand-primary/20 shadow-2xs">
+                            <span className="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
                             AI Interview Assessment Studio
                         </div>
-                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-text-primary">
                             {selectedAssessment.title}
                         </h1>
-                        <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">
-                            Welcome, <span className="font-semibold text-slate-800 dark:text-zinc-200">{candidateName}</span>. Your mock interview session is ready.
+                        <p className="text-xs sm:text-sm text-text-secondary">
+                            Welcome, <span className="font-semibold text-text-primary">{candidateName}</span>. Your mock interview session is ready.
                         </p>
                     </div>
 
                     {/* Metadata Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/50 text-center">
-                            <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 block uppercase tracking-wider">Target Role</span>
-                            <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1 block truncate">{selectedAssessment.targetRole}</span>
+                        <div className="p-3.5 rounded-2xl bg-bg-muted border border-border-default text-center">
+                            <span className="text-[11px] font-medium text-text-muted block uppercase tracking-wider">Target Role</span>
+                            <span className="text-xs sm:text-sm font-bold text-text-primary mt-1 block truncate">{selectedAssessment.targetRole}</span>
                         </div>
-                        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/50 text-center">
-                            <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 block uppercase tracking-wider">Difficulty</span>
-                            <span className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 mt-1 block capitalize">{selectedAssessment.difficulty}</span>
+                        <div className="p-3.5 rounded-2xl bg-bg-muted border border-border-default text-center">
+                            <span className="text-[11px] font-medium text-text-muted block uppercase tracking-wider">Difficulty</span>
+                            <span className="text-xs sm:text-sm font-bold text-status-warning mt-1 block capitalize">{selectedAssessment.difficulty}</span>
                         </div>
-                        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/50 text-center">
-                            <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 block uppercase tracking-wider">Questions</span>
-                            <span className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-1 block">{questions.length} Rounds</span>
+                        <div className="p-3.5 rounded-2xl bg-bg-muted border border-border-default text-center">
+                            <span className="text-[11px] font-medium text-text-muted block uppercase tracking-wider">Questions</span>
+                            <span className="text-xs sm:text-sm font-bold text-brand-primary mt-1 block">{questions.length} Rounds</span>
                         </div>
-                        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/50 text-center">
-                            <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 block uppercase tracking-wider">Assigned By</span>
-                            <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-200 mt-1 block truncate">{mentorName}</span>
+                        <div className="p-3.5 rounded-2xl bg-bg-muted border border-border-default text-center">
+                            <span className="text-[11px] font-medium text-text-muted block uppercase tracking-wider">Assigned By</span>
+                            <span className="text-xs sm:text-sm font-bold text-text-primary mt-1 block truncate">{mentorName}</span>
                         </div>
                     </div>
 
@@ -875,8 +925,8 @@ function Interview() {
     // Processing & Submitting screen
     if (isFinishing || submitLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#16171d] px-4 text-slate-900 dark:text-white transition-colors duration-300">
-                <div className="w-full max-w-md rounded-3xl bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-500 p-8 sm:p-10 text-center shadow-sm space-y-6">
+            <div className="min-h-screen flex items-center justify-center bg-bg-app px-4 text-text-primary transition-colors duration-200">
+                <div className="w-full max-w-md rounded-xl bg-bg-surface border border-border-default border-t-4 border-t-brand-primary p-8 sm:p-10 text-center shadow-subtle space-y-6">
                     <div className="relative mx-auto w-16 h-16 flex items-center justify-center">
                         <div className="absolute inset-0 rounded-full border-4 border-indigo-200 dark:border-indigo-950"></div>
                         <div className="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
@@ -915,8 +965,8 @@ function Interview() {
 
     if (!cameraStarted) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#16171d] px-4 text-slate-900 dark:text-white transition-colors duration-300">
-                <div className="w-full max-w-md rounded-3xl bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-500 p-8 text-center shadow-sm space-y-5">
+            <div className="min-h-screen flex items-center justify-center bg-bg-app px-4 text-text-primary transition-colors duration-200">
+                <div className="w-full max-w-md rounded-xl bg-bg-surface border border-border-default border-t-4 border-t-brand-primary p-8 text-center shadow-subtle space-y-5">
                     <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -949,8 +999,8 @@ function Interview() {
 
     if (!currentQuestion && introductionCompleted) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#16171d] text-slate-900 dark:text-white">
-                <p className="text-slate-500 dark:text-zinc-400 text-sm">No questions available for this assessment.</p>
+            <div className="min-h-screen flex items-center justify-center bg-bg-app text-text-primary">
+                <p className="text-text-muted text-sm">No questions available for this assessment.</p>
             </div>
         );
     }
@@ -960,10 +1010,10 @@ function Interview() {
     const isCurrentAnswerEmpty = !currentTranscript.trim();
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#16171d] px-4 sm:px-6 py-6 text-slate-900 dark:text-white flex flex-col justify-between transition-colors duration-300">
+        <div className="min-h-screen bg-bg-app px-4 sm:px-6 py-6 text-text-primary flex flex-col justify-between transition-colors duration-200">
             <div className="mx-auto w-full max-w-6xl space-y-6">
                 {/* Top Interactive Studio Bar */}
-                <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 shadow-xs">
+                <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between p-4 sm:p-5 rounded-xl bg-bg-surface border border-border-default shadow-subtle">
                     <div className="space-y-1 text-left">
                         <div className="flex items-center gap-2">
                             <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
@@ -1013,7 +1063,7 @@ function Interview() {
                 <div className="grid gap-6 lg:grid-cols-12 items-start">
                     {/* Left Column: Persistent Camera Stream */}
                     <div className="lg:col-span-4 space-y-3">
-                        <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black border border-[#E2E8F0] dark:border-zinc-800 shadow-xs">
+                        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black border border-border-default shadow-subtle">
                             <video
                                 ref={attachVideoStream}
                                 autoPlay
@@ -1038,7 +1088,7 @@ function Interview() {
                         </div>
 
                         {/* Question Progress bar */}
-                        <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 shadow-xs space-y-2 text-left">
+                        <div className="p-4 rounded-xl bg-bg-surface border border-border-default shadow-subtle space-y-2 text-left">
                             <div className="flex justify-between text-xs text-slate-600 dark:text-zinc-400">
                                 <span className="font-medium">Interview Progress</span>
                                 <span className="font-bold text-slate-900 dark:text-white">
@@ -1061,22 +1111,24 @@ function Interview() {
                     </div>
 
                     {/* Right Column: AI Interviewer Stage & Question Studio */}
-                    <div className="lg:col-span-8 rounded-3xl bg-white dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-500 p-6 sm:p-8 shadow-xs flex flex-col justify-between min-h-[480px] text-left">
+                    <div className="lg:col-span-8 rounded-xl bg-bg-surface border border-border-default border-t-4 border-t-brand-primary p-6 sm:p-8 shadow-subtle flex flex-col justify-between min-h-[480px] text-left">
                         {!introductionCompleted ? (
                             /* AI Introduction Stage */
                             <div className="flex flex-col items-center justify-center my-auto py-12 text-center space-y-6">
                                 <div className="relative w-22 h-22 flex items-center justify-center">
-                                    <div className="absolute inset-0 rounded-full bg-indigo-500/10 animate-ping"></div>
-                                    <div className="w-18 h-18 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center text-3xl shadow-sm text-white">
-                                        🤖
+                                    <div className="absolute inset-0 rounded-full bg-brand-primary/10 animate-ping"></div>
+                                    <div className="w-18 h-18 rounded-2xl bg-gradient-to-br from-brand-primary to-indigo-700 flex items-center justify-center shadow-sm text-white">
+                                        <svg className="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2 max-w-md">
-                                    <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                                    <h2 className="text-xl sm:text-2xl font-bold text-text-primary">
                                         CareerGuru AI Interviewer
                                     </h2>
-                                    <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
+                                    <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
                                         {isSpeakingIntroduction
                                             ? "Please listen carefully as the AI introduces the interview format."
                                             : "Initializing your interview questions..."}
@@ -1097,10 +1149,10 @@ function Interview() {
                                 <div className="space-y-4">
                                     {/* Question Header */}
                                     <div className="space-y-2">
-                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-xs font-bold text-indigo-900 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/60 shadow-2xs">
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-subtle text-xs font-bold text-brand-primary border border-brand-primary/20 shadow-2xs">
                                             Question {currentQuestionIndex + 1} of {questions.length}
                                         </div>
-                                        <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-relaxed">
+                                        <h2 className="text-lg sm:text-xl font-bold text-text-primary leading-relaxed">
                                             {currentQuestion?.question}
                                         </h2>
                                     </div>
@@ -1108,8 +1160,8 @@ function Interview() {
                                     {/* Real-time Voice Answer Capture Box */}
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between text-xs flex-wrap gap-2">
-                                            <span className="font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-                                                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <span className="font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                                                <svg className="w-3.5 h-3.5 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" />
                                                 </svg>
                                                 Live Answer Transcript
@@ -1121,10 +1173,10 @@ function Interview() {
                                                     <button
                                                         type="button"
                                                         onClick={handleToggleListening}
-                                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-950/60 transition cursor-pointer"
+                                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-success-subtle border border-status-success/30 text-status-success text-xs font-semibold hover:opacity-90 transition cursor-pointer"
                                                         title="Click to pause microphone"
                                                     >
-                                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                        <span className="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
                                                         <span>Mic Active (Click to Pause)</span>
                                                     </button>
                                                 ) : (
@@ -1132,10 +1184,10 @@ function Interview() {
                                                         type="button"
                                                         onClick={handleToggleListening}
                                                         disabled={isSpeakingQuestion}
-                                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-950/60 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-warning-subtle border border-status-warning/30 text-status-warning text-xs font-semibold hover:opacity-90 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                                         title="Click to resume microphone"
                                                     >
-                                                        <svg className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <svg className="w-3 h-3 text-status-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" />
                                                         </svg>
                                                         <span>Mic Paused (Click to Speak)</span>
@@ -1145,7 +1197,7 @@ function Interview() {
                                         </div>
 
                                         {/* Editable Transcript Textarea */}
-                                        <div className="relative rounded-2xl bg-slate-50 dark:bg-zinc-950/70 border border-[#E2E8F0] dark:border-zinc-800 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+                                        <div className="relative rounded-xl bg-bg-muted/50 border border-border-default focus-within:border-brand-primary focus-within:ring-2 focus-within:ring-brand-ring transition-all">
                                             <textarea
                                                 value={currentTranscript}
                                                 onChange={(e) => handleTranscriptChange(e.target.value)}
@@ -1157,30 +1209,30 @@ function Interview() {
                                                         : "Speak or type your answer here..."
                                                 }
                                                 rows={7}
-                                                className="w-full bg-transparent p-4 sm:p-5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 leading-relaxed focus:outline-hidden resize-none"
+                                                className="w-full bg-transparent p-4 sm:p-5 text-sm text-text-primary placeholder:text-text-muted leading-relaxed focus:outline-hidden resize-none"
                                             />
 
                                             {/* Micro status footer */}
-                                            <div className="flex items-center justify-between px-4 py-2 border-t border-slate-200/80 dark:border-zinc-800/80 text-[11px] text-slate-500 dark:text-zinc-400 bg-slate-100/60 dark:bg-zinc-900/60 rounded-b-2xl">
+                                            <div className="flex items-center justify-between px-4 py-2 border-t border-border-default text-[11px] text-text-muted bg-bg-muted rounded-b-2xl">
                                                 <span className="flex items-center gap-1">
-                                                    <svg className="w-3.5 h-3.5 text-indigo-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <svg className="w-3.5 h-3.5 text-brand-primary inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                     </svg>
                                                     Spoken words auto-transcribe. Click to edit or add keywords anytime.
                                                 </span>
-                                                <span className="font-semibold text-slate-700 dark:text-zinc-300">
+                                                <span className="font-semibold text-text-secondary">
                                                     {currentTranscript.trim() ? `${currentTranscript.trim().split(/\s+/).length} words` : "0 words"}
                                                 </span>
                                             </div>
                                         </div>
 
                                         {speechError && (
-                                            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-400 flex items-center justify-between">
+                                            <div className="p-3 rounded-xl bg-status-danger-subtle border border-status-danger/30 text-xs text-status-danger flex items-center justify-between">
                                                 <span>{speechError}</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => setSpeechError("")}
-                                                    className="text-red-600 hover:text-red-800 dark:text-red-400 font-bold"
+                                                    className="font-bold hover:underline cursor-pointer"
                                                 >
                                                     Dismiss
                                                 </button>
@@ -1190,8 +1242,8 @@ function Interview() {
                                 </div>
 
                                 {/* Studio Controls: Next Question or Finish Interview */}
-                                <div className="pt-4 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between">
-                                    <span className="text-xs text-slate-500 dark:text-zinc-400">
+                                <div className="pt-4 border-t border-border-default flex items-center justify-between">
+                                    <span className="text-xs text-text-muted">
                                         {isCurrentAnswerEmpty
                                             ? "Speak or type your answer to proceed"
                                             : "Answer captured ✓"}
@@ -1202,7 +1254,7 @@ function Interview() {
                                             type="button"
                                             onClick={handleNextQuestion}
                                             disabled={isCurrentAnswerEmpty || isSpeakingQuestion}
-                                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white font-semibold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                         >
                                             <span>Next Question</span>
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1228,6 +1280,133 @@ function Interview() {
                     </div>
                 </div>
             </div>
+
+            {/* Multi-step Submission & AI Report Generation Overlay */}
+            {(isFinishing || submitLoading || (submissionStep !== "idle" && submissionStep !== "done")) && (
+                <div className="fixed inset-0 z-50 bg-bg-overlay backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="max-w-md w-full bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 shadow-dropdown space-y-6 text-left">
+                        <div className="text-center space-y-2">
+                            <h3 className="text-xl font-bold text-text-primary">
+                                {submissionStep === "report_failed"
+                                    ? "Assessment Submitted"
+                                    : "Submitting Your Interview"}
+                            </h3>
+                            <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+                                {submissionStep === "report_failed"
+                                    ? "Your video recording and answers have been securely submitted and saved!"
+                                    : "Please stay on this page while we process your responses and generate your AI evaluation report."}
+                            </p>
+                        </div>
+
+                        {/* Step-by-Step Progress Checklist */}
+                        <div className="space-y-3 p-4 rounded-xl bg-bg-muted/60 border border-border-default">
+                            {/* Step 1: Upload Video */}
+                            <div className="flex items-center justify-between text-xs sm:text-sm">
+                                <div className="flex items-center gap-2.5">
+                                    {submissionStep === "uploading_video" ? (
+                                        <div className="w-5 h-5 rounded-full border-2 border-brand-primary border-t-transparent animate-spin shrink-0"></div>
+                                    ) : (submissionStep === "submitting_answers" || submissionStep === "generating_report" || submissionStep === "report_failed" || submissionStep === "done") ? (
+                                        <div className="w-5 h-5 rounded-full bg-status-success text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</div>
+                                    ) : (
+                                        <div className="w-5 h-5 rounded-full border border-border-strong shrink-0"></div>
+                                    )}
+                                    <span className={submissionStep === "uploading_video" ? "font-semibold text-text-primary" : "text-text-secondary"}>
+                                        1. Uploading Interview Video
+                                    </span>
+                                </div>
+                                <span className="text-[11px] text-text-muted">
+                                    {submissionStep === "uploading_video" ? "Uploading..." : (submissionStep !== "idle" ? "Saved ✓" : "Pending")}
+                                </span>
+                            </div>
+
+                            {/* Step 2: Save Responses */}
+                            <div className="flex items-center justify-between text-xs sm:text-sm">
+                                <div className="flex items-center gap-2.5">
+                                    {submissionStep === "submitting_answers" ? (
+                                        <div className="w-5 h-5 rounded-full border-2 border-brand-primary border-t-transparent animate-spin shrink-0"></div>
+                                    ) : (submissionStep === "generating_report" || submissionStep === "report_failed" || submissionStep === "done") ? (
+                                        <div className="w-5 h-5 rounded-full bg-status-success text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</div>
+                                    ) : (
+                                        <div className="w-5 h-5 rounded-full border border-border-strong shrink-0"></div>
+                                    )}
+                                    <span className={submissionStep === "submitting_answers" ? "font-semibold text-text-primary" : "text-text-secondary"}>
+                                        2. Submitting Answers & Transcripts
+                                    </span>
+                                </div>
+                                <span className="text-[11px] text-text-muted">
+                                    {submissionStep === "submitting_answers" ? "Saving..." : ((submissionStep === "generating_report" || submissionStep === "report_failed" || submissionStep === "done") ? "Saved ✓" : "Pending")}
+                                </span>
+                            </div>
+
+                            {/* Step 3: AI Report Generation */}
+                            <div className="flex items-center justify-between text-xs sm:text-sm">
+                                <div className="flex items-center gap-2.5">
+                                    {submissionStep === "generating_report" ? (
+                                        <div className="w-5 h-5 rounded-full border-2 border-brand-primary border-t-transparent animate-spin shrink-0"></div>
+                                    ) : submissionStep === "done" ? (
+                                        <div className="w-5 h-5 rounded-full bg-status-success text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</div>
+                                    ) : submissionStep === "report_failed" ? (
+                                        <div className="w-5 h-5 rounded-full bg-status-warning text-white flex items-center justify-center text-[10px] font-bold shrink-0">!</div>
+                                    ) : (
+                                        <div className="w-5 h-5 rounded-full border border-border-strong shrink-0"></div>
+                                    )}
+                                    <span className={submissionStep === "generating_report" ? "font-semibold text-text-primary" : "text-text-secondary"}>
+                                        3. Generating AI Evaluation Report
+                                    </span>
+                                </div>
+                                <span className="text-[11px] text-text-muted">
+                                    {submissionStep === "generating_report" ? "Analyzing..." : (submissionStep === "done" ? "Ready ✓" : (submissionStep === "report_failed" ? "Timed out" : "Pending"))}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Error Message if Video or Answer submit failed */}
+                        {submitError && submissionStep !== "report_failed" && (
+                            <div className="p-3.5 rounded-xl bg-status-danger-subtle border border-status-danger/30 text-xs text-status-danger space-y-2">
+                                <p className="font-semibold">Submission encountered an issue:</p>
+                                <p>{submitError}</p>
+                                <button
+                                    type="button"
+                                    onClick={() => submitInterview()}
+                                    className="px-3 py-1.5 rounded-lg bg-status-danger text-white text-xs font-semibold hover:opacity-90 transition cursor-pointer"
+                                >
+                                    Retry Submission
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Fallback state when AI report times out */}
+                        {submissionStep === "report_failed" && (
+                            <div className="space-y-4">
+                                <div className="p-3.5 rounded-xl bg-status-warning-subtle border border-status-warning/30 text-xs text-status-warning space-y-1">
+                                    <p className="font-semibold">AI report generation is taking longer than expected.</p>
+                                    <p className="text-text-secondary">Your video and answers are completely submitted! You can retry generating the report right now or view it anytime from your Assessment Reports page.</p>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleRetryReportGeneration}
+                                        className="flex-1 px-4 py-2.5 rounded-xl bg-brand-primary text-white text-xs sm:text-sm font-semibold hover:bg-brand-primary-hover shadow-xs transition cursor-pointer flex items-center justify-center gap-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Try Generating Report Again
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate("/user/assessment-report")}
+                                        className="px-4 py-2.5 rounded-xl bg-bg-muted text-text-secondary text-xs sm:text-sm font-medium hover:bg-border-default border border-border-default transition cursor-pointer"
+                                    >
+                                        View All Reports
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

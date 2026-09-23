@@ -18,26 +18,26 @@ export default function LearningPlan() {
     if (loading) {
         return (
             <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 text-left animate-pulse">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[#E2E8F0]/80 dark:border-zinc-800">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border-default">
                     <div className="space-y-2">
-                        <div className="w-64 h-8 bg-slate-200 dark:bg-zinc-800 rounded-xl"></div>
-                        <div className="w-80 h-4 bg-slate-200/60 dark:bg-zinc-800/60 rounded-lg"></div>
+                        <div className="w-64 h-8 bg-bg-muted rounded-lg"></div>
+                        <div className="w-80 h-4 bg-bg-muted rounded-lg"></div>
                     </div>
-                    <div className="w-32 h-8 bg-slate-200/80 dark:bg-zinc-800 rounded-full"></div>
+                    <div className="w-32 h-8 bg-bg-muted rounded-full"></div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3, 4, 5, 6].map((n) => (
-                        <div key={n} className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-400/60 dark:border-t-indigo-700/60 rounded-2xl p-6 h-56 flex flex-col justify-between">
+                        <div key={n} className="bg-bg-surface border border-border-default rounded-xl p-6 h-56 flex flex-col justify-between">
                             <div className="flex justify-between items-center">
-                                <div className="w-20 h-5 bg-slate-200 dark:bg-zinc-800 rounded-full"></div>
-                                <div className="w-16 h-4 bg-slate-200 dark:bg-zinc-800 rounded"></div>
+                                <div className="w-20 h-5 bg-bg-muted rounded-full"></div>
+                                <div className="w-16 h-4 bg-bg-muted rounded"></div>
                             </div>
                             <div className="space-y-2">
-                                <div className="w-full h-5 bg-slate-200 dark:bg-zinc-800 rounded"></div>
-                                <div className="w-3/4 h-4 bg-slate-200/60 dark:bg-zinc-800/60 rounded"></div>
+                                <div className="w-full h-5 bg-bg-muted rounded"></div>
+                                <div className="w-3/4 h-4 bg-bg-muted rounded"></div>
                             </div>
-                            <div className="w-full h-10 bg-slate-200/80 dark:bg-zinc-800 rounded-xl"></div>
+                            <div className="w-full h-10 bg-bg-muted rounded-lg"></div>
                         </div>
                     ))}
                 </div>
@@ -49,10 +49,10 @@ export default function LearningPlan() {
         <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 text-left">
             {/* Server Error Alert */}
             {serverError && !loading && (
-                <div className="p-5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/50 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <div className="p-5 rounded-xl bg-status-danger-subtle border border-red-200 dark:border-red-900/60 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center text-status-danger shrink-0">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                     </div>
                     <div className="flex-1 text-left">
@@ -75,36 +75,36 @@ export default function LearningPlan() {
             {!loading && !serverError && !data && (
                 <div className="max-w-3xl mx-auto space-y-6">
                     {/* Header Banner */}
-                    <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-500 dark:border-t-indigo-600 rounded-3xl p-8 sm:p-10 shadow-sm space-y-8 text-left">
+                    <div className="bg-bg-surface border border-border-default border-t-4 border-t-brand-primary rounded-xl p-8 sm:p-10 shadow-card space-y-8 text-left">
                         
                         {/* Title & Badge */}
                         <div className="space-y-3">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/60 text-indigo-900 dark:text-indigo-300 text-xs font-semibold">
-                                <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-subtle border border-border-default text-brand-primary text-xs font-semibold">
+                                <span className="w-2 h-2 rounded-full bg-brand-primary"></span>
                                 AI Personalized Roadmap
                             </div>
 
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
                                 Build Your Learning Plan
                             </h1>
 
-                            <p className="text-sm text-slate-600 dark:text-zinc-400 leading-relaxed max-w-2xl">
+                            <p className="text-sm text-text-secondary leading-relaxed max-w-2xl">
                                 Based on your resume analysis, we have pinpointed key skill gaps that will accelerate your readiness for top industry positions.
                             </p>
                         </div>
 
                         {/* Target Role Capsule */}
                         {targetRole && (
-                            <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-zinc-800/60 border border-indigo-100 dark:border-zinc-700/60 flex items-center justify-between gap-4">
+                            <div className="p-4 rounded-xl bg-bg-muted border border-border-default flex items-center justify-between gap-4">
                                 <div className="space-y-0.5">
-                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-700 dark:text-zinc-400">
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
                                         Target Role
                                     </span>
-                                    <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                                    <h2 className="text-base sm:text-lg font-bold text-text-primary">
                                         {targetRole}
                                     </h2>
                                 </div>
-                                <span className="px-3 py-1 rounded-lg bg-white dark:bg-zinc-900 text-xs font-semibold text-slate-700 dark:text-zinc-300 border border-indigo-100 dark:border-zinc-700 shadow-xs">
+                                <span className="px-3 py-1 rounded-lg bg-bg-surface text-xs font-semibold text-text-secondary border border-border-default shadow-xs">
                                     Active Target
                                 </span>
                             </div>
@@ -113,11 +113,11 @@ export default function LearningPlan() {
                         {/* Missing Skills Section */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
+                                <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-rose-500"></span>
                                     Skills You Should Improve
                                 </h3>
-                                <span className="text-xs text-slate-500 dark:text-zinc-400">
+                                <span className="text-xs text-text-muted">
                                     {missingSkills?.length || 0} gap{missingSkills?.length === 1 ? "" : "s"} identified
                                 </span>
                             </div>
@@ -127,13 +127,13 @@ export default function LearningPlan() {
                                     missingSkills.map((skill, index) => (
                                         <span
                                             key={index}
-                                            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60 shadow-xs"
+                                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60 shadow-xs"
                                         >
                                             {skill}
                                         </span>
                                     ))
                                 ) : (
-                                    <span className="text-xs text-slate-500 dark:text-zinc-500 italic">
+                                    <span className="text-xs text-text-muted italic">
                                         No missing skills detected.
                                     </span>
                                 )}
@@ -141,15 +141,15 @@ export default function LearningPlan() {
                         </div>
 
                         {/* CTA Info Box */}
-                        <div className="p-5 rounded-2xl bg-[#F8FAFC] dark:bg-zinc-950/50 border border-[#E2E8F0] dark:border-zinc-800 text-left space-y-4">
+                        <div className="p-5 rounded-xl bg-bg-app border border-border-default text-left space-y-4">
                             <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                <div className="w-8 h-8 rounded-lg bg-brand-subtle text-brand-primary flex items-center justify-center shrink-0">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>
                                 </div>
-                                <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-                                    CareerGuru AI will generate a comprehensive <strong className="font-semibold text-slate-800 dark:text-zinc-200">6-week milestone curriculum</strong> packed with structured sessions, direct learning resources, and practical exercises.
+                                <p className="text-xs text-text-secondary leading-relaxed">
+                                    CareerGuru AI will generate a comprehensive <strong className="font-semibold text-text-primary">6-week milestone curriculum</strong> packed with structured sessions, direct learning resources, and practical exercises.
                                 </p>
                             </div>
 
@@ -157,7 +157,7 @@ export default function LearningPlan() {
                                 type="button"
                                 onClick={() => dispatch(generateLearningPlan())}
                                 disabled={generating}
-                                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-violet-700 dark:from-indigo-600 dark:to-indigo-700 dark:hover:from-indigo-700 dark:hover:to-indigo-800 text-white font-semibold text-sm shadow-md shadow-indigo-600/20 dark:shadow-indigo-600/30 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="w-full sm:w-auto px-6 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-violet-700 text-white font-semibold text-sm shadow-md shadow-indigo-600/20 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 {generating ? (
                                     <>
@@ -169,8 +169,8 @@ export default function LearningPlan() {
                                     </>
                                 ) : (
                                     <>
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                         </svg>
                                         <span>Generate Learning Plan</span>
                                     </>

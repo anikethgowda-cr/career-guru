@@ -1,4 +1,4 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function MenteeCard({ mentee, studentId }) {
     const navigate = useNavigate();
@@ -15,24 +15,24 @@ export default function MenteeCard({ mentee, studentId }) {
     }
 
     return (
-        <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 rounded-3xl p-6 transition-all duration-300 shadow-xs hover:shadow-md flex flex-col justify-between text-left group">
+        <div className="bg-bg-surface border border-border-default hover:border-brand-primary/50 rounded-xl p-6 transition-all duration-200 shadow-subtle hover:shadow-card flex flex-col justify-between text-left group">
             <div className="space-y-5">
                 {/* Header: Avatar, Name, Email */}
-                <div className="flex items-center gap-3.5 pb-4 border-b border-[#E2E8F0]/80 dark:border-zinc-800/80">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 dark:from-indigo-600 dark:to-indigo-700 text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-indigo-600/20 dark:shadow-indigo-600/30 shrink-0">
+                <div className="flex items-center gap-3.5 pb-4 border-b border-border-default">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
                         {initial}
                     </div>
 
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                            <h2 className="text-base font-bold text-slate-900 dark:text-white truncate">
+                            <h2 className="text-base font-bold text-text-primary truncate">
                                 {student?.username || "Unknown Student"}
                             </h2>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-zinc-800 text-indigo-700 dark:text-zinc-300 shrink-0">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-brand-subtle text-brand-primary shrink-0">
                                 Student
                             </span>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 truncate">
+                        <p className="text-xs text-text-muted truncate">
                             {student?.email || "No email available"}
                         </p>
                     </div>
@@ -42,40 +42,40 @@ export default function MenteeCard({ mentee, studentId }) {
                     <>
                         {/* 4-Grid Info Block */}
                         <div className="grid grid-cols-2 gap-2.5">
-                            <div className="p-3 rounded-2xl bg-indigo-50/60 dark:bg-zinc-800/50 border border-indigo-100 dark:border-zinc-700/60">
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block mb-0.5">
+                            <div className="p-3 rounded-lg bg-bg-muted/60 border border-border-default">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted block mb-0.5">
                                     Education
                                 </span>
-                                <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate block">
+                                <span className="text-xs font-semibold text-text-primary truncate block">
                                     {profile.education || "Not specified"}
                                 </span>
                             </div>
 
-                            <div className="p-3 rounded-2xl bg-indigo-50/60 dark:bg-zinc-800/50 border border-indigo-100 dark:border-zinc-700/60">
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block mb-0.5">
+                            <div className="p-3 rounded-lg bg-bg-muted/60 border border-border-default">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted block mb-0.5">
                                     Experience
                                 </span>
-                                <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate block">
+                                <span className="text-xs font-semibold text-text-primary truncate block">
                                     {profile.experience !== undefined && profile.experience !== null
                                         ? `${profile.experience} Yrs`
                                         : "0 Yrs"}
                                 </span>
                             </div>
 
-                            <div className="p-3 rounded-2xl bg-indigo-50/60 dark:bg-zinc-800/50 border border-indigo-100 dark:border-zinc-700/60">
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block mb-0.5">
+                            <div className="p-3 rounded-lg bg-bg-muted/60 border border-border-default">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted block mb-0.5">
                                     Target Role
                                 </span>
-                                <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate block">
+                                <span className="text-xs font-semibold text-text-primary truncate block">
                                     {profile.preferredJobRole || "Not specified"}
                                 </span>
                             </div>
 
-                            <div className="p-3 rounded-2xl bg-indigo-50/60 dark:bg-zinc-800/50 border border-indigo-100 dark:border-zinc-700/60">
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block mb-0.5">
+                            <div className="p-3 rounded-lg bg-bg-muted/60 border border-border-default">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted block mb-0.5">
                                     Location
                                 </span>
-                                <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate block">
+                                <span className="text-xs font-semibold text-text-primary truncate block">
                                     {profile.preferredLocation || "Flexible"}
                                 </span>
                             </div>
@@ -84,14 +84,14 @@ export default function MenteeCard({ mentee, studentId }) {
                         {/* Specializations */}
                         {profile.preferredSpecialization?.length > 0 && (
                             <div className="space-y-1.5">
-                                <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 block">
+                                <span className="text-[11px] font-medium text-text-muted block">
                                     Specializations:
                                 </span>
                                 <div className="flex flex-wrap gap-1.5">
                                     {profile.preferredSpecialization.map((item, index) => (
                                         <span
                                             key={index}
-                                            className="px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-zinc-800 border border-indigo-100 dark:border-zinc-700 text-slate-800 dark:text-zinc-300 text-[11px] font-medium"
+                                            className="px-2.5 py-1 rounded-md bg-bg-muted border border-border-default text-text-secondary text-[11px] font-medium"
                                         >
                                             {item}
                                         </span>
@@ -101,8 +101,8 @@ export default function MenteeCard({ mentee, studentId }) {
                         )}
                     </>
                 ) : (
-                    <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-zinc-800/40 border border-dashed border-indigo-100 dark:border-zinc-700 text-center">
-                        <p className="text-xs text-slate-500 dark:text-zinc-400">
+                    <div className="p-4 rounded-lg bg-bg-muted/40 border border-dashed border-border-default text-center">
+                        <p className="text-xs text-text-muted">
                             Student profile is pending initial setup.
                         </p>
                     </div>
@@ -110,11 +110,11 @@ export default function MenteeCard({ mentee, studentId }) {
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-5 mt-5 border-t border-[#E2E8F0]/80 dark:border-zinc-800/80 flex items-center gap-2">
+            <div className="pt-5 mt-5 border-t border-border-default flex items-center gap-2">
                 <button
                     type="button"
                     onClick={handleViewReport}
-                    className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 dark:from-indigo-600 dark:to-indigo-700 hover:from-indigo-700 hover:to-violet-700 dark:hover:from-indigo-500 dark:hover:to-indigo-600 text-white text-xs font-semibold shadow-xs transition-all duration-200 cursor-pointer text-center"
+                    className="flex-1 py-2 px-3 rounded-lg bg-brand-primary hover:bg-brand-primary-hover text-white text-xs font-semibold shadow-xs transition-all duration-200 cursor-pointer text-center"
                 >
                     View Report
                 </button>
@@ -122,7 +122,7 @@ export default function MenteeCard({ mentee, studentId }) {
                 <button
                     type="button"
                     onClick={handleViewChat}
-                    className="flex-1 py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-indigo-900 dark:text-zinc-200 text-xs font-semibold border border-indigo-100 dark:border-zinc-700 transition-colors cursor-pointer text-center"
+                    className="flex-1 py-2 px-3 rounded-lg bg-bg-muted hover:bg-border-default text-text-primary text-xs font-semibold border border-border-default transition-colors cursor-pointer text-center"
                 >
                     Chat
                 </button>
@@ -132,7 +132,7 @@ export default function MenteeCard({ mentee, studentId }) {
                         href={profile.linkedin.startsWith("http") ? profile.linkedin : `https://${profile.linkedin}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/60 transition-colors shrink-0"
+                        className="p-2 rounded-lg bg-status-info-subtle text-status-info hover:bg-status-info/20 border border-status-info/20 transition-colors shrink-0"
                         title="View LinkedIn Profile"
                     >
                         <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -144,4 +144,3 @@ export default function MenteeCard({ mentee, studentId }) {
         </div>
     );
 }
-

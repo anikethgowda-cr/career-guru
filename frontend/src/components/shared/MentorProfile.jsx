@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { jobRoles, specializations } from "../../constants/jobOptions";
 import { createProfile } from "../../slices/ProfileSlice";
 import { useDispatch ,useSelector } from "react-redux";
@@ -109,17 +109,17 @@ const MentorProfileForm = () => {
     };
 
     return (
-        <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC] dark:bg-zinc-950 text-slate-900 dark:text-white transition-colors duration-300">
+        <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-bg-app text-text-primary transition-colors duration-300">
             <div className="max-w-3xl mx-auto space-y-8 text-left">
                 {/* Header */}
                 <div className="text-center space-y-2">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 dark:from-indigo-600 dark:to-indigo-700 text-white flex items-center justify-center font-black text-2xl mx-auto shadow-md shadow-indigo-600/20 dark:shadow-indigo-600/30">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-primary/80 text-white flex items-center justify-center font-black text-2xl mx-auto shadow-md shadow-brand-primary/20">
                         CG
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
                         Complete Your Mentor Profile
                     </h1>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 max-w-md mx-auto">
+                    <p className="text-xs sm:text-sm text-text-muted max-w-md mx-auto">
                         Share your industry experience and specialized domain expertise to start mentoring tomorrow's tech leaders.
                     </p>
                 </div>
@@ -127,17 +127,17 @@ const MentorProfileForm = () => {
                 {/* Form Card */}
                 <form
                     onSubmit={handleSubmit}
-                    className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6"
+                    className="bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 shadow-xs space-y-6"
                 >
                     {/* Basic Info */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 pb-2 border-b border-[#E2E8F0]/80 dark:border-zinc-800/80">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-brand-primary pb-2 border-b border-border-default">
                             Personal & Professional Background
                         </h3>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                     Full Name
                                 </label>
                                 <input
@@ -146,12 +146,12 @@ const MentorProfileForm = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     placeholder="e.g. Jane Doe"
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary placeholder:text-text-muted text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                     Education / Degree
                                 </label>
                                 <input
@@ -160,21 +160,21 @@ const MentorProfileForm = () => {
                                     value={formData.education}
                                     onChange={handleChange}
                                     placeholder="e.g. B.Tech Computer Science"
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary placeholder:text-text-muted text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                 />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                     Work Type
                                 </label>
                                 <select
                                     name="workType"
                                     value={formData.workType}
                                     onChange={handleChange}
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                 >
                                     <option value="">Select work type</option>
                                     <option value="employee">Employee</option>
@@ -184,7 +184,7 @@ const MentorProfileForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                     Years of Experience
                                 </label>
                                 <input
@@ -194,7 +194,7 @@ const MentorProfileForm = () => {
                                     value={formData.experience}
                                     onChange={handleChange}
                                     placeholder="e.g. 5"
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary placeholder:text-text-muted text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                 />
                             </div>
                         </div>
@@ -202,7 +202,7 @@ const MentorProfileForm = () => {
                         {formData.workType === "employee" && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                         Organization / Company
                                     </label>
                                     <input
@@ -211,11 +211,11 @@ const MentorProfileForm = () => {
                                         value={formData.organization}
                                         onChange={handleChange}
                                         placeholder="e.g. Google, Amazon"
-                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary placeholder:text-text-muted text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                         Designation / Title
                                     </label>
                                     <input
@@ -224,7 +224,7 @@ const MentorProfileForm = () => {
                                         value={formData.designation}
                                         onChange={handleChange}
                                         placeholder="e.g. Senior Software Engineer"
-                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary placeholder:text-text-muted text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                     />
                                 </div>
                             </div>
@@ -233,7 +233,7 @@ const MentorProfileForm = () => {
                         {formData.workType === "self-employed" && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                         Business / Profession
                                     </label>
                                     <input
@@ -242,11 +242,11 @@ const MentorProfileForm = () => {
                                         value={formData.origin}
                                         onChange={handleChange}
                                         placeholder="e.g. Tech Consultancy"
-                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary placeholder:text-text-muted text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                         Designation
                                     </label>
                                     <input
@@ -255,7 +255,7 @@ const MentorProfileForm = () => {
                                         value={formData.designation}
                                         onChange={handleChange}
                                         placeholder="e.g. Founder / Director"
-                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary placeholder:text-text-muted text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                     />
                                 </div>
                             </div>
@@ -263,7 +263,7 @@ const MentorProfileForm = () => {
 
                         {formData.workType === "freelancer" && (
                             <div className="pt-1">
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                                <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                     Designation / Focus
                                 </label>
                                 <input
@@ -272,24 +272,24 @@ const MentorProfileForm = () => {
                                     value={formData.designation}
                                     onChange={handleChange}
                                     placeholder="e.g. Freelance Full-Stack Architect"
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary placeholder:text-text-muted text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                                 />
                             </div>
                         )}
                     </div>
 
                     {/* Expertise & Specializations */}
-                    <div className="space-y-4 pt-4 border-t border-[#E2E8F0]/80 dark:border-zinc-800/80">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 pb-2 border-b border-[#E2E8F0]/80 dark:border-zinc-800/80">
+                    <div className="space-y-4 pt-4 border-t border-border-default">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-brand-primary pb-2 border-b border-border-default">
                             Domains & Specializations
                         </h3>
 
                         <div>
                             <div className="flex items-center justify-between mb-1.5">
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                                <label className="block text-xs font-semibold text-text-secondary">
                                     Expert In (Target Roles)
                                 </label>
-                                <span className="text-[11px] text-slate-400 dark:text-zinc-500">
+                                <span className="text-[11px] text-text-muted">
                                     Hold Ctrl / Cmd to select multiple
                                 </span>
                             </div>
@@ -298,7 +298,7 @@ const MentorProfileForm = () => {
                                 value={formData.expertIn}
                                 onChange={handleChange}
                                 multiple
-                                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm h-32 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                className="w-full px-3.5 py-2 rounded-xl border border-border-default bg-bg-app text-text-primary text-xs sm:text-sm h-32 focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                             >
                                 {jobRoles.map((role) => (
                                     <option key={role.value} value={role.value} className="py-1 px-2">
@@ -310,7 +310,7 @@ const MentorProfileForm = () => {
 
                         {formData.expertIn.length > 0 && (
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-2">
+                                <label className="block text-xs font-semibold text-text-secondary mb-2">
                                     Specializations
                                 </label>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -321,8 +321,8 @@ const MentorProfileForm = () => {
                                                 key={item}
                                                 className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-medium cursor-pointer transition-all ${
                                                     isChecked
-                                                        ? "bg-indigo-50 dark:bg-zinc-800 border-indigo-200 dark:border-zinc-600 text-slate-900 dark:text-white"
-                                                        : "bg-slate-50/60 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-700/60 text-slate-600 dark:text-zinc-400 hover:border-slate-300"
+                                                        ? "bg-brand-subtle border-brand-primary/30 text-brand-primary font-semibold"
+                                                        : "bg-bg-app border-border-default text-text-secondary hover:border-brand-primary/20"
                                                 }`}
                                             >
                                                 <input
@@ -330,7 +330,7 @@ const MentorProfileForm = () => {
                                                     value={item}
                                                     checked={isChecked}
                                                     onChange={(e) => handleCheckboxChange(e, "specialization")}
-                                                    className="w-3.5 h-3.5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500/20"
+                                                    className="w-3.5 h-3.5 text-brand-primary rounded border-border-default focus:ring-brand-subtle"
                                                 />
                                                 <span className="truncate">{item}</span>
                                             </label>
@@ -342,13 +342,13 @@ const MentorProfileForm = () => {
                     </div>
 
                     {/* Bio & Languages */}
-                    <div className="space-y-4 pt-4 border-t border-[#E2E8F0]/80 dark:border-zinc-800/80">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 pb-2 border-b border-[#E2E8F0]/80 dark:border-zinc-800/80">
+                    <div className="space-y-4 pt-4 border-t border-border-default">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-brand-primary pb-2 border-b border-border-default">
                             Bio & Communication
                         </h3>
 
                         <div>
-                            <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5">
+                            <label className="block text-xs font-semibold text-text-secondary mb-1.5">
                                 Bio & Mentorship Style
                             </label>
                             <textarea
@@ -357,12 +357,12 @@ const MentorProfileForm = () => {
                                 onChange={handleChange}
                                 rows={4}
                                 placeholder="Introduce yourself, your engineering philosophy, and what mentees can expect from sessions..."
-                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-2">
+                            <label className="block text-xs font-semibold text-text-secondary mb-2">
                                 Spoken Languages
                             </label>
                             <div className="flex flex-wrap gap-2">
@@ -373,8 +373,8 @@ const MentorProfileForm = () => {
                                             key={language}
                                             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium cursor-pointer transition-all ${
                                                 isSelected
-                                                    ? "bg-indigo-50 dark:bg-zinc-800 border-indigo-200 dark:border-zinc-600 text-slate-900 dark:text-white"
-                                                    : "bg-slate-50/60 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-700/60 text-slate-600 dark:text-zinc-400 hover:border-slate-300"
+                                                    ? "bg-brand-subtle border-brand-primary/30 text-brand-primary font-semibold"
+                                                    : "bg-bg-app border-border-default text-text-secondary hover:border-brand-primary/20"
                                             }`}
                                         >
                                             <input
@@ -382,7 +382,7 @@ const MentorProfileForm = () => {
                                                 value={language}
                                                 checked={isSelected}
                                                 onChange={(e) => handleCheckboxChange(e, "languages")}
-                                                className="w-3.5 h-3.5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500/20"
+                                                className="w-3.5 h-3.5 text-brand-primary rounded border-border-default focus:ring-brand-subtle"
                                             />
                                             <span>{language}</span>
                                         </label>
@@ -393,10 +393,10 @@ const MentorProfileForm = () => {
                     </div>
 
                     {/* Submit Button */}
-                    <div className="pt-6 border-t border-[#E2E8F0]/80 dark:border-zinc-800/80">
+                    <div className="pt-6 border-t border-border-default">
                         <button
                             type="submit"
-                            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 dark:from-indigo-600 dark:to-indigo-700 hover:from-indigo-700 hover:to-violet-700 dark:hover:from-indigo-500 dark:hover:to-indigo-600 text-white font-bold text-sm shadow-md shadow-indigo-600/20 dark:shadow-indigo-600/30 transition-all duration-200 cursor-pointer text-center"
+                            className="w-full py-3.5 px-6 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-bold text-sm shadow-md shadow-brand-primary/20 transition-all duration-200 cursor-pointer text-center"
                         >
                             Save & Activate Mentor Profile
                         </button>

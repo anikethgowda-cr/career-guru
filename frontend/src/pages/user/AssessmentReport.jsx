@@ -1,22 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {
-    fetchUserCompletedAssessments,
-    fetchAssessmentReport,
-    clearSelectedReport
-} from "../../slices/AssessmentReportSlice";
-import AssessmentReportModal from "../../components/shared/AssessmentReportModal";
+import { fetchUserCompletedAssessments } from "../../slices/AssessmentReportSlice";
 
 export default function AssessmentReport() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { userAssessments, selectedReport, loading, reportLoading, serverError, reportError } =
-        useSelector((state) => state.assessmentReport);
+    const { userAssessments, loading, serverError } = useSelector((state) => state.assessmentReport);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeAssessmentId, setActiveAssessmentId] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [difficultyFilter, setDifficultyFilter] = useState("all");
 
@@ -25,14 +17,10 @@ export default function AssessmentReport() {
     }, [dispatch]);
 
     const completedAssessments = useMemo(() => {
-        return (
-            userAssessments?.filter((assessment) => {
-                return assessment.status === "completed";
-            }) || []
-        );
+        return Array.isArray(userAssessments) ? userAssessments : [];
     }, [userAssessments]);
 
-    // Filter by search term and difficulty
+    // Filter by search and difficulty
     const filteredAssessments = useMemo(() => {
         return completedAssessments.filter((assessment) => {
             const matchesSearch =
@@ -50,27 +38,19 @@ export default function AssessmentReport() {
     }, [completedAssessments, searchTerm, difficultyFilter]);
 
     const handleViewReport = (assessmentId) => {
-        setActiveAssessmentId(assessmentId);
-        setIsModalOpen(true);
-        dispatch(fetchAssessmentReport(assessmentId));
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setActiveAssessmentId(null);
-        dispatch(clearSelectedReport());
+        navigate(`/user/assessment-report/${assessmentId}`);
     };
 
     const getDifficultyBadge = (difficulty) => {
         switch (difficulty?.toLowerCase()) {
             case "easy":
-                return "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60";
+                return "bg-status-success-subtle text-status-success border-status-success/20";
             case "medium":
-                return "bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60";
+                return "bg-status-warning-subtle text-status-warning border-status-warning/20";
             case "hard":
-                return "bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/60";
+                return "bg-status-danger-subtle text-status-danger border-status-danger/20";
             default:
-                return "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border-slate-200 dark:border-zinc-700";
+                return "bg-bg-muted text-text-secondary border-border-default";
         }
     };
 
@@ -79,34 +59,34 @@ export default function AssessmentReport() {
         return (
             <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 text-left animate-pulse">
                 {/* Header Skeleton */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[#E2E8F0]/80 dark:border-zinc-800">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border-default">
                     <div className="space-y-2">
-                        <div className="w-72 h-8 bg-slate-200 dark:bg-zinc-800 rounded-xl"></div>
-                        <div className="w-96 h-4 bg-slate-200/60 dark:bg-zinc-800/60 rounded-lg"></div>
+                        <div className="w-72 h-8 bg-bg-muted rounded-lg"></div>
+                        <div className="w-96 h-4 bg-bg-muted/60 rounded-md"></div>
                     </div>
-                    <div className="w-32 h-8 bg-slate-200 dark:bg-zinc-800 rounded-full"></div>
+                    <div className="w-32 h-8 bg-bg-muted rounded-full"></div>
                 </div>
 
                 {/* Filter Bar Skeleton */}
-                <div className="h-16 bg-slate-200/50 dark:bg-zinc-800/50 rounded-2xl"></div>
+                <div className="h-16 bg-bg-muted/50 rounded-xl"></div>
 
                 {/* Cards Skeleton Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map((n) => (
                         <div
                             key={n}
-                            className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 rounded-2xl p-6 h-64 flex flex-col justify-between"
+                            className="bg-bg-surface border border-border-default rounded-xl p-6 h-64 flex flex-col justify-between"
                         >
                             <div className="flex justify-between items-center">
-                                <div className="w-20 h-5 bg-slate-200 dark:bg-zinc-800 rounded-full"></div>
-                                <div className="w-16 h-5 bg-slate-200 dark:bg-zinc-800 rounded-full"></div>
+                                <div className="w-20 h-5 bg-bg-muted rounded-full"></div>
+                                <div className="w-16 h-5 bg-bg-muted rounded-full"></div>
                             </div>
-                            <div className="w-3/4 h-5 bg-slate-200 dark:bg-zinc-800 rounded"></div>
+                            <div className="w-3/4 h-5 bg-bg-muted rounded"></div>
                             <div className="space-y-2">
-                                <div className="w-full h-3 bg-slate-200/60 dark:bg-zinc-800/60 rounded"></div>
-                                <div className="w-2/3 h-3 bg-slate-200/60 dark:bg-zinc-800/60 rounded"></div>
+                                <div className="w-full h-3 bg-bg-muted/60 rounded"></div>
+                                <div className="w-2/3 h-3 bg-bg-muted/60 rounded"></div>
                             </div>
-                            <div className="w-full h-10 bg-slate-200 dark:bg-zinc-800 rounded-xl"></div>
+                            <div className="w-full h-10 bg-bg-muted rounded-lg"></div>
                         </div>
                     ))}
                 </div>
@@ -115,23 +95,23 @@ export default function AssessmentReport() {
     }
 
     return (
-        <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 text-left transition-colors duration-300">
+        <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 text-left transition-colors duration-200">
             {/* Header Banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[#E2E8F0] dark:border-zinc-800">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border-default">
                 <div className="space-y-1">
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
                         Assessment Performance Reports
                     </h1>
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">
+                    <p className="text-xs sm:text-sm text-text-secondary">
                         Review detailed AI performance evaluations, question scores, transcripts, and watch recorded mock interviews.
                     </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                    <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-status-success-subtle text-status-success border border-status-success/20">
                         Completed: {completedAssessments.length}
                     </span>
-                    <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/60 shadow-2xs">
+                    <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-brand-subtle text-brand-primary border border-brand-primary/20">
                         AI Evaluated: On-Demand
                     </span>
                 </div>
@@ -139,37 +119,37 @@ export default function AssessmentReport() {
 
             {/* Error Banner */}
             {serverError && (
-                <div className="p-5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 flex items-start justify-between gap-4">
+                <div className="p-5 rounded-xl bg-status-danger-subtle border border-status-danger/30 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/50 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-status-danger/20 flex items-center justify-center text-status-danger shrink-0">
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </div>
                         <div>
-                            <h4 className="text-sm font-semibold text-red-900 dark:text-red-200">
-                                Failed to Load Reports
+                            <h4 className="text-sm font-semibold text-status-danger">
+                                Failed to fetch completed assessments
                             </h4>
-                            <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
-                                {typeof serverError === "string" ? serverError : serverError?.message || "Server connection error."}
+                            <p className="text-xs text-text-secondary mt-0.5">
+                                {serverError.message || "An unexpected error occurred while loading your assessments."}
                             </p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={() => dispatch(fetchUserCompletedAssessments())}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer"
+                        className="px-3.5 py-1.5 bg-status-danger hover:bg-status-danger/90 text-white rounded-lg text-xs font-semibold transition shrink-0"
                     >
                         Retry
                     </button>
                 </div>
             )}
 
-            {/* Controls Bar: Search & Difficulty Filter Card */}
-            <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between shadow-xs">
-                {/* Search Bar */}
+            {/* Filter Bar */}
+            <div className="bg-bg-surface border border-border-default rounded-xl p-4 sm:p-5 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between shadow-subtle">
+                {/* Search */}
                 <div className="relative flex-1 max-w-md">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -178,31 +158,31 @@ export default function AssessmentReport() {
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search by assessment title, role, or mentor..."
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-zinc-800/60 border border-[#E2E8F0] dark:border-zinc-800 text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition shadow-2xs"
+                        placeholder="Search completed reports by title, role..."
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg text-xs sm:text-sm bg-bg-app border border-border-default text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition shadow-2xs"
                     />
                     {searchTerm && (
                         <button
                             type="button"
                             onClick={() => setSearchTerm("")}
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-text-muted hover:text-text-primary cursor-pointer"
                         >
                             ✕
                         </button>
                     )}
                 </div>
 
-                {/* Difficulty Filter Pills */}
-                <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-zinc-800/80 rounded-xl border border-slate-200/70 dark:border-zinc-700/60 shrink-0">
+                {/* Difficulty Filters */}
+                <div className="flex items-center p-1 bg-bg-muted rounded-lg border border-border-default shrink-0">
                     {["all", "easy", "medium", "hard"].map((diff) => (
                         <button
                             key={diff}
                             type="button"
                             onClick={() => setDifficultyFilter(diff)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-all cursor-pointer ${
                                 difficultyFilter === diff
-                                    ? "bg-white dark:bg-zinc-900 text-indigo-600 dark:text-indigo-400 shadow-xs font-bold"
-                                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                                    ? "bg-bg-surface text-brand-primary shadow-xs font-bold"
+                                    : "text-text-secondary hover:text-text-primary"
                             }`}
                         >
                             {diff}
@@ -217,18 +197,18 @@ export default function AssessmentReport() {
                     {filteredAssessments.map((assessment) => (
                         <div
                             key={assessment._id}
-                            className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-emerald-500 dark:border-t-emerald-500 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                            className="bg-bg-surface border border-border-default border-t-4 border-t-status-success rounded-xl p-6 shadow-subtle hover:shadow-card transition-all duration-200 flex flex-col justify-between"
                         >
                             <div>
                                 {/* Top Badges */}
                                 <div className="flex items-start justify-between gap-3 mb-4">
-                                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1.5">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-status-success-subtle text-status-success border border-status-success/20 flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse"></span>
                                         Completed
                                     </span>
 
                                     <span
-                                        className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold border capitalize ${getDifficultyBadge(
+                                        className={`px-2.5 py-0.5 rounded-md text-xs font-semibold border capitalize ${getDifficultyBadge(
                                             assessment.difficulty
                                         )}`}
                                     >
@@ -237,49 +217,49 @@ export default function AssessmentReport() {
                                 </div>
 
                                 {/* Target Role Tag */}
-                                <div className="inline-block px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/60 text-xs font-semibold mb-2 shadow-2xs">
+                                <div className="inline-block px-3 py-1 rounded-md bg-brand-subtle text-brand-primary border border-brand-primary/20 text-xs font-semibold mb-2">
                                     {assessment.targetRole}
                                 </div>
 
                                 {/* Title */}
-                                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug mb-4 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                <h3 className="text-base sm:text-lg font-bold text-text-primary leading-snug mb-4 hover:text-brand-primary transition-colors">
                                     {assessment.title}
                                 </h3>
 
                                 {/* Metadata Details */}
-                                <div className="space-y-2.5 py-3.5 border-y border-slate-100 dark:border-zinc-800 mb-6 text-xs">
+                                <div className="space-y-2.5 py-3.5 border-y border-border-default mb-6 text-xs">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
-                                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <span className="text-text-muted flex items-center gap-1.5">
+                                            <svg className="w-3.5 h-3.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
                                             Assigned By Mentor:
                                         </span>
-                                        <span className="font-semibold text-slate-800 dark:text-zinc-200">
+                                        <span className="font-semibold text-text-primary">
                                             {assessment.mentorId?.username || "Mentor"}
                                         </span>
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <span className="text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
-                                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <span className="text-text-muted flex items-center gap-1.5">
+                                            <svg className="w-3.5 h-3.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Interview Rounds:
                                         </span>
-                                        <span className="font-semibold text-slate-800 dark:text-zinc-200">
+                                        <span className="font-semibold text-text-primary">
                                             {assessment.questions?.length || 0} Questions
                                         </span>
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <span className="text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
-                                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <span className="text-text-muted flex items-center gap-1.5">
+                                            <svg className="w-3.5 h-3.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
                                             Completed:
                                         </span>
-                                        <span className="font-semibold text-slate-800 dark:text-zinc-200">
+                                        <span className="font-semibold text-text-primary">
                                             {new Date(assessment.updatedAt || assessment.createdAt).toLocaleDateString("en-US", {
                                                 month: "short",
                                                 day: "numeric",
@@ -294,9 +274,9 @@ export default function AssessmentReport() {
                             <button
                                 type="button"
                                 onClick={() => handleViewReport(assessment._id)}
-                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer"
+                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-brand-primary hover:bg-brand-primary-hover text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs hover:shadow-card transition-all cursor-pointer"
                             >
-                                <svg className="w-4 h-4 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="w-4 h-4 text-brand-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
@@ -309,17 +289,17 @@ export default function AssessmentReport() {
 
             {/* Empty State when search has no results */}
             {completedAssessments.length > 0 && filteredAssessments.length === 0 && (
-                <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 rounded-3xl p-8 sm:p-12 text-center max-w-md mx-auto space-y-4 shadow-xs">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <div className="bg-bg-surface border border-border-default rounded-xl p-8 sm:p-12 text-center max-w-md mx-auto space-y-4 shadow-subtle">
+                    <div className="w-12 h-12 mx-auto rounded-lg bg-brand-subtle text-brand-primary flex items-center justify-center">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
                     <div className="space-y-1">
-                        <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                        <h4 className="text-base font-bold text-text-primary">
                             No matching reports found
                         </h4>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400">
+                        <p className="text-xs text-text-muted">
                             Adjust your search terms or filter to find your assessment.
                         </p>
                     </div>
@@ -329,7 +309,7 @@ export default function AssessmentReport() {
                             setSearchTerm("");
                             setDifficultyFilter("all");
                         }}
-                        className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 transition text-slate-700 dark:text-zinc-300 cursor-pointer"
+                        className="px-4 py-2 text-xs font-semibold rounded-lg bg-bg-muted hover:bg-border-default transition text-text-secondary cursor-pointer border border-border-default"
                     >
                         Reset Filters
                     </button>
@@ -338,24 +318,24 @@ export default function AssessmentReport() {
 
             {/* Empty State when no completed assessments exist at all */}
             {completedAssessments.length === 0 && (
-                <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-500 rounded-3xl p-8 sm:p-12 text-center max-w-lg mx-auto space-y-6 shadow-sm">
-                    <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <div className="bg-bg-surface border border-border-default border-t-4 border-t-brand-primary rounded-xl p-8 sm:p-12 text-center max-w-lg mx-auto space-y-6 shadow-subtle">
+                    <div className="w-14 h-14 mx-auto rounded-xl bg-brand-subtle text-brand-primary flex items-center justify-center">
                         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6.586a2 2 0 011.414.586l3.414 3.414A2 2 0 0119 8.414V19a2 2 0 01-2 2z" />
                         </svg>
                     </div>
                     <div className="space-y-2">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                        <h3 className="text-xl font-bold text-text-primary">
                             No Completed Interviews Yet
                         </h3>
-                        <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto">
+                        <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-sm mx-auto">
                             Complete an assigned assessment interview in the Candidate Portal to automatically generate your recording playback and comprehensive AI evaluation report.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={() => navigate("/user/assessment")}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow-md transition-all cursor-pointer"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand-primary hover:bg-brand-primary-hover text-white text-xs sm:text-sm font-semibold shadow-xs transition-all cursor-pointer"
                     >
                         <span>Go to My Assessments</span>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -364,15 +344,6 @@ export default function AssessmentReport() {
                     </button>
                 </div>
             )}
-
-            {/* AI Report Modal */}
-            <AssessmentReportModal
-                isOpen={isModalOpen}
-                onClose={handleCloseModal}
-                report={selectedReport}
-                loading={reportLoading}
-                error={reportError}
-            />
         </div>
     );
 }

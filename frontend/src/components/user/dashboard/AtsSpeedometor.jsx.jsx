@@ -1,4 +1,4 @@
-﻿import { useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 export default function AtsSpeedometer() {
   const { data } = useSelector((state) => {
@@ -33,9 +33,9 @@ export default function AtsSpeedometer() {
   const filledLength = (validatedScore / 100) * circumference;
 
   return (
-    <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 border-t-4 border-t-indigo-500 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 p-6 flex flex-col items-center justify-between text-center min-h-[320px]">
-      <div className="w-full flex items-center justify-between pb-3 border-b border-[#E2E8F0]/80 dark:border-zinc-800/80 mb-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+    <div className="bg-bg-surface border border-border-default border-t-4 border-t-indigo-500 dark:border-t-indigo-400 rounded-xl shadow-card hover:shadow-elevated transition-all duration-200 p-6 flex flex-col items-center justify-between text-center min-h-[320px]">
+      <div className="w-full flex items-center justify-between pb-3 border-b border-border-default mb-2">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">
           ATS Match Score
         </h3>
         <span
@@ -51,7 +51,7 @@ export default function AtsSpeedometer() {
           <path
             d="M 20 100 A 90 90 0 0 1 200 100"
             fill="none"
-            className="stroke-[#E2E8F0] dark:stroke-zinc-800"
+            className="stroke-border-default"
             strokeWidth="14"
             strokeLinecap="round"
           />
@@ -70,13 +70,13 @@ export default function AtsSpeedometer() {
 
         {/* Needle */}
         <div
-          className="absolute bottom-[40px] left-1/2 w-[3px] h-[72px] bg-slate-800 dark:bg-white rounded-full origin-bottom z-10 transition-transform duration-1000 ease-out"
+          className="absolute bottom-[40px] left-1/2 w-[3px] h-[72px] bg-text-primary rounded-full origin-bottom z-10 transition-transform duration-1000 ease-out"
           style={{
             transform: `translateX(-50%) rotate(${needleRotation}deg)`,
           }}
         />
         {/* Center Hub */}
-        <div className="absolute bottom-[32px] left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-slate-900 dark:bg-white border-2 border-[#FFFFFF] dark:border-zinc-900 shadow-sm z-20" />
+        <div className="absolute bottom-[32px] left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-text-primary border-2 border-bg-surface shadow-sm z-20" />
 
         {/* Readout */}
         <div className="absolute bottom-0 left-0 right-0 flex items-baseline justify-center">
@@ -89,7 +89,7 @@ export default function AtsSpeedometer() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-500 dark:text-zinc-500 mt-2">
+      <p className="text-xs text-text-muted mt-2">
         Based on keyword density & role benchmarks
       </p>
     </div>

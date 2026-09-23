@@ -1,4 +1,4 @@
-﻿import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateAvailability } from "../../../slices/mentor/MentorDashboardSlice";
 
 export default function PauseMentorship() {
@@ -12,14 +12,16 @@ export default function PauseMentorship() {
     }
 
     return (
-        <div className="bg-[#FFFFFF] dark:bg-zinc-900 border border-[#E2E8F0] dark:border-zinc-800 rounded-3xl p-6 transition-all duration-300 shadow-xs text-left flex flex-col justify-between">
+        <div className="bg-bg-surface border border-border-default rounded-xl p-6 transition-all duration-200 shadow-subtle text-left flex-1 flex flex-col justify-between">
             <div>
-                <div className="flex items-center justify-between gap-4 pb-4 border-b border-[#E2E8F0]/80 dark:border-zinc-800/80">
+                <div className="flex items-center justify-between gap-4 pb-4 border-b border-border-default">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-zinc-800 text-indigo-600 dark:text-zinc-300 flex items-center justify-center shrink-0 text-sm">
-                            ⚡
+                        <div className="w-8 h-8 rounded-lg bg-brand-subtle text-brand-primary flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
                         </div>
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                        <h3 className="text-base font-bold text-text-primary">
                             Mentorship Status
                         </h3>
                     </div>
@@ -27,13 +29,13 @@ export default function PauseMentorship() {
                     <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
                             isAvailable
-                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60"
-                                : "bg-indigo-50/60 text-indigo-600 dark:bg-amber-950/40 dark:text-amber-400 border border-indigo-100 dark:border-amber-800/60"
+                                ? "bg-status-success-subtle text-status-success border border-status-success/20"
+                                : "bg-status-warning-subtle text-status-warning border border-status-warning/20"
                         }`}
                     >
                         <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                                isAvailable ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+                                isAvailable ? "bg-status-success animate-pulse" : "bg-status-warning"
                             }`}
                         />
                         {isAvailable ? "Active" : "Paused"}
@@ -42,10 +44,10 @@ export default function PauseMentorship() {
 
                 <div className="py-5 flex items-center justify-between gap-4">
                     <div>
-                        <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                        <p className="text-sm font-semibold text-text-primary">
                             {isAvailable ? "Accepting New Mentees" : "Mentorship Paused"}
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                        <p className="text-xs text-text-muted mt-0.5">
                             {isAvailable
                                 ? "Visible to students on Explore Mentors"
                                 : "Hidden from search results"}
@@ -60,7 +62,7 @@ export default function PauseMentorship() {
                         disabled={updatingAvailability}
                         onClick={handleToggle}
                         className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden disabled:opacity-50 ${
-                            isAvailable ? "bg-emerald-600 dark:bg-emerald-500" : "bg-slate-300 dark:bg-zinc-700"
+                            isAvailable ? "bg-status-success" : "bg-bg-muted"
                         }`}
                     >
                         <span
@@ -73,18 +75,17 @@ export default function PauseMentorship() {
                 </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-indigo-50/60 dark:bg-zinc-800/50 border border-indigo-100 dark:border-zinc-700/60 text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+            <div className="p-3 rounded-lg bg-bg-muted/60 border border-border-default text-xs text-text-secondary leading-relaxed">
                 {isAvailable ? (
                     <>
-                        <strong className="text-slate-900 dark:text-zinc-200">You are visible</strong> to prospective mentees. Students can message and schedule sessions with you.
+                        <strong className="text-text-primary">You are visible</strong> to prospective mentees. Students can message and schedule sessions with you.
                     </>
                 ) : (
                     <>
-                        <strong className="text-slate-900 dark:text-zinc-200">You are hidden</strong> from Explore Mentors. Existing mentees can still message you normally.
+                        <strong className="text-text-primary">You are hidden</strong> from Explore Mentors. Existing mentees can still message you normally.
                     </>
                 )}
             </div>
         </div>
     );
 }
-
