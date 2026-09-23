@@ -1,11 +1,13 @@
 const authorizeRoles = (...roles) => {
     return (req, res, next) => {
-        if (!roles.includes(req.role)) {
+        if (!req.role || !roles.includes(req.role)) {
             return res.status(403).json({
-                error: "Access denied"
+                success: false,
+                message: "Access denied"
             });
         }
         next();
     };
 };
-export default authorizeRoles
+
+export default authorizeRoles;

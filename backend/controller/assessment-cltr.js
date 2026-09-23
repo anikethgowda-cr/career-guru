@@ -298,11 +298,14 @@ export const getAssessmentById = async(req,res)=>{
             })
         }
 
-        if(String(assessment.studentId._id) !== String(userId)){
+        const studentUserId = String(assessment.studentId?._id || assessment.studentId);
+        const mentorUserId = String(assessment.mentorId?._id || assessment.mentorId);
+
+        if (studentUserId !== String(userId) && mentorUserId !== String(userId)) {
             return res.status(403).json({
-                success:false,
-                message:"You are not allowed to access this assessment"
-            })
+                success: false,
+                message: "You are not allowed to access this assessment"
+            });
         }
 
         return res.status(200).json({
