@@ -6,6 +6,7 @@ const configureDb=async()=>{
         console.log("DataBase is connected to",db.connection.name);
     } catch (error) {
         console.error("Error connecting to database:", error);
+        process.exit(1);
     }
 }
 export default configureDb;

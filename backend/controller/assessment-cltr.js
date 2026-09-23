@@ -2,8 +2,6 @@ import Assessment from "../models/assessmentSchema.js";
 import AssessmentAttempt from "../models/assessmentAttemptSchema.js";
 import AssessmentReport from "../models/assessmentReportSchema.js";
 import aiService from "../services/aiServices.js";
-import cloudinary from "../config/cloudinary.js";
-import { Readable } from "stream";
 
 export const createManualAssessment = async(req,res)=>{
     try{
@@ -42,7 +40,7 @@ export const createManualAssessment = async(req,res)=>{
         console.log(err)
         return res.status(500).json({
             success:false,
-            message:"Interval Server Error"
+            message:"Internal Server Error"
         })
     }
 }
@@ -328,7 +326,7 @@ export const getAssessmentById = async(req,res)=>{
 export const submitAssessment = async(req,res)=>{
     try {
         const userId = req.userId
-        const {attemptId,responses} = req.body
+        const { attemptId, responses, videoURL, videoPublicId } = req.body
 
         if(!attemptId){
             return res.status(400).json({
@@ -360,76 +358,24 @@ export const submitAssessment = async(req,res)=>{
             })
         }
 
-        if(!req.file){
+        if(!videoURL){
             return res.status(400).json({
                 success:false,
-                message:"Interview video is required"
+                message:"Interview video URL is required"
             })
         }
 
-        let parsedResponses = []
-
-        if(responses){
-            try {
-                parsedResponses = JSON.parse(responses)
-            }catch(err){
-                return res.status(400).json({
-                    success:false,
-                    message:"Invalid responses format"
-                })
-            }
-        }
-
-        if(!Array.isArray(parsedResponses)){
+        if(!Array.isArray(responses)){
             return res.status(400).json({
                 success:false,
                 message:"Responses must be an array"
             })
         }
 
-        console.log("Interview video received successfully")
-        console.log("Video size:",req.file.size)
-        console.log("Video type:",req.file.mimetype)
-        console.log("Video name:",req.file.originalname)
-        console.log("Responses received:",parsedResponses)
-
-        // Save responses
-        attempt.responses = parsedResponses
-
-        // Upload video to Cloudinary using chunked streaming to avoid timeout
-        const uploadResult = await new Promise((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-                {
-                    folder: "careerguru/interviews",
-                    resource_type: "video",
-                    chunk_size: 6 * 1024 * 1024, // 6 MB chunks
-                    timeout: 120000              // 120 seconds per chunk
-                },
-                (error, result) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(result);
-                    }
-                }
-            );
-
-            // Convert buffer to readable stream and pipe — prevents single-shot timeout
-            const readableStream = new Readable();
-            readableStream.push(req.file.buffer);
-            readableStream.push(null);
-            readableStream.pipe(uploadStream);
-        });
-
-        console.log("Cloudinary upload successful")
-        console.log("Cloudinary URL:",uploadResult.secure_url)
-        console.log("Cloudinary Public ID:",uploadResult.public_id)
-
-        // Save Cloudinary details
-        attempt.videoURL = uploadResult.secure_url
-        attempt.videoPublicId = uploadResult.public_id
-
-        // Change attempt status after successful upload
+        // Save responses and Cloudinary video details from the direct browser upload
+        attempt.responses = responses
+        attempt.videoURL = videoURL
+        attempt.videoPublicId = videoPublicId || ""
         attempt.status = "completed"
 
         await attempt.save()
@@ -551,68 +497,68 @@ export const getAssessmentReport = async (req, res) => {
 
         // 3. Generate AI report based on question and speech transcript (no video)
         const prompt = `
-You are an expert technical interviewer and hiring evaluator.
-Analyze the candidate's interview responses for each question and provide an overall assessment report.
-Evaluation must be based ONLY on the question text and candidate's transcribed answers provided below.
+                You are an expert technical interviewer and hiring evaluator.
+                Analyze the candidate's interview responses for each question and provide an overall assessment report.
+                Evaluation must be based ONLY on the question text and candidate's transcribed answers provided below.
 
-Assessment Context:
-- Target Role: ${assessment.targetRole}
-- Assessment Title: ${assessment.title}
-- Difficulty Level: ${assessment.difficulty}
+                Assessment Context:
+                - Target Role: ${assessment.targetRole}
+                - Assessment Title: ${assessment.title}
+                - Difficulty Level: ${assessment.difficulty}
 
-Questions and Candidate Transcripts:
-${JSON.stringify(
-    responses.map((r, i) => ({
-        questionIndex: i + 1,
-        questionId: String(r.questionId),
-        question: r.question,
-        transcript: r.transcript ? r.transcript.trim() : "No answer spoken or recorded"
-    })),
-    null,
-    2
-)}
+                Questions and Candidate Transcripts:
+                ${JSON.stringify(
+                    responses.map((r, i) => ({
+                        questionIndex: i + 1,
+                        questionId: String(r.questionId),
+                        question: r.question,
+                        transcript: r.transcript ? r.transcript.trim() : "No answer spoken or recorded"
+                    })),
+                    null,
+                    2
+                )}
 
-Instructions:
-1. For EACH question:
-   - score: Rating from 1 to 10 based on relevance, technical accuracy, clarity, and depth. (Give 1-3 if transcript is empty, incoherent, or missing).
-   - feedback: 2-3 constructive sentences detailing what was good and what was lacking.
-   - strengths: Array of 1-3 bullet points highlighting positive elements.
-   - improvements: Array of 1-3 bullet points highlighting clear improvement points.
-   - idealAnswer: A concise summary paragraph of what a strong, ideal answer for this question should cover.
-2. For OVERALL performance:
-   - overallScore: Integer from 0 to 100 (weighted aggregate of question scores).
-   - technicalScore: Integer from 0 to 100 representing technical knowledge demonstrated.
-   - communicationScore: Integer from 0 to 100 representing clarity and articulation.
-   - overallSummary: A comprehensive 3-5 sentence executive summary of the candidate's interview performance against the target role of ${assessment.targetRole}.
-   - strengths: Array of 3-5 high-level strengths observed across the whole interview.
-   - areasForImprovement: Array of 3-5 actionable recommendations for the candidate.
-   - finalRecommendation: Strictly one of: "Strong Hire", "Hire", "Needs Practice", "Not Ready".
+                Instructions:
+                1. For EACH question:
+                - score: Rating from 1 to 10 based on relevance, technical accuracy, clarity, and depth. (Give 1-3 if transcript is empty, incoherent, or missing).
+                - feedback: 2-3 constructive sentences detailing what was good and what was lacking.
+                - strengths: Array of 1-3 bullet points highlighting positive elements.
+                - improvements: Array of 1-3 bullet points highlighting clear improvement points.
+                - idealAnswer: A concise summary paragraph of what a strong, ideal answer for this question should cover.
+                2. For OVERALL performance:
+                - overallScore: Integer from 0 to 100 (weighted aggregate of question scores).
+                - technicalScore: Integer from 0 to 100 representing technical knowledge demonstrated.
+                - communicationScore: Integer from 0 to 100 representing clarity and articulation.
+                - overallSummary: A comprehensive 3-5 sentence executive summary of the candidate's interview performance against the target role of ${assessment.targetRole}.
+                - strengths: Array of 3-5 high-level strengths observed across the whole interview.
+                - areasForImprovement: Array of 3-5 actionable recommendations for the candidate.
+                - finalRecommendation: Strictly one of: "Strong Hire", "Hire", "Needs Practice", "Not Ready".
 
-Return ONLY a valid JSON object strictly matching this format:
-{
-    "overallReport": {
-        "overallScore": 82,
-        "technicalScore": 80,
-        "communicationScore": 85,
-        "overallSummary": "...",
-        "strengths": ["...", "..."],
-        "areasForImprovement": ["...", "..."],
-        "finalRecommendation": "Hire"
-    },
-    "questionAnalysis": [
-        {
-            "questionId": "...",
-            "question": "...",
-            "transcript": "...",
-            "score": 8,
-            "feedback": "...",
-            "strengths": ["..."],
-            "improvements": ["..."],
-            "idealAnswer": "..."
-        }
-    ]
-}
-`;
+                Return ONLY a valid JSON object strictly matching this format:
+                {
+                    "overallReport": {
+                        "overallScore": 82,
+                        "technicalScore": 80,
+                        "communicationScore": 85,
+                        "overallSummary": "...",
+                        "strengths": ["...", "..."],
+                        "areasForImprovement": ["...", "..."],
+                        "finalRecommendation": "Hire"
+                    },
+                    "questionAnalysis": [
+                        {
+                            "questionId": "...",
+                            "question": "...",
+                            "transcript": "...",
+                            "score": 8,
+                            "feedback": "...",
+                            "strengths": ["..."],
+                            "improvements": ["..."],
+                            "idealAnswer": "..."
+                        }
+                    ]
+                }
+                `;
 
         console.log("Generating AI assessment report for assessment:", assessmentId);
         const aiResult = await aiService(prompt);

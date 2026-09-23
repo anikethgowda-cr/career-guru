@@ -138,7 +138,7 @@ export const generateResumeAnalysis = async (req, res) => {
               - Keep missingSkills and valueAddingSkills as skill/keyword lists.
               - Provide at least 4 strengths.
               - Provide at least 4 weaknesses.
-              - Provide at least 4 suggestions.
+              - Provide  6 suggestions.
               - Return ONLY valid JSON.
               - Do not use markdown.
               - Do not wrap the JSON inside a code block.

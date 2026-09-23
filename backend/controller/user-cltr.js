@@ -4,6 +4,14 @@ import ResumeAnalysis from "../models/resumeAnalysisSchema.js";
 import CoursePlan from "../models/coursePlanSchema.js";
 import InterviewQuestions from "../models/interviewQuestionsSchema.js";
 import Resume from "../models/resumeSchema.js";
+import Assessment from "../models/assessmentSchema.js";
+import AssessmentAttempt from "../models/assessmentAttemptSchema.js";
+import AssessmentReport from "../models/assessmentReportSchema.js";
+import Conversation from "../models/conversationSchema.js";
+import Message from "../models/messageSchema.js";
+import Payment from "../models/paymentSchema.js";
+import MentorReport from "../models/mentorReportSchema.js";
+import cloudinary from "../config/cloudinary.js";
 import aiService from "../services/aiServices.js";
 import axios from "axios";
 import { PDFParse } from "pdf-parse";
@@ -165,20 +173,78 @@ export const getCurrentUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   const userId = req.userId;
+  const role = req.role;
 
   try {
-    const deletedUser = await User.findByIdAndDelete(userId);
+    // Only student users can delete account through this endpoint
+    if (role !== "user") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only student users can delete their account here."
+      });
+    }
 
-    if (!deletedUser) {
+    const user = await User.findById(userId);
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found"
       });
     }
 
+    // 1. Delete stored PDF resume from Cloudinary
+    try {
+      const resumes = await Resume.find({ userId });
+      for (const r of resumes) {
+        if (r.publicId) {
+          await cloudinary.uploader.destroy(r.publicId, { resource_type: "raw" });
+        }
+      }
+    } catch (cloudErr) {
+      console.warn("Could not delete resume from Cloudinary during account deletion:", cloudErr.message);
+    }
+
+    // 2. Delete interview assessment video from Cloudinary
+    try {
+      const reports = await AssessmentReport.find({ studentId: userId });
+      for (const rep of reports) {
+        if (rep.videoPublicId) {
+          await cloudinary.uploader.destroy(rep.videoPublicId, { resource_type: "video" });
+        }
+      }
+    } catch (cloudVideoErr) {
+      console.warn("Could not delete assessment video from Cloudinary during account deletion:", cloudVideoErr.message);
+    }
+
+    // 3. Delete conversations and messages
+    const conversations = await Conversation.find({ student: userId });
+    const convIds = conversations.map((c) => c._id);
+    await Message.deleteMany({
+      $or: [
+        { conversation: { $in: convIds } },
+        { sender: userId }
+      ]
+    });
+    await Conversation.deleteMany({ student: userId });
+
+    // 4. Cascade delete across all remaining collections
+    await UserProfile.deleteMany({ userId });
+    await Resume.deleteMany({ userId });
+    await ResumeAnalysis.deleteMany({ userId });
+    await CoursePlan.deleteMany({ userId });
+    await InterviewQuestions.deleteMany({ userId });
+    await AssessmentAttempt.deleteMany({ studentId: userId });
+    await AssessmentReport.deleteMany({ studentId: userId });
+    await Assessment.deleteMany({ studentId: userId });
+    await Payment.deleteMany({ userId });
+    await MentorReport.deleteMany({ studentId: userId });
+
+    // 5. Delete the main User document
+    await User.findByIdAndDelete(userId);
+
     return res.status(200).json({
       success: true,
-      message: "User deleted successfully"
+      message: "Your account and all associated details have been permanently deleted."
     });
 
   } catch (err) {

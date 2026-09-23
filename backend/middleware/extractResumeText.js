@@ -4,6 +4,8 @@ import Resume from "../models/resumeSchema.js";
 import User from "../models/userSchema.js";
 
 const extractResumeText = async (req, res, next) => {
+    let parser = null;
+
     try {
         const resume = await Resume.findOne({
             userId: req.userId
@@ -33,15 +35,20 @@ const extractResumeText = async (req, res, next) => {
 
         const pdfBuffer = Buffer.from(response.data);
 
-        const parser = new PDFParse({
-            data: pdfBuffer
-        });
+        parser = new PDFParse({ data: pdfBuffer });
 
         const result = await parser.getText();
 
-        await parser.destroy();
+        const resumeText = (result.text || "").trim();
 
-        req.resumeText = result.text;
+        if (!resumeText) {
+            return res.status(422).json({
+                success: false,
+                message: "Could not extract text from your resume PDF. Please upload a text-based (non-scanned) PDF."
+            });
+        }
+
+        req.resumeText = resumeText;
         req.resumeData = resume;
 
         next();
@@ -51,8 +58,17 @@ const extractResumeText = async (req, res, next) => {
 
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Failed to process resume. Please try again."
         });
+    } finally {
+        // Always release parser resources regardless of success or failure
+        if (parser) {
+            try {
+                await parser.destroy();
+            } catch (_) {
+                // Ignore cleanup errors
+            }
+        }
     }
 };
 

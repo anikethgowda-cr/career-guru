@@ -170,35 +170,26 @@ export const generateCoursePlan = async (req, res) => {
 
             YOUTUBE URL REQUIREMENTS:
 
-            Every first YouTube material MUST use one of these formats:
+            For the first YouTube material in each session, generate a
+            YouTube search URL using the following format:
 
-            https://www.youtube.com/watch?v=VIDEO_ID
+            https://www.youtube.com/results?search_query=TOPIC+KEYWORDS
 
-            OR
+            Replace spaces with + signs and use relevant keywords from the
+            session topic.
 
-            https://youtu.be/VIDEO_ID
+            Examples:
+            - https://www.youtube.com/results?search_query=docker+compose+tutorial
+            - https://www.youtube.com/results?search_query=react+hooks+beginner+2024
+            - https://www.youtube.com/results?search_query=postgresql+indexing+explained
 
-            The URL MUST point directly to a YouTube video.
+            This ensures the URL always works and students find current, relevant videos.
 
-            DO NOT use:
-
-            - YouTube channel URLs
-            - YouTube playlist URLs
-            - YouTube search URLs
-            - YouTube homepage URLs
-            - YouTube topic URLs
-            - YouTube Shorts unless they are genuinely the best educational
-              resource for the session
-            - Fake URLs
-            - Placeholder URLs
-            - Example URLs
-            - Made-up video IDs
-
-            NEVER fabricate or guess a YouTube video ID.
-
-            NEVER generate a fake YouTube URL.
-
-            Only provide a YouTube URL when you can identify a real video.
+            DO NOT:
+            - Fabricate or guess a specific YouTube video ID
+            - Use direct watch URLs like youtube.com/watch?v=...
+            - Use channel or playlist URLs
+            - Use fake or placeholder URLs
 
             REAL-TIME RESOURCE REQUIREMENT:
 
@@ -345,23 +336,21 @@ export const generateCoursePlan = async (req, res) => {
             16. For EVERY session:
                 materials[0].url MUST be a direct YouTube video URL.
 
-            17. Every first YouTube video MUST have been published within
-                the previous 2 years.
+            17. For EVERY session:
+                materials[0].type MUST equal "YouTube".
 
-            18. Prefer highly viewed and popular YouTube videos.
+            18. For EVERY session:
+                materials[0].url MUST be a YouTube search URL in the format:
+                https://www.youtube.com/results?search_query=TOPIC+KEYWORDS
 
-            19. Prefer reputable educational and technical channels.
+            19. Never use a direct video URL (watch?v=...) for materials[0].
 
-            20. Prefer recent videos when multiple videos have similar quality.
+            20. Never use a YouTube channel, playlist, search page or homepage
+                as materials[1+].
 
-            21. Never use a video older than 2 years for materials[0].
+            21. Never fabricate, guess or invent YouTube video IDs.
 
-            22. Never use a YouTube channel, playlist, search page or homepage
-                as materials[0].
-
-            23. Never fabricate, guess or invent YouTube video IDs.
-
-            24. Never generate fake or placeholder URLs.
+            22. Never generate fake or placeholder URLs for non-YouTube materials.
 
             25. The order of materials is important:
 
