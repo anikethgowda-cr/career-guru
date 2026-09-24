@@ -84,14 +84,7 @@ export default function MentorDashboard() {
                         </p>
                     </div>
 
-                    <div className="shrink-0 flex items-center gap-3">
-                        <div className="px-4 py-2.5 rounded-lg bg-bg-surface border border-border-default shadow-xs flex items-center gap-3">
-                            <span className="w-2.5 h-2.5 rounded-full bg-status-success animate-pulse"></span>
-                            <span className="text-xs font-semibold text-text-primary">
-                                Portal Online
-                            </span>
-                        </div>
-                    </div>
+
                 </div>
 
                 <div className="absolute -top-16 -right-16 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none" />

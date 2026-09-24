@@ -21,8 +21,8 @@ export default function UserChat() {
 
     const [message, setMessage] = useState("");
 
-    const mentorName = locationState?.mentorName || "Technical Mentor";
-    const mentorInitial = locationState?.mentorInitial || mentorName?.charAt(0).toUpperCase() || "M";
+    const resolvedMentorName = locationState?.mentorName || conversation?.mentor?.username || conversation?.mentor?.name || "Technical Mentor";
+    const mentorInitial = locationState?.mentorInitial || resolvedMentorName.charAt(0).toUpperCase() || "M";
 
     useEffect(() => {
         dispatch(createConversation(mentorId));
@@ -65,15 +65,20 @@ export default function UserChat() {
         return () => {
             socket.off("connect", handleConnect);
             socket.off("receiveMessage", handleReceiveMessage);
-            if (socket.connected) socket.disconnect();
         };
     }, [dispatch, conversation?._id]);
 
     function handleSend(e) {
         e.preventDefault();
-        if (!message.trim() || !conversation?._id || !socket.connected) return;
+        if (!message.trim() || !conversation?._id) return;
 
-        socket.emit("sendMessage", { conversationId: conversation._id, message: message.trim() }, (res) => {
+        const text = message.trim();
+
+        if (!socket.connected) {
+            socket.connect();
+        }
+
+        socket.emit("sendMessage", { conversationId: conversation._id, message: text }, (res) => {
             if (res?.success) {
                 setMessage("");
             }
@@ -120,7 +125,7 @@ export default function UserChat() {
         <div className="p-3 sm:p-6 max-w-4xl mx-auto h-[calc(100vh-5rem)] flex flex-col transition-colors duration-200">
             <div className="flex-1 bg-bg-surface border border-border-default rounded-xl shadow-subtle overflow-hidden flex flex-col">
                 <ChatHeader
-                    name={mentorName}
+                    name={resolvedMentorName}
                     initial={mentorInitial}
                     subtitle="Industry Mentor"
                     backPath="/user/my-mentors"

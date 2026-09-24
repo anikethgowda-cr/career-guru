@@ -32,7 +32,6 @@ export default function MentorProfileDetails({ data }) {
                             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-brand-primary to-indigo-700 text-white flex items-center justify-center font-black text-3xl sm:text-4xl shadow-md shadow-brand-primary/20">
                                 {initial}
                             </div>
-                            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-status-success ring-4 ring-bg-surface rounded-full"></span>
                         </div>
 
                         <div className="space-y-1">

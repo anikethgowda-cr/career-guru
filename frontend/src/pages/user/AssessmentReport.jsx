@@ -17,7 +17,9 @@ export default function AssessmentReport() {
     }, [dispatch]);
 
     const completedAssessments = useMemo(() => {
-        return Array.isArray(userAssessments) ? userAssessments : [];
+        return Array.isArray(userAssessments)
+            ? userAssessments.filter((assessment) => assessment.status === "completed")
+            : [];
     }, [userAssessments]);
 
     // Filter by search and difficulty

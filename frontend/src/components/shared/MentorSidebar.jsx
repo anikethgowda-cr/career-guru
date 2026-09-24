@@ -141,7 +141,6 @@ export default function MentorSidebar() {
                         <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
                             {initial}
                         </div>
-                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 ring-2 ring-bg-surface rounded-full"></span>
                     </div>
 
                     <div className="flex-1 min-w-0">

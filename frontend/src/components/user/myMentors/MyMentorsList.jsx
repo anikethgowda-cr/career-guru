@@ -21,29 +21,29 @@ export default function MyMentorsList({ conversations }) {
 
     if (!Array.isArray(conversations) || conversations.length === 0) {
         return (
-            <div className="p-10 sm:p-12 rounded-2xl bg-bg-surface border border-border-default text-center space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-brand-subtle text-brand-primary mx-auto flex items-center justify-center">
-                    <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <div className="p-10 sm:p-14 rounded-2xl bg-bg-surface border border-border-default text-center space-y-4 shadow-2xs">
+                <div className="w-16 h-16 rounded-2xl bg-brand-subtle text-brand-primary mx-auto flex items-center justify-center">
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                 </div>
-                <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-text-primary">
-                        No Active Mentor Chats Yet
+                <div className="space-y-1.5">
+                    <h3 className="text-xl font-bold text-text-primary">
+                        No Active Subscriptions Yet
                     </h3>
-                    <p className="text-xs sm:text-sm text-text-muted max-w-sm mx-auto">
-                        Explore verified industry mentors and start a direct conversation to receive tailored technical guidance.
+                    <p className="text-xs sm:text-sm text-text-muted max-w-md mx-auto leading-relaxed">
+                        You have not subscribed to any mentor yet. Explore mentors to access or talk to industry experts, get 1-on-1 career guidance, and prepare for interviews.
                     </p>
                 </div>
                 <div className="pt-2">
                     <Link
                         to="/user/explore-mentors"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-semibold text-xs sm:text-sm shadow-md shadow-brand-primary/20 transition-all duration-200 cursor-pointer"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-semibold text-xs sm:text-sm shadow-md shadow-brand-primary/20 transition-all duration-200 cursor-pointer"
                     >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <span>Explore Mentors Directory</span>
+                        <span>Explore Mentors to Access & Talk</span>
                     </Link>
                 </div>
             </div>
@@ -56,7 +56,7 @@ export default function MyMentorsList({ conversations }) {
                 const mentor = conv.mentor;
                 const name = mentor?.username || mentor?.name || "Technical Mentor";
                 const initial = name.charAt(0).toUpperCase();
-                const preview = conv.lastMessage?.message || "Conversation started. Send a message to get guidance!";
+                const preview = conv.lastMessage?.message || "✨ Subscription active — send your first message!";
                 const time = formatTime(conv.lastMessage?.createdAt || conv.updatedAt);
 
                 return (
@@ -79,7 +79,6 @@ export default function MyMentorsList({ conversations }) {
                                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-primary to-indigo-700 text-white flex items-center justify-center font-bold text-base shadow-xs group-hover:scale-105 transition-transform duration-200">
                                     {initial}
                                 </div>
-                                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-status-success border-2 border-bg-surface"></span>
                             </div>
 
                             {/* Name & Preview */}

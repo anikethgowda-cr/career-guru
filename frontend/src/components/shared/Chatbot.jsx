@@ -92,9 +92,8 @@ export default function Chatbot() {
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="font-bold text-sm leading-tight text-white flex items-center gap-2">
+                                <h3 className="font-bold text-sm leading-tight text-white">
                                     CareerPilot AI
-                                    <span className="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
                                 </h3>
                                 <span className="text-[11px] text-white/80 font-medium">AI Career Assistant</span>
                             </div>
@@ -295,12 +294,9 @@ export default function Chatbot() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 ) : (
-                    <div className="relative">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                        </svg>
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-indigo-600 dark:ring-indigo-600"></span>
-                    </div>
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
                 )}
             </button>
         </>

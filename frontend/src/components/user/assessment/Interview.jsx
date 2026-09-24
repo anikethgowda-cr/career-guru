@@ -27,6 +27,7 @@ function Interview() {
     const [mediaError, setMediaError] = useState("");
     const [recordedVideoURL] = useState("");
     const [recordingTime, setRecordingTime] = useState(0);
+    const [isRecording, setIsRecording] = useState(false);
 
     // Per-question transcripts storage keyed by questionId
     const [transcriptsByQuestion, setTranscriptsByQuestion] = useState({});
@@ -40,6 +41,7 @@ function Interview() {
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submissionStep, setSubmissionStep] = useState("idle"); // "idle" | "uploading_video" | "submitting_answers" | "generating_report" | "done" | "report_failed"
     const [submitError, setSubmitError] = useState("");
+    const [submitSuccess, setSubmitSuccess] = useState("");
 
     const videoRef = useRef(null);
     const mediaStreamRef = useRef(null);
@@ -559,7 +561,12 @@ function Interview() {
                 return;
             }
 
-            const blobToUpload = videoBlob || recordedVideoBlobRef.current;
+            const blobToUpload =
+                videoBlob ||
+                recordedVideoBlobRef.current ||
+                (recordedChunksRef.current && recordedChunksRef.current.length > 0
+                    ? new Blob(recordedChunksRef.current, { type: "video/webm" })
+                    : null);
 
             if (!blobToUpload) {
                 setSubmitError("Interview video is not available.");
@@ -663,9 +670,12 @@ function Interview() {
         }
 
         introductionPlayedRef.current = true;
-        speakIntroduction();
+        const timer = setTimeout(() => {
+            speakIntroduction();
+        }, 0);
 
         return () => {
+            clearTimeout(timer);
             window.speechSynthesis?.cancel();
         };
     }, [interviewStarted, cameraStarted, questions.length]);
@@ -1032,10 +1042,12 @@ function Interview() {
                     {/* Status badges */}
                     <div className="flex items-center gap-3 flex-wrap">
                         {/* Recording status */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 text-xs font-semibold">
-                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                            <span>REC {formatTime(recordingTime)}</span>
-                        </div>
+                        {isRecording && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 text-xs font-semibold">
+                                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                <span>REC {formatTime(recordingTime)}</span>
+                            </div>
+                        )}
 
                         {/* Listening Sound Wave indicator */}
                         {introductionCompleted && isListening && (
@@ -1081,10 +1093,6 @@ function Interview() {
                                 <span>LIVE</span>
                             </div>
 
-                            <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between text-[11px] text-slate-300 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
-                                <span className="truncate">{candidateName}</span>
-                                <span className="text-emerald-400 font-semibold">HD</span>
-                            </div>
                         </div>
 
                         {/* Question Progress bar */}
@@ -1296,6 +1304,11 @@ function Interview() {
                                     ? "Your video recording and answers have been securely submitted and saved!"
                                     : "Please stay on this page while we process your responses and generate your AI evaluation report."}
                             </p>
+                            {submitSuccess && (
+                                <div className="p-3 rounded-xl bg-status-success-subtle border border-status-success/30 text-xs font-medium text-status-success">
+                                    {submitSuccess}
+                                </div>
+                            )}
                         </div>
 
                         {/* Step-by-Step Progress Checklist */}

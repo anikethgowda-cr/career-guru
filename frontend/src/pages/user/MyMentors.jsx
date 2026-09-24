@@ -65,13 +65,13 @@ export default function MyMentors() {
                         My Mentors
                     </h1>
                     <p className="text-xs sm:text-sm text-text-muted">
-                        Continue active 1-on-1 conversations and review guidance history.
+                        Your active mentor subscriptions — click a mentor to open the chat.
                     </p>
                 </div>
 
                 {Array.isArray(conversations) && (
                     <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-brand-subtle text-brand-primary border border-brand-primary/20 shadow-2xs">
-                        {conversations.length} Active {conversations.length === 1 ? "Chat" : "Chats"}
+                        {conversations.length} Active {conversations.length === 1 ? "Mentor" : "Mentors"}
                     </span>
                 )}
             </div>

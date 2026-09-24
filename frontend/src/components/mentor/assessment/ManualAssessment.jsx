@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchMentees, createAssessmentManually } from "../../../slices/mentor/MentorAssessmentSlice";
+import {
+    fetchMentees,
+    createAssessmentManually,
+    clearMentorAssessmentState
+} from "../../../slices/mentor/MentorAssessmentSlice";
 
 export default function ManualAssessment() {
     const dispatch = useDispatch();
@@ -18,27 +22,31 @@ export default function ManualAssessment() {
     const [question, setQuestion] = useState("");
     const [editIndex, setEditIndex] = useState(null);
     const [editedQuestion, setEditedQuestion] = useState("");
-    const [serverMessage, setServerMessage] = useState("");
+    const [clientError, setClientError] = useState("");
 
-    const { mentees, message, serverError, loading } = useSelector((state) => {
-        return state.mentorAssessment;
-    });
+    const { mentees, message, serverError, loading, isSubmitting } = useSelector(
+        (state) => state.mentorAssessment
+    );
 
     useEffect(() => {
         dispatch(fetchMentees());
+        return () => {
+            dispatch(clearMentorAssessmentState());
+        };
     }, [dispatch]);
 
     useEffect(() => {
         if (message) {
-            setServerMessage(message);
             const timer = setTimeout(() => {
-                setServerMessage("");
-            }, 3000);
+                dispatch(clearMentorAssessmentState());
+            }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [message]);
+    }, [message, dispatch]);
 
     function handleChange(e) {
+        if (clientError) setClientError("");
+        if (serverError) dispatch(clearMentorAssessmentState());
         setManualAssessment((prev) => ({
             ...prev,
             [e.target.name]: e.target.value
@@ -50,6 +58,7 @@ export default function ManualAssessment() {
             return;
         }
 
+        if (clientError) setClientError("");
         setManualAssessment((prev) => ({
             ...prev,
             questions: [
@@ -109,20 +118,60 @@ export default function ManualAssessment() {
         }));
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        dispatch(createAssessmentManually(manualAssessment));
-        setManualAssessment({
-            studentId: "",
-            title: "",
-            difficulty: "",
-            questions: [],
-            targetRole: ""
-        });
-        setQuestion("");
+        setClientError("");
+        dispatch(clearMentorAssessmentState());
+
+        if (!manualAssessment.studentId) {
+            setClientError("Please select a mentee to assign the assessment.");
+            return;
+        }
+        if (!manualAssessment.title.trim()) {
+            setClientError("Please enter an assessment title.");
+            return;
+        }
+        if (!manualAssessment.targetRole.trim()) {
+            setClientError("Please enter a target role.");
+            return;
+        }
+        if (!manualAssessment.difficulty) {
+            setClientError("Please select a difficulty level.");
+            return;
+        }
+        if (!manualAssessment.questions || manualAssessment.questions.length === 0) {
+            setClientError("Please add at least one question before assigning.");
+            return;
+        }
+
+        try {
+            await dispatch(createAssessmentManually(manualAssessment)).unwrap();
+            // Reset form inputs only on successful creation
+            setManualAssessment({
+                studentId: "",
+                title: "",
+                difficulty: "",
+                questions: [],
+                targetRole: ""
+            });
+            setQuestion("");
+            setEditIndex(null);
+            setEditedQuestion("");
+        } catch (err) {
+            console.error("Manual assessment creation error:", err);
+            // Form is intentionally preserved so user does not lose their typed questions!
+        }
     }
 
-    if (loading) {
+    const displayedError =
+        clientError ||
+        (serverError
+            ? typeof serverError === "string"
+                ? serverError
+                : serverError.message || "Failed to create assessment."
+            : "");
+
+    if (loading && mentees.length === 0) {
         return (
             <div className="p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto text-left space-y-6 animate-pulse">
                 <div className="w-44 h-8 bg-bg-muted rounded-xl"></div>
@@ -139,21 +188,44 @@ export default function ManualAssessment() {
 
     return (
         <div className="p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto text-left space-y-6 transition-colors duration-200">
-            {/* Feedback Alerts */}
-            {serverMessage && (
-                <div className="p-4 rounded-xl bg-status-success-subtle border border-status-success/30 text-sm font-semibold text-status-success flex items-center gap-2">
-                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>{serverMessage}</span>
+            {/* Success Feedback Alert */}
+            {message && (
+                <div className="p-4 rounded-xl bg-status-success-subtle border border-status-success/30 text-sm font-semibold text-status-success flex items-center justify-between gap-3 animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{message}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => dispatch(clearMentorAssessmentState())}
+                        className="text-status-success hover:opacity-75 text-xs font-bold px-2 py-1 cursor-pointer"
+                    >
+                        ✕
+                    </button>
                 </div>
             )}
-            {serverError && (
-                <div className="p-4 rounded-xl bg-status-danger-subtle border border-status-danger/30 text-sm font-semibold text-status-danger flex items-center gap-2">
-                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.332.192 3 1.732 3z" />
-                    </svg>
-                    <span>{serverError.message || (typeof serverError === "string" ? serverError : "Failed to create assessment")}</span>
+
+            {/* Error Feedback Alert */}
+            {displayedError && (
+                <div className="p-4 rounded-xl bg-status-danger-subtle border border-status-danger/30 text-sm font-semibold text-status-danger flex items-center justify-between gap-3 animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.332.192 3 1.732 3z" />
+                        </svg>
+                        <span>{displayedError}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setClientError("");
+                            dispatch(clearMentorAssessmentState());
+                        }}
+                        className="text-status-danger hover:opacity-75 text-xs font-bold px-2 py-1 cursor-pointer"
+                    >
+                        ✕
+                    </button>
                 </div>
             )}
 
@@ -187,7 +259,7 @@ export default function ManualAssessment() {
                     {/* Mentee Select */}
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                            Select Mentee
+                            Select Mentee <span className="text-status-danger">*</span>
                         </label>
 
                         <select
@@ -199,8 +271,8 @@ export default function ManualAssessment() {
                         >
                             <option value="">Select Mentee</option>
                             {mentees.map((user) => (
-                                <option key={user.student._id} value={user.student._id}>
-                                    {user.student?.username}
+                                <option key={user.student?._id || user._id} value={user.student?._id || user._id}>
+                                    {user.student?.username || user.username || "Mentee"} ({user.student?.email || user.email})
                                 </option>
                             ))}
                         </select>
@@ -209,7 +281,7 @@ export default function ManualAssessment() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                                Assessment Title
+                                Assessment Title <span className="text-status-danger">*</span>
                             </label>
                             <input
                                 type="text"
@@ -224,7 +296,7 @@ export default function ManualAssessment() {
 
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                                Target Role
+                                Target Role <span className="text-status-danger">*</span>
                             </label>
                             <input
                                 type="text"
@@ -240,7 +312,7 @@ export default function ManualAssessment() {
 
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                            Difficulty Level
+                            Difficulty Level <span className="text-status-danger">*</span>
                         </label>
                         <select
                             name="difficulty"
@@ -259,7 +331,7 @@ export default function ManualAssessment() {
                     {/* Add Question Input */}
                     <div className="border-t border-border-default pt-5">
                         <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                            Add Question
+                            Add Question <span className="text-status-danger">*</span>
                         </label>
 
                         <div className="flex flex-col sm:flex-row gap-2.5">
@@ -269,7 +341,7 @@ export default function ManualAssessment() {
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
                                 onKeyDown={handleQuestionKeyDown}
-                                placeholder="Type an interview question and press Enter or click Add"
+                                placeholder="Type an interview question and press Enter or click Add Question"
                                 className="flex-1 px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-muted/50 text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition"
                             />
 
@@ -361,13 +433,20 @@ export default function ManualAssessment() {
                         )}
                     </div>
 
-                    <div className="border-t border-border-default pt-5">
+                    <div className="border-t border-border-default pt-5 flex items-center justify-between gap-4">
                         <button
                             type="submit"
-                            disabled={manualAssessment.questions.length === 0}
-                            className="w-full sm:w-auto px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isSubmitting || manualAssessment.questions.length === 0}
+                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Assign Assessment
+                            {isSubmitting ? (
+                                <>
+                                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                                    <span>Assigning Assessment...</span>
+                                </>
+                            ) : (
+                                <span>Assign Assessment</span>
+                            )}
                         </button>
                     </div>
                 </form>

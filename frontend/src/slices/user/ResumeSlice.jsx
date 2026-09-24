@@ -15,12 +15,13 @@ const initialState = {
     analysisSuccess: false
 };
 
-export const uploadResume = createAsyncThunk( "resume/uploadResume", async (resumeFile, thunkAPI) => {
+export const uploadResume = createAsyncThunk("resume/uploadResume", async (resumeFile, thunkAPI) => {
         try {
+            const file = resumeFile instanceof File ? resumeFile : (resumeFile?.file || resumeFile);
             const resumeData = new FormData();
-            resumeData.append("resume", resumeFile);
+            resumeData.append("resume", file);
 
-            const response = await axios.post(  "/resume/upload",   resumeData  );
+            const response = await axios.post("/resume/upload", resumeData);
             return response.data;
         } catch (err) {
             return thunkAPI.rejectWithValue(
@@ -104,6 +105,10 @@ const ResumeSlice = createSlice({
                 state.uploadSuccess = true;
                 state.uploadError = null;
                 state.data = action.payload.data;
+                if (action.payload.analysis) {
+                    state.analysis = action.payload.analysis;
+                    state.analysisSuccess = true;
+                }
             })
 
             .addCase(uploadResume.rejected, (state, action) => {

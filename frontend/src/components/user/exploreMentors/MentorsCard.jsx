@@ -1,20 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import MentorProfileModal from "./MentorProfileModal";
 
-export default function MentorsCard({ mentor }) {
+export default function MentorsCard({ mentor, isMatch }) {
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
+    const { conversations } = useSelector((state) => state.mentorChat);
+
+    const isSubscribed = Array.isArray(conversations) && conversations.some(
+        (c) => String(c.mentor?._id || c.mentor) === String(mentor.userId)
+    );
 
     const initial = mentor.name?.charAt(0).toUpperCase() || "M";
 
-    function handleTalkToMentor() {
-        navigate(`/user/mentor/chat/${mentor.userId}`, {
-            state: {
-                mentorName: mentor.name,
-                mentorInitial: initial
-            }
-        });
+    function handleAction() {
+        if (isSubscribed) {
+            navigate(`/user/mentor/chat/${mentor.userId}`, {
+                state: {
+                    mentorName: mentor.name,
+                    mentorInitial: initial
+                }
+            });
+        } else {
+            navigate(`/user/pay/${mentor.userId}`);
+        }
     }
 
     return (
@@ -27,17 +37,22 @@ export default function MentorsCard({ mentor }) {
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-200">
                                 {initial}
                             </div>
-                            {/* Online badge */}
-                            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-status-success border-2 border-bg-surface"></span>
                         </div>
 
                         <div className="flex-1 min-w-0">
-                            <h3
-                                title={mentor.name}
-                                className="text-base font-bold text-text-primary tracking-tight truncate group-hover:text-brand-primary transition-colors"
-                            >
-                                {mentor.name}
-                            </h3>
+                            <div className="flex items-center gap-2">
+                                <h3
+                                    title={mentor.name}
+                                    className="text-base font-bold text-text-primary tracking-tight truncate group-hover:text-brand-primary transition-colors"
+                                >
+                                    {mentor.name}
+                                </h3>
+                                {isMatch && (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shrink-0">
+                                        ⚡ Matched
+                                    </span>
+                                )}
+                            </div>
                             <p
                                 title={mentor.designation}
                                 className="text-xs sm:text-sm font-medium text-brand-primary truncate mt-0.5"
@@ -122,13 +137,24 @@ export default function MentorsCard({ mentor }) {
 
                     <button
                         type="button"
-                        onClick={handleTalkToMentor}
+                        onClick={handleAction}
                         className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-brand-primary hover:bg-brand-primary-hover text-white text-xs font-semibold shadow-xs transition-all duration-200 cursor-pointer"
                     >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        <span>Talk to Mentor</span>
+                        {isSubscribed ? (
+                            <>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                                <span>Talk to Mentor</span>
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                <span>Subscribe</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
@@ -137,7 +163,8 @@ export default function MentorsCard({ mentor }) {
                 <MentorProfileModal
                     mentor={mentor}
                     onClose={() => setShowModal(false)}
-                    onTalkToMentor={handleTalkToMentor}
+                    onTalkToMentor={handleAction}
+                    isSubscribed={isSubscribed}
                 />
             )}
         </>

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { jobRoles, specializations } from "../../constants/jobOptions";
 import { createProfile } from "../../slices/ProfileSlice";
-import { useDispatch ,useSelector } from "react-redux";
+import { createMentorPlan } from "../../slices/mentor/MentorPlanSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 const languages = [
@@ -32,8 +33,12 @@ const MentorProfileForm = () => {
         languages: [],
         organization: "",
         designation: "",
-        origin: ""
+        origin: "",
+        price: ""
     });
+
+    const [submitError, setSubmitError] = useState("");
+    const [submitLoading, setSubmitLoading] = useState(false);
 
     const handleChange = (e) => {
         const { name, value, selectedOptions, multiple } = e.target;
@@ -97,15 +102,25 @@ const MentorProfileForm = () => {
         )
     ];
 
-    async function handleSubmit(e){
+    async function handleSubmit(e) {
         e.preventDefault();
-        console.log(formData);
-        try{
-            dispatch(createProfile({profileData:formData,role:user.role})).unwrap()
-            navigate("/mentor/dashboard")
-        }catch(err){
-            console.log(err)
-        } 
+        setSubmitError("");
+
+        if (!formData.price || Number(formData.price) < 1) {
+            setSubmitError("Please enter a valid monthly subscription fee (minimum ₹1).");
+            return;
+        }
+
+        setSubmitLoading(true);
+        try {
+            await dispatch(createProfile({ profileData: formData, role: user.role })).unwrap();
+            await dispatch(createMentorPlan({ price: Number(formData.price) })).unwrap();
+            navigate("/mentor/dashboard");
+        } catch (err) {
+            setSubmitError(err?.message || "Failed to save profile. Please try again.");
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     return (
@@ -392,15 +407,63 @@ const MentorProfileForm = () => {
                         </div>
                     </div>
 
+                    {/* Mentorship Subscription Pricing */}
+                    <div className="space-y-4 pt-4 border-t border-border-default">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-brand-primary pb-2 border-b border-border-default">
+                            Mentorship Subscription Pricing
+                        </h3>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-text-secondary mb-1.5">
+                                Monthly Subscription Fee (₹) <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-text-muted text-sm font-semibold pointer-events-none">₹</span>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    value={formData.price}
+                                    onChange={handleChange}
+                                    min="1"
+                                    placeholder="e.g. 499"
+                                    required
+                                    className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-border-default bg-bg-app text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary transition-all"
+                                />
+                            </div>
+                            <p className="text-[11px] text-text-muted mt-1.5">
+                                Students will be charged this amount per 30-day mentorship subscription. You can update this anytime.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Error Alert */}
+                    {submitError && (
+                        <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 font-medium">
+                            {submitError}
+                        </div>
+                    )}
+
                     {/* Submit Button */}
                     <div className="pt-6 border-t border-border-default">
                         <button
                             type="submit"
-                            className="w-full py-3.5 px-6 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-bold text-sm shadow-md shadow-brand-primary/20 transition-all duration-200 cursor-pointer text-center"
+                            disabled={submitLoading}
+                            className="w-full py-3.5 px-6 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-bold text-sm shadow-md shadow-brand-primary/20 transition-all duration-200 cursor-pointer text-center disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            Save & Activate Mentor Profile
+                            {submitLoading ? (
+                                <>
+                                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Saving Profile...</span>
+                                </>
+                            ) : (
+                                "Save & Activate Mentor Profile"
+                            )}
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>

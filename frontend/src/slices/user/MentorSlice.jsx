@@ -12,6 +12,9 @@ export const fetchMentors = createAsyncThunk("mentors/fetchMentors", async (_, t
         const response = await axios.get("/mentors");
         return response.data;
     } catch (err) {
+        if (err.response?.status === 404) {
+            return { mentors: [] };
+        }
         return thunkAPI.rejectWithValue({
             status: err.response?.status,
             message: err.response?.data?.message || "Failed to fetch mentors"

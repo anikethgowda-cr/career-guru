@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { updateProfileDetails, deleteUserAccount } from "../../../slices/ProfileSlice";
 import { logout } from "../../../slices/AuthSlice";
 import {
@@ -40,12 +40,17 @@ export default function ProfileDetails({ data }) {
         linkedin: profile?.linkedin || ""
     });
 
-    // Resume slice state
+    // Resume & Dashboard slice state
     const userResume = useSelector((state) => state.resume?.data);
+    const dashboardAnalysis = useSelector((state) => state.dashboard?.data);
+    const resumeAnalysis = useSelector((state) => state.resume?.analysis);
+    const analysisData = dashboardAnalysis || resumeAnalysis;
+    const dashboardLoading = useSelector((state) => state.dashboard?.loading);
 
-    // Fetch user resume on mount
+    // Fetch user resume and analysis on mount
     useEffect(() => {
         dispatch(fetchUserResume());
+        dispatch(fetchResumeAnalysis());
     }, [dispatch]);
 
     // Keep form in sync when profile prop updates
@@ -173,27 +178,76 @@ export default function ProfileDetails({ data }) {
         setErrorMessage("");
         setStatusMessage(null);
 
+        const targetRole = formData.preferredJobRole || profile?.preferredJobRole;
+        const targetSpecs = formData.preferredSpecialization?.length
+            ? formData.preferredSpecialization
+            : profile?.preferredSpecialization;
+
         try {
+            // 1. Update resume in Cloudinary and update URL in DB
             await dispatch(uploadResume(file)).unwrap();
-            // Automatically calculate new report against current role & specialization
+
+            // 2. Trigger generate resume analysis API (extracts text via middleware & analyzes new resume)
             await dispatch(analyzeResume({
-                preferredJobRole: formData.preferredJobRole,
-                preferredSpecialization: formData.preferredSpecialization
+                preferredJobRole: targetRole,
+                preferredSpecialization: targetSpecs
             })).unwrap();
 
+            // 3. Refresh user resume and ATS analysis
             dispatch(fetchUserResume());
             dispatch(fetchResumeAnalysis());
 
             setStatusMessage({
                 type: "success",
-                text: "Resume updated and ATS report recalculated successfully!"
+                text: "Resume updated in Cloudinary, analyzed successfully with your new resume, and roadmaps refreshed!"
             });
 
         } catch (err) {
-            setErrorMessage(typeof err === "string" ? err : err?.message || "Resume upload/analysis failed.");
+            // Fallback: If upload succeeded but auto-analysis needed separate call
+            try {
+                await dispatch(analyzeResume({
+                    preferredJobRole: targetRole,
+                    preferredSpecialization: targetSpecs
+                })).unwrap();
+                dispatch(fetchUserResume());
+                dispatch(fetchResumeAnalysis());
+                setStatusMessage({
+                    type: "success",
+                    text: "Resume updated and ATS report analyzed successfully!"
+                });
+            } catch (retryErr) {
+                setErrorMessage(typeof err === "string" ? err : err?.message || "Resume upload/analysis failed.");
+            }
         } finally {
             setResumeActionLoading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    }
+
+    async function handleManualReanalyze() {
+        setResumeActionLoading(true);
+        setErrorMessage("");
+        setStatusMessage(null);
+
+        const targetRole = formData.preferredJobRole || profile?.preferredJobRole;
+        const targetSpecs = formData.preferredSpecialization?.length
+            ? formData.preferredSpecialization
+            : profile?.preferredSpecialization;
+
+        try {
+            await dispatch(analyzeResume({
+                preferredJobRole: targetRole,
+                preferredSpecialization: targetSpecs
+            })).unwrap();
+            dispatch(fetchResumeAnalysis());
+            setStatusMessage({
+                type: "success",
+                text: "Resume analysis recalculated successfully with your current resume!"
+            });
+        } catch (err) {
+            setErrorMessage(typeof err === "string" ? err : err?.message || "Failed to analyze resume.");
+        } finally {
+            setResumeActionLoading(false);
         }
     }
 
@@ -295,10 +349,6 @@ export default function ProfileDetails({ data }) {
                             <p className="text-xs sm:text-sm text-text-muted">
                                 {user?.email || "user@careerguru.ai"}
                             </p>
-                            <div className="inline-flex items-center gap-1.5 pt-1 text-xs font-semibold text-status-success">
-                                <span className="w-2 h-2 rounded-full bg-status-success"></span>
-                                <span>Active Candidate Profile</span>
-                            </div>
                         </div>
                     </div>
 
@@ -665,13 +715,9 @@ export default function ProfileDetails({ data }) {
                                     {userResume.fileName || "Uploaded Resume.pdf"}
                                 </h4>
                                 <div className="flex items-center gap-2 text-[11px] text-text-muted">
-                                    <span className="inline-flex items-center gap-1 text-status-success font-semibold">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-status-success"></span>
-                                        Analyzed & Active
-                                    </span>
                                     {userResume.updatedAt && (
                                         <span>
-                                            &bull; Updated {new Date(userResume.updatedAt).toLocaleDateString()}
+                                            Updated {new Date(userResume.updatedAt).toLocaleDateString()}
                                         </span>
                                     )}
                                 </div>
@@ -750,6 +796,221 @@ export default function ProfileDetails({ data }) {
                     </div>
                 )}
             </div>
+
+            {/* Resume ATS Analysis & Insights Report */}
+            {resumeActionLoading ? (
+                <div className="bg-bg-surface border border-brand-primary/30 rounded-2xl p-6 sm:p-8 shadow-xs text-center space-y-4 animate-pulse">
+                    <div className="w-12 h-12 rounded-xl bg-brand-subtle text-brand-primary mx-auto flex items-center justify-center">
+                        <svg className="w-6 h-6 animate-spin text-brand-primary" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <div className="space-y-1">
+                        <h4 className="text-base font-bold text-text-primary">
+                            Analyzing New Resume with AI Engine...
+                        </h4>
+                        <p className="text-xs text-text-muted max-w-md mx-auto">
+                            Extracting candidate qualifications, benchmarking ATS compatibility against {formData.preferredJobRole || profile?.preferredJobRole}, and identifying skill coverage.
+                        </p>
+                    </div>
+                </div>
+            ) : analysisData?.roleAnalysis ? (
+                <div className="bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border-default">
+                        <div>
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-subtle text-brand-primary border border-brand-primary/20 mb-1">
+                                <span>Resume Intelligence</span>
+                            </div>
+                            <h3 className="text-base font-bold text-text-primary">
+                                ATS Resume Analysis & Skill Benchmarking
+                            </h3>
+                            <p className="text-xs text-text-muted mt-0.5">
+                                Evaluated for <strong className="text-text-primary">{analysisData.roleAnalysis.role}</strong>
+                                {analysisData.roleAnalysis.specialization && ` • ${analysisData.roleAnalysis.specialization}`}
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            disabled={resumeActionLoading}
+                            onClick={handleManualReanalyze}
+                            className="px-3.5 py-1.5 rounded-xl bg-bg-muted hover:bg-bg-surface text-text-secondary text-xs font-semibold border border-border-default transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Re-analyze</span>
+                        </button>
+                    </div>
+
+                    {/* ATS Score & Match Overview */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center bg-bg-app p-5 rounded-2xl border border-border-default">
+                        {/* ATS Score Dial / Badge */}
+                        <div className="flex items-center gap-4 sm:border-r sm:border-border-default sm:pr-4">
+                            <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black text-xl shadow-md ${
+                                analysisData.roleAnalysis.atsScore >= 80
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                    : analysisData.roleAnalysis.atsScore >= 60
+                                    ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30"
+                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30"
+                            }`}>
+                                <span>{analysisData.roleAnalysis.atsScore}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider -mt-1 opacity-70">ATS</span>
+                            </div>
+                            <div className="space-y-0.5">
+                                <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                                    Match Rating
+                                </span>
+                                <h4 className="text-sm font-bold text-text-primary">
+                                    {analysisData.roleAnalysis.atsScore >= 80
+                                        ? "Excellent Fit"
+                                        : analysisData.roleAnalysis.atsScore >= 65
+                                        ? "Strong Match"
+                                        : analysisData.roleAnalysis.atsScore >= 50
+                                        ? "Moderate Match"
+                                        : "Needs Optimization"}
+                                </h4>
+                                <p className="text-[11px] text-text-muted">
+                                    {analysisData.roleAnalysis.atsScore >= 75
+                                        ? "High probability of passing ATS filters"
+                                        : "Review skill gaps below to boost score"}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Target Focus */}
+                        <div className="space-y-1 sm:px-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                                Target Role
+                            </span>
+                            <div className="font-semibold text-xs sm:text-sm text-text-primary truncate">
+                                {analysisData.roleAnalysis.role || "Software Engineer"}
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                                {analysisData.roleAnalysis.specialization?.split(",").map((s, idx) => (
+                                    <span key={idx} className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-brand-subtle text-brand-primary border border-brand-primary/20">
+                                        {s.trim()}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Quick Actions Links */}
+                        <div className="flex flex-col gap-2 sm:pl-2">
+                            <Link
+                                to="/user/dashboard"
+                                className="px-3.5 py-2 rounded-xl bg-brand-primary hover:bg-brand-hover text-white text-xs font-semibold text-center transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                                <span>Full Dashboard Metrics</span>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </Link>
+                            <Link
+                                to="/user/learning-plan"
+                                className="px-3.5 py-2 rounded-xl bg-bg-surface hover:bg-bg-muted text-text-primary text-xs font-semibold text-center border border-border-default transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                                <span>Learning Roadmap</span>
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Strengths & Missing Skills Breakdown */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {/* Strengths */}
+                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                                    Identified Resume Strengths
+                                </h4>
+                            </div>
+                            <ul className="space-y-1.5">
+                                {(analysisData.roleAnalysis.strengths || []).slice(0, 4).map((str, idx) => (
+                                    <li key={idx} className="text-xs text-text-secondary flex items-start gap-2">
+                                        <span className="text-emerald-500 font-bold shrink-0 mt-0.5">•</span>
+                                        <span className="leading-relaxed">{str}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Missing Skills */}
+                        <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                                    Missing Skills for Target Role
+                                </h4>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                                {(analysisData.roleAnalysis.missingSkills || []).length > 0 ? (
+                                    analysisData.roleAnalysis.missingSkills.map((skill, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/25"
+                                        >
+                                            + {skill}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <p className="text-xs text-text-muted">
+                                        No critical skills missing for this specialization!
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Actionable Suggestions */}
+                    {Array.isArray(analysisData.roleAnalysis.suggestions) && analysisData.roleAnalysis.suggestions.length > 0 && (
+                        <div className="p-4 rounded-xl bg-bg-app border border-border-default space-y-2">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-text-secondary flex items-center gap-2">
+                                <svg className="w-4 h-4 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Tailored Recommendations for Your Resume</span>
+                            </h4>
+                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                {analysisData.roleAnalysis.suggestions.slice(0, 4).map((sug, idx) => (
+                                    <li key={idx} className="text-xs text-text-secondary flex items-start gap-2 bg-bg-surface p-2.5 rounded-lg border border-border-default">
+                                        <span className="text-brand-primary font-bold shrink-0">{idx + 1}.</span>
+                                        <span className="leading-relaxed">{sug}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            ) : userResume && userResume.filePath && !dashboardLoading ? (
+                <div className="p-6 rounded-2xl bg-bg-surface border border-border-default flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left shadow-xs">
+                    <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-text-primary">
+                            Ready for AI Resume Analysis
+                        </h4>
+                        <p className="text-xs text-text-muted">
+                            Your resume is stored. Run analysis to benchmark your score against {formData.preferredJobRole || profile?.preferredJobRole}.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        disabled={resumeActionLoading}
+                        onClick={handleManualReanalyze}
+                        className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-hover text-white text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                    >
+                        <span>{resumeActionLoading ? "Analyzing..." : "Analyze Resume"}</span>
+                    </button>
+                </div>
+            ) : null}
 
             {/* Danger Zone: Delete Account */}
             <div className="p-6 sm:p-8 rounded-2xl bg-bg-surface border border-status-danger-border shadow-xs space-y-4 text-left">

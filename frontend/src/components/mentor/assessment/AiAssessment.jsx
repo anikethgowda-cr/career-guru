@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import {
     fetchMentees,
     generateAiQuestions,
-    createAiAssessment
+    createAiAssessment,
+    clearMentorAssessmentState
 } from "../../../slices/mentor/MentorAssessmentSlice";
 
 export default function AiAssessment() {
@@ -24,49 +25,77 @@ export default function AiAssessment() {
     const [editedQuestion, setEditedQuestion] = useState("");
     const [newQuestion, setNewQuestion] = useState("");
     const [questionNumberError, setQuestionNumberError] = useState("");
-    const [serverMessage, setServerMessage] = useState("");
+    const [clientError, setClientError] = useState("");
 
-    const { mentees, generatedQuestions, message, serverError, loading, isGenerating } =
-        useSelector((state) => state.mentorAssessment);
+    const {
+        mentees,
+        message,
+        serverError,
+        loading,
+        isSubmitting,
+        isGenerating
+    } = useSelector((state) => state.mentorAssessment);
 
     useEffect(() => {
         dispatch(fetchMentees());
+        return () => {
+            dispatch(clearMentorAssessmentState());
+        };
     }, [dispatch]);
 
     useEffect(() => {
-        if (generatedQuestions && generatedQuestions.length > 0) {
-            setAiQuestions(generatedQuestions);
-        }
-    }, [generatedQuestions]);
-
-    useEffect(() => {
         if (message) {
-            setServerMessage(message);
             const timer = setTimeout(() => {
-                setServerMessage("");
-            }, 3000);
+                dispatch(clearMentorAssessmentState());
+            }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [message]);
+    }, [message, dispatch]);
 
     function handleFormData(e) {
+        if (clientError) setClientError("");
+        if (serverError) dispatch(clearMentorAssessmentState());
         setQuestionsGeneration((prev) => ({
             ...prev,
             [e.target.name]: e.target.value
         }));
     }
 
-    function handleQuestionGeneration(e) {
+    async function handleQuestionGeneration(e) {
         e.preventDefault();
         setQuestionNumberError("");
+        setClientError("");
+        dispatch(clearMentorAssessmentState());
 
         const noOfQuestions = parseInt(questionsGeneration.noOfQuestions, 10);
         if (isNaN(noOfQuestions) || noOfQuestions <= 3) {
-            setQuestionNumberError("Questions count must be greater than 3.");
+            setQuestionNumberError("Number of questions must be greater than 3.");
             return;
         }
 
-        dispatch(generateAiQuestions(questionsGeneration));
+        if (!questionsGeneration.title.trim()) {
+            setClientError("Please enter an assessment title.");
+            return;
+        }
+
+        if (!questionsGeneration.targetRole.trim()) {
+            setClientError("Please enter a target role.");
+            return;
+        }
+
+        if (!questionsGeneration.difficulty) {
+            setClientError("Please select a difficulty level.");
+            return;
+        }
+
+        try {
+            const res = await dispatch(generateAiQuestions(questionsGeneration)).unwrap();
+            if (res?.data && res.data.length > 0) {
+                setAiQuestions(res.data);
+            }
+        } catch (err) {
+            console.error("AI question generation error:", err);
+        }
     }
 
     function handleEdit(index) {
@@ -104,6 +133,7 @@ export default function AiAssessment() {
             return;
         }
 
+        if (clientError) setClientError("");
         setAiQuestions((prev) => [
             ...prev,
             { question: newQuestion.trim() }
@@ -123,8 +153,36 @@ export default function AiAssessment() {
         setAiQuestions((prev) => prev.filter((_, i) => i !== index));
     }
 
-    function handleCreateAssessment(e) {
+    async function handleCreateAssessment(e) {
         e.preventDefault();
+        setClientError("");
+        dispatch(clearMentorAssessmentState());
+
+        if (!questionsGeneration.studentId) {
+            setClientError("Please select a mentee to assign the assessment.");
+            return;
+        }
+
+        if (!questionsGeneration.title.trim()) {
+            setClientError("Please enter an assessment title.");
+            return;
+        }
+
+        if (!questionsGeneration.targetRole.trim()) {
+            setClientError("Please enter a target role.");
+            return;
+        }
+
+        if (!questionsGeneration.difficulty) {
+            setClientError("Please select a difficulty level.");
+            return;
+        }
+
+        if (!aiQuestions || aiQuestions.length === 0) {
+            setClientError("No questions found. Please generate or add questions before finalizing.");
+            return;
+        }
+
         const payload = {
             studentId: questionsGeneration.studentId,
             title: questionsGeneration.title,
@@ -132,22 +190,37 @@ export default function AiAssessment() {
             targetRole: questionsGeneration.targetRole,
             questions: aiQuestions
         };
-        dispatch(createAiAssessment(payload));
-        setQuestionsGeneration({
-            studentId: "",
-            title: "",
-            difficulty: "",
-            targetRole: "",
-            noOfQuestions: ""
-        });
-        setAiQuestions([]);
-        setNewQuestion("");
-        setEditingIndex(null);
-        setEditedQuestion("");
-        setQuestionNumberError("");
+
+        try {
+            await dispatch(createAiAssessment(payload)).unwrap();
+            // Reset fields only on successful creation
+            setQuestionsGeneration({
+                studentId: "",
+                title: "",
+                difficulty: "",
+                targetRole: "",
+                noOfQuestions: ""
+            });
+            setAiQuestions([]);
+            setNewQuestion("");
+            setEditingIndex(null);
+            setEditedQuestion("");
+            setQuestionNumberError("");
+        } catch (err) {
+            console.error("Create AI assessment error:", err);
+            // Form is preserved so the user doesn't lose anything
+        }
     }
 
-    if (loading) {
+    const displayedError =
+        clientError ||
+        (serverError
+            ? typeof serverError === "string"
+                ? serverError
+                : serverError.message || "Failed to process assessment."
+            : "");
+
+    if (loading && mentees.length === 0) {
         return (
             <div className="p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto text-left space-y-6 animate-pulse">
                 <div className="w-44 h-8 bg-bg-muted rounded-xl"></div>
@@ -165,20 +238,42 @@ export default function AiAssessment() {
     return (
         <div className="p-6 sm:p-8 lg:p-10 max-w-4xl mx-auto text-left space-y-6 transition-colors duration-200">
             {/* Feedback Alerts */}
-            {serverMessage && (
-                <div className="p-4 rounded-xl bg-status-success-subtle border border-status-success/30 text-sm font-semibold text-status-success flex items-center gap-2">
-                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>{serverMessage}</span>
+            {message && (
+                <div className="p-4 rounded-xl bg-status-success-subtle border border-status-success/30 text-sm font-semibold text-status-success flex items-center justify-between gap-3 animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{message}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => dispatch(clearMentorAssessmentState())}
+                        className="text-status-success hover:opacity-75 text-xs font-bold px-2 py-1 cursor-pointer"
+                    >
+                        ✕
+                    </button>
                 </div>
             )}
-            {serverError && (
-                <div className="p-4 rounded-xl bg-status-danger-subtle border border-status-danger/30 text-sm font-semibold text-status-danger flex items-center gap-2">
-                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.332.192 3 1.732 3z" />
-                    </svg>
-                    <span>{serverError.message || (typeof serverError === "string" ? serverError : "Failed to process AI assessment")}</span>
+
+            {displayedError && (
+                <div className="p-4 rounded-xl bg-status-danger-subtle border border-status-danger/30 text-sm font-semibold text-status-danger flex items-center justify-between gap-3 animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.332.192 3 1.732 3z" />
+                        </svg>
+                        <span>{displayedError}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setClientError("");
+                            dispatch(clearMentorAssessmentState());
+                        }}
+                        className="text-status-danger hover:opacity-75 text-xs font-bold px-2 py-1 cursor-pointer"
+                    >
+                        ✕
+                    </button>
                 </div>
             )}
 
@@ -217,7 +312,7 @@ export default function AiAssessment() {
                 {/* Select Student */}
                 <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                        Select Mentee
+                        Select Mentee <span className="text-status-danger">*</span>
                     </label>
 
                     <select
@@ -229,8 +324,8 @@ export default function AiAssessment() {
                     >
                         <option value="">Select Mentee</option>
                         {mentees.map((user) => (
-                            <option key={user.student._id} value={user.student._id}>
-                                {user.student.username}
+                            <option key={user.student?._id || user._id} value={user.student?._id || user._id}>
+                                {user.student?.username || user.username || "Mentee"} ({user.student?.email || user.email})
                             </option>
                         ))}
                     </select>
@@ -240,7 +335,7 @@ export default function AiAssessment() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                            Assessment Title
+                            Assessment Title <span className="text-status-danger">*</span>
                         </label>
                         <input
                             type="text"
@@ -255,7 +350,7 @@ export default function AiAssessment() {
 
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                            Target Role
+                            Target Role <span className="text-status-danger">*</span>
                         </label>
                         <input
                             type="text"
@@ -273,7 +368,7 @@ export default function AiAssessment() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                            Difficulty Level
+                            Difficulty Level <span className="text-status-danger">*</span>
                         </label>
                         <select
                             name="difficulty"
@@ -291,7 +386,7 @@ export default function AiAssessment() {
 
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                            Number of Questions
+                            Number of Questions <span className="text-status-danger">*</span>
                         </label>
                         <input
                             type="number"
@@ -339,7 +434,7 @@ export default function AiAssessment() {
             {aiQuestions.length > 0 && (
                 <div className="bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 shadow-card space-y-6">
                     {/* Questions Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border-default">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-border-default border-b">
                         <div>
                             <h2 className="text-lg font-bold text-text-primary">
                                 Generated Questions ({aiQuestions.length})
@@ -426,7 +521,7 @@ export default function AiAssessment() {
                                 value={newQuestion}
                                 onChange={(e) => setNewQuestion(e.target.value)}
                                 onKeyDown={handleQuestionKeyDown}
-                                placeholder="Type a custom question and click Add"
+                                placeholder="Type a custom question and click Add Question"
                                 className="flex-1 px-3.5 py-2.5 rounded-xl border border-border-default bg-bg-muted/50 text-text-primary placeholder:text-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition"
                             />
 
@@ -441,13 +536,21 @@ export default function AiAssessment() {
                     </div>
 
                     {/* Final Action Button */}
-                    <div className="border-t border-border-default pt-5">
+                    <div className="border-t border-border-default pt-5 flex items-center justify-between gap-4">
                         <button
                             type="button"
                             onClick={handleCreateAssessment}
-                            className="w-full sm:w-auto px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
+                            disabled={isSubmitting || aiQuestions.length === 0}
+                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Finalize & Assign Assessment
+                            {isSubmitting ? (
+                                <>
+                                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                                    <span>Finalizing & Assigning Assessment...</span>
+                                </>
+                            ) : (
+                                <span>Finalize & Assign Assessment</span>
+                            )}
                         </button>
                     </div>
                 </div>

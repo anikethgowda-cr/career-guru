@@ -1,32 +1,82 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMentors } from "../../slices/user/MentorSlice";
+import { fetchProfileDetails } from "../../slices/ProfileSlice";
+import { fetchConversations } from "../../slices/MentorChatSlice";
 import MentorsCard from "../../components/user/exploreMentors/MentorsCard";
 
 export default function ExploreMentors() {
     const dispatch = useDispatch();
     const { mentors, loading, serverError } = useSelector((state) => state.mentor);
+    const { data: profileData } = useSelector((state) => state.profile);
+    const { user } = useSelector((state) => state.auth);
+
     const [searchTerm, setSearchTerm] = useState("");
+    const [filterMode, setFilterMode] = useState("matched"); // "matched" | "all"
+
+    const studentJobRole = profileData?.preferredJobRole || null;
+    const studentSpecs = useMemo(() => profileData?.preferredSpecialization || [], [profileData]);
+    const hasProfile = !!studentJobRole;
 
     useEffect(() => {
         dispatch(fetchMentors());
-    }, [dispatch]);
+        dispatch(fetchConversations());
+        if (!profileData && user?.role) {
+            dispatch(fetchProfileDetails(user.role));
+        }
+    }, [dispatch, user?.role]);
 
-    const filteredMentors = useMemo(() => {
+    // Compute match score for each mentor
+    const scoredMentors = useMemo(() => {
         if (!Array.isArray(mentors)) return [];
-        if (!searchTerm.trim()) return mentors;
 
-        const term = searchTerm.toLowerCase();
-        return mentors.filter((m) => {
-            const nameMatch = m.name?.toLowerCase().includes(term);
-            const orgMatch = (m.organization || m.origin)?.toLowerCase().includes(term);
-            const desigMatch = m.designation?.toLowerCase().includes(term);
-            const specMatch = m.specialization?.some((s) => s.toLowerCase().includes(term));
-            const expMatch = m.expertIn?.some((e) => e.toLowerCase().includes(term));
+        return mentors.map((m) => {
+            let score = 0;
+            const mentorRoles = m.expertIn || [];
+            const mentorSpecs = m.specialization || [];
 
-            return nameMatch || orgMatch || desigMatch || specMatch || expMatch;
+            // Role match
+            if (studentJobRole && mentorRoles.includes(studentJobRole)) score += 10;
+
+            // Specialization overlap
+            const overlapCount = studentSpecs.filter(s =>
+                mentorSpecs.includes(s) || mentorSpecs.includes(s?.value)
+            ).length;
+            score += overlapCount * 5;
+
+            return { ...m, _matchScore: score, _isMatch: score > 0 };
         });
-    }, [mentors, searchTerm]);
+    }, [mentors, studentJobRole, studentSpecs]);
+
+    // Apply search + filter
+    const filteredMentors = useMemo(() => {
+        let list = scoredMentors;
+
+        // Filter by match mode
+        if (filterMode === "matched" && hasProfile) {
+            list = list.filter((m) => m._isMatch);
+            // If no matches, fall back to all
+            if (list.length === 0) list = scoredMentors;
+        }
+
+        // Text search
+        if (searchTerm.trim()) {
+            const term = searchTerm.toLowerCase();
+            list = list.filter((m) => {
+                const nameMatch = m.name?.toLowerCase().includes(term);
+                const orgMatch = (m.organization || m.origin)?.toLowerCase().includes(term);
+                const desigMatch = m.designation?.toLowerCase().includes(term);
+                const specMatch = m.specialization?.some((s) => s.toLowerCase().includes(term));
+                const expMatch = m.expertIn?.some((e) => e.toLowerCase().includes(term));
+                return nameMatch || orgMatch || desigMatch || specMatch || expMatch;
+            });
+        }
+
+        // Sort: higher match score first
+        return [...list].sort((a, b) => (b._matchScore || 0) - (a._matchScore || 0));
+    }, [scoredMentors, searchTerm, filterMode, hasProfile]);
+
+    const matchedCount = scoredMentors.filter((m) => m._isMatch).length;
 
     // Shimmer Skeleton Loader
     if (loading) {
@@ -72,7 +122,9 @@ export default function ExploreMentors() {
                         Explore Verified Mentors
                     </h1>
                     <p className="text-xs sm:text-sm text-text-secondary">
-                        Connect with seasoned industry engineers and technical leads for 1-on-1 guidance.
+                        {hasProfile
+                            ? `Showing mentors matched to your target role: ${studentJobRole}`
+                            : "Connect with seasoned industry engineers and technical leads for 1-on-1 guidance."}
                     </p>
                 </div>
 
@@ -105,33 +157,62 @@ export default function ExploreMentors() {
                 </div>
             )}
 
-            {/* Search Filter Toolbar */}
+            {/* Filter + Search Toolbar */}
             {!serverError && Array.isArray(mentors) && mentors.length > 0 && (
-                <div className="p-4 rounded-xl bg-bg-surface border border-border-default shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="relative flex-1 w-full max-w-md">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    {/* Matched / All toggle (only when student profile exists) */}
+                    {hasProfile && matchedCount > 0 && (
+                        <div className="flex items-center gap-1 p-1 rounded-xl bg-bg-muted border border-border-default shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => setFilterMode("matched")}
+                                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${filterMode === "matched"
+                                    ? "bg-brand-primary text-white shadow-sm"
+                                    : "text-text-secondary hover:text-text-primary"
+                                }`}
+                            >
+                                ⚡ Matched ({matchedCount})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFilterMode("all")}
+                                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${filterMode === "all"
+                                    ? "bg-brand-primary text-white shadow-sm"
+                                    : "text-text-secondary hover:text-text-primary"
+                                }`}
+                            >
+                                All Mentors
+                            </button>
                         </div>
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Search by mentor name, company, or specialization..."
-                            className="w-full pl-10 pr-4 py-2 rounded-lg border border-border-default bg-bg-surface text-text-primary text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary placeholder:text-text-muted transition-colors"
-                        />
-                    </div>
-
-                    {searchTerm && (
-                        <button
-                            type="button"
-                            onClick={() => setSearchTerm("")}
-                            className="px-3.5 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:bg-bg-muted transition-colors cursor-pointer shrink-0"
-                        >
-                            Clear Search
-                        </button>
                     )}
+
+                    {/* Search Input */}
+                    <div className="p-3 rounded-xl bg-bg-surface border border-border-default shadow-subtle flex items-center gap-3 flex-1 w-full">
+                        <div className="relative flex-1">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Search by mentor name, company, or specialization..."
+                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-border-default bg-bg-surface text-text-primary text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary placeholder:text-text-muted transition-colors"
+                            />
+                        </div>
+
+                        {searchTerm && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchTerm("")}
+                                className="px-3.5 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:bg-bg-muted transition-colors cursor-pointer shrink-0"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
 
@@ -156,7 +237,12 @@ export default function ExploreMentors() {
             {!serverError && filteredMentors.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredMentors.map((mentor) => (
-                        <MentorsCard key={mentor._id} mentor={mentor} />
+                        <MentorsCard
+                            key={mentor._id}
+                            mentor={mentor}
+                            isMatch={mentor._isMatch}
+                            matchScore={mentor._matchScore}
+                        />
                     ))}
                 </div>
             )}

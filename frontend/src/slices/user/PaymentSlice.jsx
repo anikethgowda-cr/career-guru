@@ -18,14 +18,15 @@ export const checkMentorAccess = createAsyncThunk(
 
 export const createPaymentOrder = createAsyncThunk(
     "payment/createPaymentOrder",
-    async (_, { rejectWithValue }) => {
+    async ({ mentorId }, { rejectWithValue }) => {
         try {
-            const response = await axios.post("/payment/create-order");
+            const response = await axios.post("/payment/create-order", { mentorId });
             return response.data;
         } catch (err) {
             return rejectWithValue({
                 status: err.response?.status,
-                message: err.response?.data?.message || "Failed to create payment order"
+                message: err.response?.data?.message || "Failed to create payment order",
+                endDate: err.response?.data?.endDate || null
             });
         }
     }
@@ -50,7 +51,8 @@ const initialState = {
     hasAccess: false,
     loading: true,
     error: null,
-    paymentLoading: false
+    paymentLoading: false,
+    duplicateSubscription: null  // { message, endDate } when already subscribed
 };
 
 const paymentSlice = createSlice({
@@ -82,10 +84,19 @@ const paymentSlice = createSlice({
             })
             .addCase(createPaymentOrder.fulfilled, (state) => {
                 state.paymentLoading = false;
+                state.duplicateSubscription = null;
             })
             .addCase(createPaymentOrder.rejected, (state, action) => {
                 state.paymentLoading = false;
-                state.error = action.payload;
+                // 400 = already has active subscription
+                if (action.payload?.status === 400 && action.payload?.endDate) {
+                    state.duplicateSubscription = {
+                        message: action.payload.message,
+                        endDate: action.payload.endDate
+                    };
+                } else {
+                    state.error = action.payload;
+                }
             })
             .addCase(verifyPayment.pending, (state) => {
                 state.paymentLoading = true;
@@ -94,6 +105,7 @@ const paymentSlice = createSlice({
             .addCase(verifyPayment.fulfilled, (state) => {
                 state.paymentLoading = false;
                 state.hasAccess = true;
+                state.loading = false;
             })
             .addCase(verifyPayment.rejected, (state, action) => {
                 state.paymentLoading = false;

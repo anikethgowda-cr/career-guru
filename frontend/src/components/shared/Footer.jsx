@@ -15,11 +15,7 @@ export default function Footer() {
                     <span>From Resume to Career Success</span>
                 </div>
 
-                <div className="flex items-center gap-4 text-[11px]">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-bg-muted text-text-secondary border border-border-default">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        AI Engine Active
-                    </span>
+                <div className="flex items-center gap-4 text-[11px] text-text-secondary">
                     <span>
                         © {currentYear} CareerGuru. Built with ❤️ for those who <b>Aspire</b> to grow.
                     </span>

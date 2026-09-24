@@ -23,7 +23,6 @@ export default function ChatHeader({ name, initial, subtitle, backPath }) {
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
                         {initial || name?.charAt(0).toUpperCase() || "M"}
                     </div>
-                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-status-success border-2 border-bg-surface"></span>
                 </div>
 
                 <div className="min-w-0 text-left">
@@ -34,15 +33,6 @@ export default function ChatHeader({ name, initial, subtitle, backPath }) {
                         {subtitle || "Technical Mentor"}
                     </p>
                 </div>
-            </div>
-
-            {/* Online Status Pill */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-status-success-subtle text-status-success border border-status-success/20 shrink-0">
-                <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-success opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-status-success"></span>
-                </span>
-                <span>Active Now</span>
             </div>
         </div>
     );

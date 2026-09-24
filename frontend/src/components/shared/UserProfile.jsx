@@ -56,16 +56,24 @@ export default function UserProfile() {
     }
 
     function handleFormData(e) {
-        const { name, value, selectedOptions } = e.target;
+        const { name, value } = e.target;
         if (name === "preferredJobRole") {
             setFormData({ ...formData, preferredJobRole: value, preferredSpecialization: [] });
             return;
         }
-        if (name === "preferredSpecialization") {
-            setFormData({ ...formData, preferredSpecialization: Array.from(selectedOptions, option => option.value) });
-            return;
-        }
         setFormData({ ...formData, [name]: value });
+    }
+
+    function toggleSpecialization(spec) {
+        setFormData(prev => {
+            const exists = prev.preferredSpecialization.includes(spec);
+            return {
+                ...prev,
+                preferredSpecialization: exists
+                    ? prev.preferredSpecialization.filter(s => s !== spec)
+                    : [...prev.preferredSpecialization, spec]
+            };
+        });
     }
 
     function handleResume(e) {
@@ -208,38 +216,50 @@ export default function UserProfile() {
                         </select>
                     </div>
 
-                    {/* Preferred Specialization Multi-select */}
+                    {/* Preferred Specialization — Checkbox Grid */}
                     <div>
-                        <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center justify-between mb-2">
                             <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary">
                                 Preferred Specializations <span className="text-red-500">*</span>
                             </label>
-                            <span className="text-[11px] text-text-muted">
-                                Hold Ctrl (Win) or Cmd (Mac) to select multiple
-                            </span>
+                            {formData.preferredSpecialization.length > 0 && (
+                                <span className="text-[11px] font-medium text-brand-primary">
+                                    {formData.preferredSpecialization.length} selected
+                                </span>
+                            )}
                         </div>
-                        <select
-                            name="preferredSpecialization"
-                            multiple
-                            value={formData.preferredSpecialization}
-                            onChange={handleFormData}
-                            required
-                            className="w-full px-3.5 py-2.5 rounded-lg border border-border-default bg-bg-muted/40 text-text-primary focus:outline-hidden focus:ring-2 focus:ring-brand-subtle focus:border-brand-primary text-sm transition-colors min-h-[110px]"
-                        >
-                            {formData.preferredJobRole && specializations[formData.preferredJobRole]?.map((spec, index) => {
-                                const specValue = typeof spec === "object" ? spec.value : spec;
-                                const specLabel = typeof spec === "object" ? spec.label : spec;
-                                return (
-                                    <option key={specValue || index} value={specValue} className="p-1.5 bg-bg-surface text-text-primary">
-                                        {specLabel}
-                                    </option>
-                                );
-                            })}
-                        </select>
-                        {!formData.preferredJobRole && (
-                            <p className="text-xs text-text-muted mt-1.5">
+
+                        {!formData.preferredJobRole ? (
+                            <p className="text-xs text-text-muted mt-1.5 p-3 bg-bg-muted/40 rounded-lg border border-border-default">
                                 Please choose a Job Role first to view available specializations.
                             </p>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                {specializations[formData.preferredJobRole]?.map((spec) => {
+                                    const specValue = typeof spec === "object" ? spec.value : spec;
+                                    const specLabel = typeof spec === "object" ? spec.label : spec;
+                                    const isChecked = formData.preferredSpecialization.includes(specValue);
+                                    return (
+                                        <label
+                                            key={specValue}
+                                            className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-medium cursor-pointer transition-all duration-150 ${
+                                                isChecked
+                                                    ? "bg-brand-subtle border-brand-primary/40 text-brand-primary font-semibold shadow-xs"
+                                                    : "bg-bg-app border-border-default text-text-secondary hover:border-brand-primary/30 hover:bg-bg-muted"
+                                            }`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                value={specValue}
+                                                checked={isChecked}
+                                                onChange={() => toggleSpecialization(specValue)}
+                                                className="w-3.5 h-3.5 text-brand-primary rounded border-border-default focus:ring-brand-subtle shrink-0"
+                                            />
+                                            <span className="truncate">{specLabel}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
                         )}
                     </div>
 

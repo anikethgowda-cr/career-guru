@@ -1,22 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { createPaymentOrder, verifyPayment } from "../../slices/user/PaymentSlice";
+import axios from "../../config/axios-config";
 
 export default function MentorPayment() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { mentorId } = useParams();
 
-    const { paymentLoading, error } = useSelector((state) => state.payment);
+    const { paymentLoading, error, duplicateSubscription } = useSelector((state) => state.payment);
     const [localError, setLocalError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+    const [mentorInfo, setMentorInfo] = useState(null);
+    const [planInfo, setPlanInfo] = useState(null);
+    const [infoLoading, setInfoLoading] = useState(true);
+
+    // Fetch mentor profile and plan pricing
+    useEffect(() => {
+        if (!mentorId) return;
+        setInfoLoading(true);
+        Promise.all([
+            axios.get(`/mentors/${mentorId}`).catch(() => null),
+            axios.get(`/mentor-plan/${mentorId}`).catch(() => null)
+        ]).then(([mentorRes, planRes]) => {
+            if (mentorRes?.data) setMentorInfo(mentorRes.data.mentor || mentorRes.data);
+            if (planRes?.data) setPlanInfo(planRes.data.plan || planRes.data);
+            setInfoLoading(false);
+        });
+    }, [mentorId]);
 
     async function handlePayment() {
         setLocalError("");
         setSuccessMessage("");
 
         try {
-            const result = await dispatch(createPaymentOrder()).unwrap();
+            const result = await dispatch(createPaymentOrder({ mentorId })).unwrap();
             const { orderId, amount, currency } = result;
 
             const options = {
@@ -24,7 +43,7 @@ export default function MentorPayment() {
                 amount: amount,
                 currency: currency,
                 name: "CareerGuru",
-                description: "Lifetime Mentor Access Pass",
+                description: `30-day Mentorship with ${mentorInfo?.name || "your mentor"}`,
                 order_id: orderId,
 
                 handler: async function (paymentResponse) {
@@ -37,9 +56,14 @@ export default function MentorPayment() {
                             })
                         ).unwrap();
 
-                        setSuccessMessage("Payment verified! Access unlocked.");
+                        setSuccessMessage("Payment successful! Subscription activated.");
                         setTimeout(() => {
-                            navigate("/user/explore-mentors");
+                            navigate(`/user/mentor/chat/${mentorId}`, {
+                                state: {
+                                    mentorName: mentorName,
+                                    mentorInitial: mentorName.charAt(0).toUpperCase()
+                                }
+                            });
                         }, 1200);
 
                     } catch (err) {
@@ -64,9 +88,15 @@ export default function MentorPayment() {
 
         } catch (err) {
             console.error(err);
-            setLocalError(err?.message || "Could not initiate payment. Please try again.");
+            // duplicateSubscription is already set in Redux by the slice, no need to set localError here
+            if (!err?.endDate) {
+                setLocalError(err?.message || "Could not initiate payment. Please try again.");
+            }
         }
     }
+
+    const price = planInfo?.price ?? null;
+    const mentorName = mentorInfo?.name || mentorInfo?.username || "Your Mentor";
 
     return (
         <div className="p-6 sm:p-8 lg:p-10 max-w-3xl mx-auto space-y-8 text-left transition-colors duration-300">
@@ -78,15 +108,43 @@ export default function MentorPayment() {
                     </svg>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-                    Unlock 1-on-1 Mentor Guidance
+                    {infoLoading ? "Loading Mentor Details..." : `Subscribe to ${mentorName}`}
                 </h1>
                 <p className="text-xs sm:text-sm text-text-muted max-w-lg mx-auto">
-                    Accelerate your career trajectory with unlimited direct access to industry leaders, mock interviews, and code reviews.
+                    Get 30 days of 1-on-1 direct access — chat, guidance, code reviews, and career coaching.
                 </p>
             </div>
 
-            {/* Error or Success Alerts */}
-            {(localError || error) && (
+            {/* Duplicate Subscription Banner */}
+            {duplicateSubscription && (
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-800/30 text-amber-600 flex items-center justify-center shrink-0">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300">
+                            You already have an active subscription with this mentor!
+                        </p>
+                        {duplicateSubscription.endDate && (
+                            <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
+                                Your subscription is active until{" "}
+                                <strong>{new Date(duplicateSubscription.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong>.
+                            </p>
+                        )}
+                        <button
+                            onClick={() => navigate("/user/mentor-chat")}
+                            className="mt-2 text-[11px] font-bold text-brand-primary hover:underline"
+                        >
+                            Go to chat →
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Alert */}
+            {(localError || (error && !duplicateSubscription)) && (
                 <div className="p-4 rounded-xl bg-status-danger-subtle border border-status-danger-border flex items-center gap-3 text-left">
                     <div className="w-8 h-8 rounded-xl bg-status-danger-subtle text-status-danger flex items-center justify-center shrink-0">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,75 +165,34 @@ export default function MentorPayment() {
                         </svg>
                     </div>
                     <div className="flex-1 text-xs sm:text-sm text-status-success font-semibold">
-                        {successMessage} Redirecting to your mentors...
+                        {successMessage} Redirecting to your chat...
                     </div>
                 </div>
             )}
 
-            {/* Premium Access Card */}
+            {/* Plan Card */}
             <div className="bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 shadow-xs space-y-7 text-left">
-                {/* Value Checklist */}
+                {/* What's Included */}
                 <div className="space-y-3.5">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                        What&apos;s Included in Your Lifetime Pass:
+                        What&apos;s Included in Your 30-Day Subscription:
                     </h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <div className="flex items-start gap-3 p-3.5 rounded-xl bg-bg-app border border-border-default">
-                            <span className="w-6 h-6 rounded-lg bg-status-success-subtle text-status-success flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                                ✓
-                            </span>
-                            <div>
-                                <h4 className="text-xs sm:text-sm font-bold text-text-primary">
-                                    Direct 1-on-1 Chat
-                                </h4>
-                                <p className="text-[11px] text-text-muted mt-0.5">
-                                    Real-time messaging with experienced engineers and leads.
-                                </p>
+                        {[
+                            { title: "Direct 1-on-1 Chat", desc: "Real-time messaging with your mentor anytime." },
+                            { title: "Resume & Career Coaching", desc: "High-impact critique on your CV and portfolio." },
+                            { title: "Personalized Learning Roadmap", desc: "Custom week-by-week milestone tracking." },
+                            { title: "30-Day Full Access", desc: "Renew anytime to keep the connection going." }
+                        ].map(({ title, desc }) => (
+                            <div key={title} className="flex items-start gap-3 p-3.5 rounded-xl bg-bg-app border border-border-default">
+                                <span className="w-6 h-6 rounded-lg bg-status-success-subtle text-status-success flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
+                                <div>
+                                    <h4 className="text-xs sm:text-sm font-bold text-text-primary">{title}</h4>
+                                    <p className="text-[11px] text-text-muted mt-0.5">{desc}</p>
+                                </div>
                             </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 p-3.5 rounded-xl bg-bg-app border border-border-default">
-                            <span className="w-6 h-6 rounded-lg bg-status-success-subtle text-status-success flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                                ✓
-                            </span>
-                            <div>
-                                <h4 className="text-xs sm:text-sm font-bold text-text-primary">
-                                    Resume & Career Coaching
-                                </h4>
-                                <p className="text-[11px] text-text-muted mt-0.5">
-                                    Get high-impact critique on your CV and portfolio.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 p-3.5 rounded-xl bg-bg-app border border-border-default">
-                            <span className="w-6 h-6 rounded-lg bg-status-success-subtle text-status-success flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                                ✓
-                            </span>
-                            <div>
-                                <h4 className="text-xs sm:text-sm font-bold text-text-primary">
-                                    Personalized Learning Roadmap
-                                </h4>
-                                <p className="text-[11px] text-text-muted mt-0.5">
-                                    Custom week-by-week milestone tracking and AI-guided skill mastery.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-3 p-3.5 rounded-xl bg-bg-app border border-border-default">
-                            <span className="w-6 h-6 rounded-lg bg-status-success-subtle text-status-success flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                                ✓
-                            </span>
-                            <div>
-                                <h4 className="text-xs sm:text-sm font-bold text-text-primary">
-                                    Lifetime Mentor Access
-                                </h4>
-                                <p className="text-[11px] text-text-muted mt-0.5">
-                                    Pay once, no recurring monthly subscriptions or hidden fees.
-                                </p>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
@@ -183,21 +200,29 @@ export default function MentorPayment() {
                 <div className="p-6 rounded-2xl bg-gradient-to-br from-brand-subtle via-brand-subtle/40 to-transparent border border-brand-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <span className="text-xs line-through text-text-muted">₹499</span>
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-primary/10 text-brand-primary">
-                                Launch Promo 80% OFF
+                                30-day subscription
                             </span>
                         </div>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-3xl sm:text-4xl font-black text-text-primary">₹99</span>
-                            <span className="text-xs text-text-muted font-medium">one-time payment</span>
+                            {infoLoading ? (
+                                <span className="text-3xl sm:text-4xl font-black text-text-muted animate-pulse">₹—</span>
+                            ) : price !== null ? (
+                                <>
+                                    <span className="text-3xl sm:text-4xl font-black text-text-primary">₹{price}</span>
+                                    <span className="text-xs text-text-muted font-medium">/ month</span>
+                                </>
+                            ) : (
+                                <span className="text-sm text-status-danger font-semibold">Plan unavailable</span>
+                            )}
                         </div>
                     </div>
 
                     <button
                         type="button"
+                        id="pay-now-btn"
                         onClick={handlePayment}
-                        disabled={paymentLoading}
+                        disabled={paymentLoading || infoLoading || price === null || !!duplicateSubscription}
                         className="px-7 py-3 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-bold text-sm shadow-md shadow-brand-primary/20 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {paymentLoading ? (
@@ -210,7 +235,7 @@ export default function MentorPayment() {
                             </>
                         ) : (
                             <>
-                                <span>Pay ₹99 & Unlock Access</span>
+                                <span>Pay {price !== null ? `₹${price}` : ""} & Start Mentorship</span>
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>

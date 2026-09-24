@@ -19,7 +19,8 @@ import userAssessmentReducer from "./slices/user/UserAssessmentSlice"
 // Mentor slices
 import menteesReducer from "./slices/mentor/MenteesSlice";
 import mentorDashboardReducer from "./slices/mentor/MentorDashboardSlice";
-import mentorAssessmentReducer from "./slices/mentor/MentorAssessmentSlice"
+import mentorAssessmentReducer from "./slices/mentor/MentorAssessmentSlice";
+import mentorPlanReducer from "./slices/mentor/MentorPlanSlice";
 
 const store = configureStore({
     reducer: {
@@ -41,7 +42,8 @@ const store = configureStore({
         // Mentor
         mentees: menteesReducer,
         mentorDashboard: mentorDashboardReducer,
-        mentorAssessment:mentorAssessmentReducer
+        mentorAssessment: mentorAssessmentReducer,
+        mentorPlan: mentorPlanReducer
     }
 })
 

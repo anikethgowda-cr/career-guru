@@ -70,15 +70,14 @@ export default function App() {
                         <Route path="/user/learning-plan/week/:weekNumber" element={<WeekPlan />} />
                         <Route path="/user/interview-questions" element={<InterviewQuestions />} />
                         <Route path="/user/jobs-board" element={<JobsBoard />} />
-                        <Route path="/user/mentor-payment" element={<MentorPayment />} />
+                        <Route path="/user/pay/:mentorId" element={<MentorPayment />} />
+                        <Route path="/user/explore-mentors" element={<ExploreMentors />} />
+                        <Route path="/user/my-mentors" element={<MyMentors />} />
                         <Route element={<MentorAccessRoute />}>
-                            <Route path="/user/explore-mentors" element={<ExploreMentors />} />
-                            <Route path="/user/my-mentors" element={<MyMentors />} />
+                            <Route path="/user/mentor/chat/:mentorId" element={<UserChat />} />
                         </Route>
                         {/* Legacy redirect for old /user/mentor route */}
                         <Route path="/user/mentor" element={<Navigate to="/user/explore-mentors" replace />} />
-                        
-                        <Route path="/user/mentor/chat/:mentorId" element={<UserChat />} />
                         <Route path="/user/assessment" element={<Assessment />}/>
                         <Route path="/user/assessment/:assessmentId/interview" element={<Interview/>}/>
                         <Route path="/user/assessment-report" element={<AssessmentReport />} />
