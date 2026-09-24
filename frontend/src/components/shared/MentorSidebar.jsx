@@ -74,9 +74,13 @@ export default function MentorSidebar() {
             {/* Top Brand Header */}
             <div>
                 <div className="h-16 px-4 sm:px-5 flex items-center justify-between border-b border-border-default text-left theme-transition">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-sm shadow-indigo-600/25 shrink-0">
-                            CG
+                    <Link to="/mentor/dashboard" className="flex items-center gap-3 hover:opacity-90 transition">
+                        <div className="w-10 h-10 rounded-xl bg-white p-1 shadow-xs border border-border-default/80 flex items-center justify-center shrink-0">
+                            <img
+                                src="/careerguru.png"
+                                alt="CareerGuru"
+                                className="w-full h-full object-contain"
+                            />
                         </div>
                         <div className="flex flex-col text-left">
                             <span className="font-bold text-text-primary text-base tracking-tight leading-tight">
@@ -86,7 +90,7 @@ export default function MentorSidebar() {
                                 Mentor Portal
                             </span>
                         </div>
-                    </div>
+                    </Link>
 
                     {/* Theme Toggle */}
                     <button

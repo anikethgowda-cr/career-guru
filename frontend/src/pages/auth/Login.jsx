@@ -73,8 +73,8 @@ export default function Login() {
             <div className="w-full max-w-md bg-bg-surface rounded-xl shadow-card border border-border-default p-6 sm:p-8 transition-colors duration-200">
                 {/* Header */}
                 <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-brand-subtle text-brand-primary mb-3 font-bold text-xl shadow-xs">
-                        CG
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white p-1.5 border border-border-default/80 shadow-xs mb-3">
+                        <img src="/careerguru.png" alt="CareerGuru" className="w-full h-full object-contain" />
                     </div>
                     <h1 className="text-2xl font-bold tracking-tight text-text-primary">
                         Welcome Back
