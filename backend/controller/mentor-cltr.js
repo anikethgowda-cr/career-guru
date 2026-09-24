@@ -271,21 +271,41 @@ export const showMentors = async (req, res) => {
     try {
         const mentors = await MentorProfile.find({ isAvailable: { $ne: false } });
 
-        if (mentors.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No mentors found"
-            });
-        }
-
         return res.status(200).json({
             success: true,
-             mentors
+            mentors
         });
 
     } catch (err) {
         console.log(err);
 
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
+export const getMentorById = async (req, res) => {
+    try {
+        const { mentorId } = req.params;
+        const profile = await MentorProfile.findOne({
+            $or: [{ userId: mentorId }, { _id: mentorId }]
+        });
+
+        if (!profile) {
+            return res.status(404).json({
+                success: false,
+                message: "Mentor not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            mentor: profile
+        });
+    } catch (err) {
+        console.error("GET MENTOR BY ID ERROR:", err);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error"
@@ -349,14 +369,12 @@ export const getMentees = async (req, res) => {
             .populate("student", "username email phone")
             .sort({ updatedAt: -1 });
 
-        // Build mentees list — only include conversations with at least one message
+        // Build mentees list — include all subscribed students even without messages
         const menteesData = await Promise.all(
             conversations.map(async (conv) => {
                 const lastMessage = await Message.findOne({ conversation: conv._id })
                     .sort({ createdAt: -1 })
                     .select("message createdAt");
-
-                if (!lastMessage) return null; // skip empty conversations
 
                 const profile = await UserProfile.findOne({ userId: conv.student._id });
 
@@ -364,10 +382,9 @@ export const getMentees = async (req, res) => {
                     conversationId: conv._id,
                     student: conv.student,
                     profile: profile || null,
-                    lastMessage: {
-                        message: lastMessage.message,
-                        createdAt: lastMessage.createdAt
-                    }
+                    lastMessage: lastMessage
+                        ? { message: lastMessage.message, createdAt: lastMessage.createdAt }
+                        : null
                 };
             })
         );
@@ -406,25 +423,22 @@ export const getMentorDashboardData = async (req, res) => {
                     .sort({ createdAt: -1 })
                     .select("message createdAt");
 
-                if (!lastMessage) return null;
-
                 const profile = await UserProfile.findOne({ userId: conv.student._id });
 
                 return {
                     conversationId: conv._id,
                     student: conv.student,
                     profile: profile || null,
-                    lastMessage: {
-                        message: lastMessage.message,
-                        createdAt: lastMessage.createdAt
-                    }
+                    lastMessage: lastMessage
+                        ? { message: lastMessage.message, createdAt: lastMessage.createdAt }
+                        : null
                 };
             })
         );
 
         const filteredMentees = menteesData.filter(Boolean);
 
-        // Sort by lastMessage.createdAt descending so latest message mentees are first
+        // Sort: conversations with messages first, then alphabetically
         filteredMentees.sort((a, b) => {
             const timeA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
             const timeB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;

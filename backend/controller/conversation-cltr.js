@@ -2,7 +2,7 @@ import Conversation from "../models/conversationSchema.js";
 import Message from "../models/messageSchema.js";
 import User from "../models/userSchema.js";
 import MentorProfile from "../models/mentorProfileSchema.js";
-
+import Subscription from "../models/subscriptionSchema.js";
 
 
 
@@ -54,7 +54,7 @@ export const getOrCreateConversation = async (req, res) => {
             mentor: mentorId
         });
 
-        // If conversation exists, return it (existing mentees always have access)
+        // If conversation exists, return it
         if (conversation) {
             return res.status(200).json({
                 success: true,
@@ -101,37 +101,58 @@ export const getUserConversations = async (req, res) => {
         const userId = req.userId;
         const role = req.role;
 
-        // Role-aware filter
-        const filter = role === "mentor"
-            ? { mentor: userId }
-            : { student: userId };
+        let filter;
+
+        // Mentor can see all conversations belonging to them
+        if (role === "mentor") {
+            filter = {
+                mentor: userId
+            };
+        }
+
+        // Student can see only conversations
+        // with mentors having an active subscription
+        else {
+            const activeSubscriptions = await Subscription.find({
+                studentId: userId,
+                status: "active",
+                endDate: { $gt: new Date() }
+            }).select("mentorId");
+
+            const mentorIds = activeSubscriptions.map(
+                (subscription) => subscription.mentorId
+            );
+
+            filter = {
+                student: userId,
+                mentor: { $in: mentorIds }
+            };
+        }
 
         const conversations = await Conversation.find(filter)
             .populate("student", "username email")
             .populate("mentor", "username email")
             .sort({ updatedAt: -1 });
 
-        // For each conversation, get the last message.
-        // Only include conversations that have at least one message.
+        // For each conversation, get the last message (optional — include even if none).
         const conversationsWithLastMessage = await Promise.all(
             conversations.map(async (conv) => {
-                const lastMessage = await Message.findOne({ conversation: conv._id })
+
+                const lastMessage = await Message.findOne({
+                    conversation: conv._id
+                })
                     .sort({ createdAt: -1 })
                     .select("message createdAt sender");
 
-                if (!lastMessage) return null; // skip empty conversations
-
                 return {
                     ...conv.toObject(),
-                    lastMessage: {
-                        message: lastMessage.message,
-                        createdAt: lastMessage.createdAt
-                    }
+                    lastMessage: lastMessage
+                        ? { message: lastMessage.message, createdAt: lastMessage.createdAt }
+                        : null
                 };
             })
         );
 
-        // Filter out null entries (empty conversations)
         const filtered = conversationsWithLastMessage.filter(Boolean);
 
         return res.status(200).json({
@@ -140,7 +161,9 @@ export const getUserConversations = async (req, res) => {
         });
 
     } catch (error) {
+
         console.error("Get conversations error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Failed to fetch conversations",

@@ -2,6 +2,9 @@ import fs from "fs/promises";
 import Resume from "../models/resumeSchema.js";
 import aiService from "../services/aiServices.js";
 import ResumeAnalysis from "../models/resumeAnalysisSchema.js";
+import CoursePlan from "../models/coursePlanSchema.js";
+import InterviewQuestions from "../models/interviewQuestionsSchema.js";
+import UserProfile from "../models/userProfileSchema.js";
 import cloudinary from "../config/cloudinary.js";
 
 export const uploadResume = async (req, res) => {
@@ -17,20 +20,28 @@ export const uploadResume = async (req, res) => {
       userId: req.userId
     });
 
+    const filePath = req.file.path || req.file.secure_url || req.file.url;
+    const publicId = req.file.filename || req.file.public_id;
+
     if (existingResume) {
       try {
         await cloudinary.uploader.destroy(existingResume.publicId, {
           resource_type: "raw"
         });
       } catch (err) {
-        console.warn("Could not delete old resume:", err.message);
+        console.warn("Could not delete old resume from Cloudinary:", err.message);
       }
 
       existingResume.fileName = req.file.originalname;
-      existingResume.filePath = req.file.path;
-      existingResume.publicId = req.file.filename;
+      existingResume.filePath = filePath;
+      existingResume.publicId = publicId;
 
       const updatedResume = await existingResume.save();
+
+      // Clear existing downstream learning plan, interview questions, and old analysis
+      await CoursePlan.deleteMany({ userId: req.userId });
+      await InterviewQuestions.deleteMany({ userId: req.userId });
+      await ResumeAnalysis.deleteMany({ userId: req.userId });
 
       return res.status(200).json({
         success: true,
@@ -42,9 +53,14 @@ export const uploadResume = async (req, res) => {
     const resume = await Resume.create({
       userId: req.userId,
       fileName: req.file.originalname,
-      filePath: req.file.path,
-      publicId: req.file.filename
+      filePath: filePath,
+      publicId: publicId
     });
+
+    // Clear existing downstream learning plan, interview questions, and old analysis
+    await CoursePlan.deleteMany({ userId: req.userId });
+    await InterviewQuestions.deleteMany({ userId: req.userId });
+    await ResumeAnalysis.deleteMany({ userId: req.userId });
 
     return res.status(201).json({
       success: true,
@@ -68,26 +84,26 @@ export const generateResumeAnalysis = async (req, res) => {
         const userId = req.userId;
         const resumeText = req.resumeText;
 
-        const {
+        let {
             preferredJobRole,
             preferredSpecialization
-        } = req.body;
+        } = req.body || {};
+
+        // Fallback to user profile if not passed in body
+        if (!preferredJobRole || !preferredSpecialization || !preferredSpecialization.length) {
+            const userProfile = await UserProfile.findOne({ userId });
+            if (userProfile) {
+                preferredJobRole = preferredJobRole || userProfile.preferredJobRole;
+                preferredSpecialization = (preferredSpecialization && preferredSpecialization.length)
+                    ? preferredSpecialization
+                    : userProfile.preferredSpecialization;
+            }
+        }
 
         if (!preferredJobRole) {
             return res.status(400).json({
                 success: false,
                 message: "Preferred job role is required"
-            });
-        }
-
-        if (
-            !preferredSpecialization ||
-            !Array.isArray(preferredSpecialization) ||
-            preferredSpecialization.length === 0
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Preferred specialization is required"
             });
         }
 
@@ -98,7 +114,9 @@ export const generateResumeAnalysis = async (req, res) => {
             });
         }
 
-        const specialization = preferredSpecialization.join(", ");
+        const specialization = Array.isArray(preferredSpecialization)
+            ? preferredSpecialization.join(", ")
+            : (preferredSpecialization || "");
 
         const prompt = `
               You are an expert ATS resume analyzer and career advisor.
@@ -138,7 +156,7 @@ export const generateResumeAnalysis = async (req, res) => {
               - Keep missingSkills and valueAddingSkills as skill/keyword lists.
               - Provide at least 4 strengths.
               - Provide at least 4 weaknesses.
-              - Provide  6 suggestions.
+              - Provide 6 suggestions.
               - Return ONLY valid JSON.
               - Do not use markdown.
               - Do not wrap the JSON inside a code block.
@@ -177,6 +195,10 @@ export const generateResumeAnalysis = async (req, res) => {
                 runValidators: true
             }
         );
+
+        // Clear downstream learning plans and interview questions so they are regenerated fresh
+        await CoursePlan.deleteMany({ userId });
+        await InterviewQuestions.deleteMany({ userId });
 
         return res.status(200).json({
             success: true,
@@ -295,8 +317,10 @@ export const deleteUserResume = async (req, res) => {
         // Delete Resume document
         await Resume.deleteOne({ userId: req.userId });
 
-        // Delete ResumeAnalysis document
+        // Delete ResumeAnalysis, CoursePlan, and InterviewQuestions documents
         await ResumeAnalysis.deleteMany({ userId: req.userId });
+        await CoursePlan.deleteMany({ userId: req.userId });
+        await InterviewQuestions.deleteMany({ userId: req.userId });
 
         return res.status(200).json({
             success: true,

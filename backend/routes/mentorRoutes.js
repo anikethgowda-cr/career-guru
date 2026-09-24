@@ -1,14 +1,14 @@
 import express from "express"
-import { mentorRegister, mentorLogin, deleteMentor, createMentorProfile, showMentorProfile, showMentors, getCurrentMentor, getMentees, getMentorDashboardData, updateMentorAvailability ,createMentorReport  } from "../controller/mentor-cltr.js"
+import { mentorRegister, mentorLogin, deleteMentor, createMentorProfile, showMentorProfile, showMentors, getMentorById, getCurrentMentor, getMentees, getMentorDashboardData, updateMentorAvailability ,createMentorReport  } from "../controller/mentor-cltr.js"
 import authenticateUser from "../middleware/authentication.js"
 import authorizeRoles from "../middleware/authorizeRoles.js"
-import authenticateMentorAccess from "../middleware/authenticateMentorAccess.js";
 
 const mentorRouter = express.Router()
 
 mentorRouter.post("/mentor/register", mentorRegister) 
 mentorRouter.post("/mentor/login", mentorLogin) 
-mentorRouter.get("/mentors", authenticateUser, authorizeRoles("user", "mentor"), authenticateMentorAccess, showMentors)
+mentorRouter.get("/mentors", authenticateUser, authorizeRoles("user", "mentor"), showMentors)
+mentorRouter.get("/mentors/:mentorId", authenticateUser, getMentorById)
 mentorRouter.get("/mentor/me", authenticateUser, authorizeRoles("mentor"), getCurrentMentor)
 mentorRouter.delete("/mentor/delete", authenticateUser, authorizeRoles("mentor"), deleteMentor)
 

@@ -8,5 +8,6 @@ const paymentRouter = express.Router();
 paymentRouter.post("/payment/create-order", authenticateUser, authorizeRoles("user"), createPaymentOrder);
 paymentRouter.post("/payment/verify", authenticateUser, authorizeRoles("user"), verifyPayment);
 paymentRouter.get("/payment/access", authenticateUser, authorizeRoles("user"), checkMentorAccess);
+paymentRouter.get("/payment/access/:mentorId", authenticateUser, authorizeRoles("user"), checkMentorAccess);
 
 export default paymentRouter;

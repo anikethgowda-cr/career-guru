@@ -8,6 +8,6 @@ const router = express.Router();
 
 router.post("/conversations", authenticateUser, authorizeRoles("user"), authenticateMentorAccess, getOrCreateConversation);
 router.get("/conversations", authenticateUser, authorizeRoles("user", "mentor"), getUserConversations);
-router.get("/conversations/:conversationId/messages", authenticateUser, authorizeRoles("user", "mentor"), getMessages);
+router.get("/conversations/:conversationId/messages", authenticateUser, authorizeRoles("user", "mentor"), authenticateMentorAccess, getMessages);
 
 export default router;
