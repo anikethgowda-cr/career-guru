@@ -3,69 +3,47 @@ import Message from "../models/messageSchema.js";
 import Conversation from "../models/conversationSchema.js";
 
 const chatSocket = (io) => {
-
     io.on("connection", (socket) => {
-
         console.log("=== Socket Connected ===");
         console.log("User ID:", socket.userId);
         console.log("Socket ID:", socket.id);
         console.log("Role:", socket.role);
 
-
-        // =================================================
         // JOIN CONVERSATION
-        // =================================================
 
         socket.on("joinConversation", async (data, callback) => {
-
             try {
-
                 const { conversationId } = data || {};
-
                 // Validate conversationId
                 if (!conversationId) {
-
-                    const response = {
+                      const response = {
                         success: false,
                         message: "conversationId is required"
                     };
-
                     if (callback) callback(response);
-
                     return socket.emit("chatError", response);
                 }
 
-
                 // Validate MongoDB ObjectId
                 if (!mongoose.Types.ObjectId.isValid(conversationId)) {
-
                     const response = {
                         success: false,
                         message: "Invalid conversationId"
                     };
-
                     if (callback) callback(response);
-
                     return socket.emit("chatError", response);
                 }
-
 
                 // Check whether user belongs
                 // to this conversation
                 const conversation = await Conversation.findOne({
-
                     _id: conversationId,
-
                     $or: [
                         { student: socket.userId },
                         { mentor: socket.userId }
                     ]
-
                 });
-
-
                 if (!conversation) {
-
                     const response = {
                         success: false,
                         message:
@@ -73,51 +51,40 @@ const chatSocket = (io) => {
                     };
 
                     if (callback) callback(response);
-
                     return socket.emit("chatError", response);
                 }
 
-
                 // Join Socket.IO room
                 socket.join(conversationId.toString());
-
-                console.log(
+                 console.log(
                     `User ${socket.userId} joined conversation ${conversationId}`
                 );
-
 
                 const response = {
                     success: true,
                     conversationId: conversationId.toString()
                 };
 
-
                 if (callback) {
                     callback(response);
                 }
-
                 socket.emit(
                     "joinedConversation",
                     response
                 );
 
-
             } catch (error) {
-
                 console.error(
                     "Join conversation error:",
                     error
                 );
-
                 const response = {
                     success: false,
                     message: "Failed to join conversation"
                 };
-
                 if (callback) {
                     callback(response);
                 }
-
                 socket.emit(
                     "chatError",
                     response
@@ -126,21 +93,14 @@ const chatSocket = (io) => {
 
         });
 
-
-        // =================================================
         // SEND MESSAGE
-        // =================================================
-
+       
         socket.on("sendMessage", async (data, callback) => {
-
             try {
-
                 const {
                     conversationId,
                     message
                 } = data || {};
-
-
                 // Validate input
                 if (
                     !conversationId ||
@@ -153,15 +113,12 @@ const chatSocket = (io) => {
                         message:
                             "conversationId and message are required"
                     };
-
                     if (callback) callback(response);
-
                     return socket.emit(
                         "chatError",
                         response
                     );
                 }
-
 
                 // Validate ObjectId
                 if (
@@ -311,9 +268,7 @@ const chatSocket = (io) => {
         });
 
 
-        // =================================================
         // DISCONNECT
-        // =================================================
 
         socket.on("disconnect", () => {
 

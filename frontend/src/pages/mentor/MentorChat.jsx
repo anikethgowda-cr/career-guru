@@ -11,11 +11,8 @@ export default function MentorChat() {
     const { conversationId } = useParams();
     const dispatch = useDispatch();
 
-    const { conversations, messages, messagesLoading, serverError } = useSelector(
-        (state) => state.mentorChat
-    );
+    const { conversations, messages, messagesLoading, serverError } = useSelector( (state) => state.mentorChat );
     const { user } = useSelector((state) => state.auth);
-
     const [message, setMessage] = useState("");
 
     // Resolve student info from conversations list (fetched if not already loaded)
@@ -88,6 +85,7 @@ export default function MentorChat() {
             </div>
         );
     }
+
 
     return (
         <div className="p-3 sm:p-6 max-w-4xl mx-auto h-[calc(100vh-5rem)] flex flex-col transition-colors duration-200">
