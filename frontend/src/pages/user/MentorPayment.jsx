@@ -102,12 +102,12 @@ export default function MentorPayment() {
         <div className="p-6 sm:p-8 lg:p-10 max-w-3xl mx-auto space-y-8 text-left transition-colors duration-300">
             {/* Header Banner */}
             <div className="text-center space-y-2 pb-6 border-b border-border-default">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-primary to-indigo-700 text-white mx-auto flex items-center justify-center shadow-lg shadow-brand-primary/20">
-                    <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-12 h-12 rounded-xl bg-bg-muted border border-border-default text-text-primary mx-auto flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
+                <h1 className="text-2xl font-bold text-text-primary tracking-tight">
                     {infoLoading ? "Loading Mentor Details..." : `Subscribe to ${mentorName}`}
                 </h1>
                 <p className="text-xs sm:text-sm text-text-muted max-w-lg mx-auto">
@@ -197,19 +197,19 @@ export default function MentorPayment() {
                 </div>
 
                 {/* Pricing Block */}
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-brand-subtle via-brand-subtle/40 to-transparent border border-brand-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="p-6 rounded-xl bg-bg-muted/40 border border-border-default flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-primary/10 text-brand-primary">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-bg-surface text-text-secondary border border-border-default">
                                 30-day subscription
                             </span>
                         </div>
                         <div className="flex items-baseline gap-1">
                             {infoLoading ? (
-                                <span className="text-3xl sm:text-4xl font-black text-text-muted animate-pulse">₹—</span>
+                                <span className="text-3xl sm:text-4xl font-bold text-text-muted animate-pulse">₹—</span>
                             ) : price !== null ? (
                                 <>
-                                    <span className="text-3xl sm:text-4xl font-black text-text-primary">₹{price}</span>
+                                    <span className="text-3xl sm:text-4xl font-bold text-text-primary">₹{price}</span>
                                     <span className="text-xs text-text-muted font-medium">/ month</span>
                                 </>
                             ) : (
@@ -223,7 +223,7 @@ export default function MentorPayment() {
                         id="pay-now-btn"
                         onClick={handlePayment}
                         disabled={paymentLoading || infoLoading || price === null || !!duplicateSubscription}
-                        className="px-7 py-3 rounded-xl bg-brand-primary hover:bg-brand-hover text-white font-bold text-sm shadow-md shadow-brand-primary/20 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="px-6 py-2.5 rounded-md bg-brand-primary hover:bg-brand-primary-hover text-white font-medium text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {paymentLoading ? (
                             <>

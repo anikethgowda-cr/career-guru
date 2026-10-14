@@ -33,13 +33,13 @@ export default function AtsSpeedometer() {
   const filledLength = (validatedScore / 100) * circumference;
 
   return (
-    <div className="bg-bg-surface border border-border-default border-t-4 border-t-indigo-500 dark:border-t-indigo-400 rounded-xl shadow-card hover:shadow-elevated transition-all duration-200 p-6 flex flex-col items-center justify-between text-center min-h-[320px]">
+    <div className="bg-bg-surface border border-border-default rounded-xl shadow-xs p-6 flex flex-col items-center justify-between text-center min-h-[300px]">
       <div className="w-full flex items-center justify-between pb-3 border-b border-border-default mb-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
           ATS Match Score
         </h3>
         <span
-          className="text-xs font-bold px-2.5 py-0.5 rounded-full text-white shadow-xs"
+          className="text-xs font-medium px-2 py-0.5 rounded-md text-white"
           style={{ backgroundColor: themeColor }}
         >
           {badgeText}

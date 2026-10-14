@@ -45,7 +45,7 @@ export default function MentorMessagesList({ conversations }) {
                         className="py-4 px-3 sm:px-4 rounded-lg hover:bg-bg-muted/50 transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 group"
                     >
                         <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-semibold text-sm shrink-0">
                                 {initial}
                             </div>
 

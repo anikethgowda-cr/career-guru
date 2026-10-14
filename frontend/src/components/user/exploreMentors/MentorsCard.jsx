@@ -29,12 +29,12 @@ export default function MentorsCard({ mentor, isMatch }) {
 
     return (
         <>
-            <div className="bg-bg-surface border border-border-default hover:border-brand-primary/50 rounded-xl p-5 sm:p-6 shadow-subtle hover:shadow-card transition-all duration-200 flex flex-col justify-between group text-left">
+            <div className="bg-bg-surface border border-border-default hover:border-border-strong rounded-xl p-5 shadow-xs transition-colors flex flex-col justify-between group text-left">
                 <div className="space-y-4">
                     {/* Header: Avatar + Info */}
                     <div className="flex items-start gap-3.5">
                         <div className="relative">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-200">
+                            <div className="w-11 h-11 rounded-lg bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-semibold text-sm shrink-0">
                                 {initial}
                             </div>
                         </div>

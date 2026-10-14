@@ -63,23 +63,23 @@ export default function Dashboard() {
   if (!loading && !serverError && !data) {
     return (
       <div className="p-6 sm:p-8 lg:p-10 max-w-3xl mx-auto text-left">
-        <div className="bg-bg-surface border border-border-default border-t-4 border-t-brand-primary rounded-xl p-8 sm:p-10 shadow-card space-y-6 text-left">
-          <div className="w-12 h-12 rounded-xl bg-brand-subtle text-brand-primary flex items-center justify-center">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+        <div className="bg-bg-surface border border-border-default rounded-xl p-8 sm:p-10 shadow-xs space-y-6 text-left">
+          <div className="w-10 h-10 rounded-lg bg-bg-muted border border-border-default text-text-secondary flex items-center justify-center">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-text-primary">
-              Add resume to see the report
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-semibold text-text-primary">
+              Add resume to see your analysis
             </h2>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-              Upload your PDF resume in your profile to unlock your ATS compatibility score, strength breakdowns, missing skill gaps, and AI career guidance.
+              Upload your PDF resume in your profile to unlock your ATS compatibility score, strengths breakdown, missing skill gaps, and AI career guidance.
             </p>
           </div>
           <Link
             to="/user/profile"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow-md transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-brand-primary hover:bg-brand-primary-hover text-white text-xs sm:text-sm font-medium shadow-xs transition-colors cursor-pointer"
           >
             <span>Add Resume in Profile</span>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
@@ -101,21 +101,21 @@ export default function Dashboard() {
             <div className="w-56 sm:w-72 h-8 bg-bg-muted rounded-lg"></div>
             <div className="w-72 sm:w-96 h-4 bg-bg-muted rounded-lg"></div>
           </div>
-          <div className="w-36 h-7 bg-bg-muted rounded-full"></div>
+          <div className="w-36 h-7 bg-bg-muted rounded-md"></div>
         </div>
 
         {/* Row 1: 3 Cards Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-bg-surface border border-border-default rounded-xl p-6 min-h-[320px] flex flex-col justify-between">
+            <div key={i} className="bg-bg-surface border border-border-default rounded-xl p-6 min-h-[300px] flex flex-col justify-between">
               <div className="w-full flex justify-between">
                 <div className="w-24 h-4 bg-bg-muted rounded"></div>
-                <div className="w-16 h-4 bg-bg-muted rounded-full"></div>
+                <div className="w-16 h-4 bg-bg-muted rounded"></div>
               </div>
               <div className="space-y-3 my-auto">
-                <div className="w-full h-8 bg-bg-muted rounded-lg"></div>
-                <div className="w-full h-8 bg-bg-muted rounded-lg"></div>
-                <div className="w-full h-8 bg-bg-muted rounded-lg"></div>
+                <div className="w-full h-7 bg-bg-muted rounded"></div>
+                <div className="w-full h-7 bg-bg-muted rounded"></div>
+                <div className="w-full h-7 bg-bg-muted rounded"></div>
               </div>
             </div>
           ))}
@@ -124,14 +124,14 @@ export default function Dashboard() {
         {/* Row 2: 2 Cards Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="bg-bg-surface border border-border-default rounded-xl p-6 min-h-[260px] flex flex-col justify-between">
+            <div key={i} className="bg-bg-surface border border-border-default rounded-xl p-6 min-h-[240px] flex flex-col justify-between">
               <div className="w-full flex justify-between items-center pb-3 border-b border-border-default">
                 <div className="w-32 h-5 bg-bg-muted rounded"></div>
-                <div className="w-16 h-4 bg-bg-muted rounded-full"></div>
+                <div className="w-16 h-4 bg-bg-muted rounded"></div>
               </div>
               <div className="flex flex-wrap gap-2.5 my-auto">
                 {[...Array(6)].map((_, j) => (
-                  <div key={j} className="w-24 h-7 bg-bg-muted rounded-lg"></div>
+                  <div key={j} className="w-20 h-6 bg-bg-muted rounded"></div>
                 ))}
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function Dashboard() {
           <div className="w-48 h-5 bg-bg-muted rounded"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-20 bg-bg-muted rounded-lg"></div>
+              <div key={i} className="h-16 bg-bg-muted rounded"></div>
             ))}
           </div>
         </div>
@@ -156,17 +156,17 @@ export default function Dashboard() {
       {/* Top Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border-default">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
-            Welcome back, {data?.userId?.username || "User"} 👋
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+            Welcome back, {data?.userId?.username || "User"}
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Here is your comprehensive AI resume analysis and career roadmap.
+          <p className="text-xs sm:text-sm text-text-secondary mt-1">
+            Resume analysis and personalized career roadmap
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-text-muted font-medium">Target Role:</span>
-          <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-brand-subtle text-brand-primary border border-border-default shadow-subtle">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-bg-muted text-text-primary border border-border-default">
             {data?.roleAnalysis?.role || "Software Developer"}
           </span>
         </div>

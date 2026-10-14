@@ -20,7 +20,7 @@ export default function ChatHeader({ name, initial, subtitle, backPath }) {
                 )}
 
                 <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                    <div className="w-9 h-9 rounded-md bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-semibold text-xs">
                         {initial || name?.charAt(0).toUpperCase() || "M"}
                     </div>
                 </div>

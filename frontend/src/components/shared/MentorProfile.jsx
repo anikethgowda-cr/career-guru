@@ -128,10 +128,10 @@ const MentorProfileForm = () => {
             <div className="max-w-3xl mx-auto space-y-8 text-left">
                 {/* Header */}
                 <div className="text-center space-y-2">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-primary/80 text-white flex items-center justify-center font-black text-2xl mx-auto shadow-md shadow-brand-primary/20">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-bold text-lg mx-auto">
                         CG
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
                         Complete Your Mentor Profile
                     </h1>
                     <p className="text-xs sm:text-sm text-text-muted max-w-md mx-auto">

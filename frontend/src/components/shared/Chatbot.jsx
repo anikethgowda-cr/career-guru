@@ -81,21 +81,21 @@ export default function Chatbot() {
     return (
         <>
             {isOpen && (
-                <div className="fixed right-6 bottom-24 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-8rem)] bg-bg-surface rounded-2xl shadow-2xl border border-border-default flex flex-col overflow-hidden text-left animate-in fade-in slide-in-from-bottom-5 duration-200">
+                <div className="fixed right-6 bottom-30 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[540px] max-h-[calc(100vh-10rem)] bg-bg-surface rounded-xl shadow-lg border border-border-default flex flex-col overflow-hidden text-left animate-in fade-in duration-150">
                     
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-brand-primary to-indigo-700 text-white px-5 py-3.5 flex items-center justify-between shadow-xs">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center font-bold text-sm shadow-inner">
-                                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="bg-bg-surface border-b border-border-default px-4 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-md bg-bg-muted border border-border-default flex items-center justify-center font-bold text-xs text-brand-primary">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="font-bold text-sm leading-tight text-white">
+                                <h3 className="font-semibold text-xs text-text-primary leading-tight">
                                     CareerPilot AI
                                 </h3>
-                                <span className="text-[11px] text-white/80 font-medium">AI Career Assistant</span>
+                                <span className="text-[10px] text-text-muted">AI Career Assistant</span>
                             </div>
                         </div>
 
@@ -105,11 +105,11 @@ export default function Chatbot() {
                                 <button
                                     type="button"
                                     onClick={handleClearChat}
-                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                                    className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-muted transition-colors cursor-pointer"
                                     title="Clear conversation"
                                     aria-label="Clear conversation"
                                 >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                 </button>
@@ -118,11 +118,11 @@ export default function Chatbot() {
                             {/* Close Chat Button */}
                             <button
                                 type="button"
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                                className="w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-muted transition-colors cursor-pointer"
                                 onClick={() => setIsOpen(false)}
                                 aria-label="Close Chat"
                             >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -286,15 +286,15 @@ export default function Chatbot() {
             <button
                 type="button"
                 onClick={() => setIsOpen((prev) => !prev)}
-                className="fixed right-6 bottom-6 z-50 w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 dark:from-indigo-600 dark:via-indigo-600 dark:to-indigo-500 text-white shadow-xl shadow-indigo-600/20 dark:shadow-indigo-600/30 hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center cursor-pointer"
+                className="fixed right-6 bottom-16 z-50 w-11 h-11 rounded-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 shadow-md transition-colors flex items-center justify-center cursor-pointer"
                 aria-label="Toggle AI Chatbot"
             >
                 {isOpen ? (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 ) : (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                     </svg>
                 )}

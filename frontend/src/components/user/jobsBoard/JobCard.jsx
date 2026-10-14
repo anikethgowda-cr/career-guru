@@ -57,12 +57,12 @@ export default function JobCard({ jobs: propJobs }) {
                     return (
                         <div
                             key={job.id}
-                            className="bg-bg-surface border border-border-default hover:border-brand-primary/50 rounded-xl p-5 sm:p-6 shadow-subtle hover:shadow-card transition-all duration-200 flex flex-col justify-between group"
+                            className="bg-bg-surface border border-border-default hover:border-border-strong rounded-xl p-5 shadow-xs transition-colors flex flex-col justify-between group"
                         >
                             <div className="space-y-4">
                                 {/* Header: Logo + Titles */}
                                 <div className="flex items-start gap-3.5">
-                                    <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-200">
+                                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-bold text-xs shrink-0">
                                         {getInitials(job.company?.display_name)}
                                     </div>
 

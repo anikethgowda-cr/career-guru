@@ -15,11 +15,11 @@ export default function MenteeCard({ mentee, studentId }) {
     }
 
     return (
-        <div className="bg-bg-surface border border-border-default hover:border-brand-primary/50 rounded-xl p-6 transition-all duration-200 shadow-subtle hover:shadow-card flex flex-col justify-between text-left group">
-            <div className="space-y-5">
+        <div className="bg-bg-surface border border-border-default hover:border-border-strong rounded-xl p-5 transition-colors shadow-xs flex flex-col justify-between text-left group">
+            <div className="space-y-4">
                 {/* Header: Avatar, Name, Email */}
-                <div className="flex items-center gap-3.5 pb-4 border-b border-border-default">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
+                <div className="flex items-center gap-3 pb-3 border-b border-border-default">
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-semibold text-sm shrink-0">
                         {initial}
                     </div>
 

@@ -64,7 +64,7 @@ export default function JobDetailsModal({ job, onClose }) {
             <div className="relative w-full max-w-xl bg-bg-surface border border-border-default rounded-xl shadow-dropdown flex flex-col max-h-[90vh] overflow-hidden text-left transition-colors duration-200">
                 {/* Header */}
                 <div className="p-5 sm:p-6 flex items-start gap-3.5 border-b border-border-default">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                    <div className="w-11 h-11 rounded-lg bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-bold text-xs shrink-0">
                         {getInitials(job.company?.display_name)}
                     </div>
 

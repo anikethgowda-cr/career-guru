@@ -72,7 +72,7 @@ export default function MyMentees({ mentees = [] }) {
                                     className="py-3.5 flex items-center justify-between gap-3 group hover:bg-bg-muted/50 px-2 rounded-lg transition-colors"
                                 >
                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-primary to-brand-primary/80 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                                        <div className="w-9 h-9 rounded-md bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-semibold text-xs shrink-0">
                                             {initial}
                                         </div>
 

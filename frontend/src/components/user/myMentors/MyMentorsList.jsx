@@ -71,12 +71,12 @@ export default function MyMentorsList({ conversations }) {
                                 }
                             })
                         }
-                        className="bg-bg-surface border border-border-default hover:border-brand-primary rounded-xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-between gap-4 cursor-pointer group text-left"
+                        className="bg-bg-surface border border-border-default hover:border-border-strong rounded-xl p-4 shadow-xs transition-colors flex items-center justify-between gap-4 cursor-pointer group text-left"
                     >
                         <div className="flex items-center gap-3.5 min-w-0 flex-1">
                             {/* Avatar */}
                             <div className="relative shrink-0">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-primary to-indigo-700 text-white flex items-center justify-center font-bold text-base shadow-xs group-hover:scale-105 transition-transform duration-200">
+                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-semibold text-sm">
                                     {initial}
                                 </div>
                             </div>

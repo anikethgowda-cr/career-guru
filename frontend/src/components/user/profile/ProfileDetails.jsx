@@ -339,7 +339,7 @@ export default function ProfileDetails({ data }) {
             <div className="bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-7 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-primary to-indigo-700 text-white flex items-center justify-center font-bold text-2xl shadow-md shadow-brand-primary/20 shrink-0">
+                        <div className="w-14 h-14 rounded-xl bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-bold text-xl shrink-0">
                             {userInitial}
                         </div>
                         <div className="space-y-0.5">

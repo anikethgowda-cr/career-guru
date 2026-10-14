@@ -65,29 +65,23 @@ export default function MentorDashboard() {
     return (
         <div className="p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto space-y-8 transition-colors duration-200 text-left">
             {/* Hero Welcome Banner */}
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-indigo-50/80 via-white to-slate-50 dark:from-bg-surface dark:via-bg-surface dark:to-bg-muted border border-border-default p-6 sm:p-8 shadow-subtle">
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="rounded-xl bg-bg-surface border border-border-default p-6 sm:p-8 shadow-xs">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-subtle text-brand-primary text-xs font-semibold border border-brand-primary/20">
+                        <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-bg-muted text-brand-primary text-xs font-medium border border-border-default">
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M12 14l9-5-9-5-9 5 9 5z" />
-                                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
                             </svg>
                             <span>Mentor Workspace</span>
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
-                            Welcome back, {user?.username || "Mentor"}!
+                        <h1 className="text-2xl font-bold text-text-primary tracking-tight">
+                            Welcome back, {user?.username || "Mentor"}
                         </h1>
-                        <p className="text-sm text-text-secondary max-w-xl">
+                        <p className="text-xs sm:text-sm text-text-secondary max-w-xl">
                             Empower your mentees with expert feedback, analyze their career roadmaps, and guide them to high-impact career outcomes.
                         </p>
                     </div>
-
-
                 </div>
-
-                <div className="absolute -top-16 -right-16 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none" />
             </div>
 
             {/* Main Content Grid: Recent Mentees (2 col) & Sidebar Controls (1 col) */}

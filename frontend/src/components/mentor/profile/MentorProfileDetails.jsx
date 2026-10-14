@@ -25,21 +25,21 @@ export default function MentorProfileDetails({ data }) {
     return (
         <div className="space-y-8 text-left transition-colors duration-300">
             {/* Mentor Executive Hero Header */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-subtle via-bg-surface to-bg-app border border-border-default p-6 sm:p-8 shadow-xs">
-                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="rounded-xl bg-bg-surface border border-border-default p-6 sm:p-8 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <div className="flex items-center gap-5">
                         <div className="relative shrink-0">
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-brand-primary to-indigo-700 text-white flex items-center justify-center font-black text-3xl sm:text-4xl shadow-md shadow-brand-primary/20">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-100 dark:bg-slate-800 text-text-primary border border-border-default flex items-center justify-center font-bold text-2xl sm:text-3xl">
                                 {initial}
                             </div>
                         </div>
 
                         <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2">
-                                <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
                                     {displayName}
                                 </h1>
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-subtle text-brand-primary border border-brand-primary/20">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-bg-muted text-brand-primary border border-border-default">
                                     Verified Mentor
                                 </span>
                             </div>
