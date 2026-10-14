@@ -1,6 +1,5 @@
 import multer from "multer";
 import path from "path";
-
 import cloudinary from "../config/cloudinary.js";
 import CloudinaryStorage from "multer-storage-cloudinary";
 
@@ -15,7 +14,6 @@ const storage = new CloudinaryStorage({
 
 const fileFilter = (req, file, cb) => {
     const extension = path.extname(file.originalname).toLowerCase();
-
     if (extension === ".pdf") {
         cb(null, true);
     } else {
@@ -26,9 +24,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage,
     fileFilter,
-    limits: {
-        fileSize: 5 * 1024 * 1024
-    }
+    limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 export default upload;
