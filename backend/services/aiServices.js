@@ -23,15 +23,18 @@ const getApiKeys = () => {
 
 let currentKeyIndex = 0;
 
+import mongoose from "mongoose";
+
 /**
  * Enhanced production AI Service with:
  * 1. Two-tier caching (Memory + MongoDB TTL) -> 0 tokens on cache hit
  * 2. Exponential backoff and retries on 429 / 503 errors
  * 3. Multi-key rotation on rate limits
- * 4. Token guardrails (maxOutputTokens, temperature)
+ * 4. Token guardrails (supports full 8192 tokens for large plans/questions)
  */
 const aiService = async (context, options = {}) => {
-  const { bypassCache = false, maxOutputTokens = 2500, temperature = 0.2 } = options;
+  // Use 8192 to prevent cutting off large course plans (6 weeks) or 40+ interview questions
+  const { bypassCache = false, maxOutputTokens = 8192, temperature = 0.2 } = options;
   const promptHash = getPromptHash(context);
 
   // ── Tier 1: In-Memory Cache (0ms latency, 0 tokens) ─────────────────────
@@ -41,7 +44,7 @@ const aiService = async (context, options = {}) => {
   }
 
   // ── Tier 2: MongoDB Persistent Cache (10ms, 0 tokens) ───────────────────
-  if (!bypassCache) {
+  if (!bypassCache && mongoose.connection.readyState === 1) {
     try {
       const cached = await AiCache.findOne({ promptHash });
       if (cached && cached.response) {
