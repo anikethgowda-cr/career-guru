@@ -45,7 +45,7 @@ export const generateLearningPlan = createAsyncThunk("learningPlan/generateLearn
             return thunkAPI.rejectWithValue({
                 status: err.response?.status,
                 actionType: "generate",
-                message: err.response?.data?.message || "Failed to generate learning plan"
+                message: err.response?.data?.message || "AI is under Maintenance. Please try again shortly."
             });
         }
     }

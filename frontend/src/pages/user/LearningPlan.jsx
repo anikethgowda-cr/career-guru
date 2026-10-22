@@ -58,10 +58,12 @@ export default function LearningPlan() {
                     </div>
                     <div className="flex-1 text-left">
                         <h4 className="text-sm font-semibold text-red-900 dark:text-red-200">
-                            {serverError?.actionType === "generate" ? "Failed to generate learning plan" : "Failed to load learning plan"}
+                            {serverError?.actionType === "generate" ? "AI is under Maintenance" : "Failed to load learning plan"}
                         </h4>
                         <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
-                            {serverError?.status ? `Error ${serverError.status}: ` : ""}{serverError?.message || "An unexpected error occurred."}
+                            {serverError?.actionType === "generate"
+                                ? "Our AI service is currently under maintenance. Please try again shortly."
+                                : (typeof serverError?.message === "string" ? serverError.message : "An unexpected error occurred. Please try again.")}
                         </p>
                         <button
                             type="button"

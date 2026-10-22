@@ -315,7 +315,7 @@ export const generateCoursePlan = async (req, res) => {
 
         return res.status(500).json({
             success: false,
-            message: err.message || "Failed to generate course plan"
+            message: "AI is under Maintenance. Please try again shortly."
         });
     }
 };
