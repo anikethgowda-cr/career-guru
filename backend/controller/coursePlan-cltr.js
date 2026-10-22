@@ -313,9 +313,19 @@ export const generateCoursePlan = async (req, res) => {
     } catch (err) {
         console.error("COURSE PLAN ERROR:", err);
 
-        return res.status(500).json({
+        const is503 = err?.status === 503 || err?.message?.includes("503") || err?.message?.includes("high demand") || err?.message?.includes("UNAVAILABLE");
+        const is429 = err?.status === 429 || err?.message?.includes("429") || err?.message?.includes("quota") || err?.message?.includes("RESOURCE_EXHAUSTED");
+
+        const statusCode = is503 ? 503 : is429 ? 429 : 500;
+        const message = is503 
+            ? "This model is currently experiencing high demand. Please try again later."
+            : is429
+            ? "AI rate limit reached. Please wait a few moments before trying again."
+            : "Failed to generate course plan";
+
+        return res.status(statusCode).json({
             success: false,
-            message: "AI is under Maintenance. Please try again shortly."
+            message
         });
     }
 };

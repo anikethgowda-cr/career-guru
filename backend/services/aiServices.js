@@ -63,23 +63,29 @@ const aiService = async (context, options = {}) => {
     }
   }
 
-  // ── Tier 3: Call Google Gemini with Exponential Backoff & Key Rotation ─
+  // ── Tier 3: Call Google Gemini with Exponential Backoff & Key/Model Rotation ─
   const keys = getApiKeys();
+  const models = [
+    process.env.GEMINI_MODEL || "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-flash-latest"
+  ];
   const maxRetries = 3;
   let lastError = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const activeApiKey = keys[currentKeyIndex % keys.length];
+    const activeModel = models[attempt % models.length];
 
     try {
       const ai = new GoogleGenAI({
         apiKey: activeApiKey,
       });
 
-      const modelName = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+      console.log(`[AI Request] Calling model '${activeModel}' (Attempt ${attempt + 1}/${maxRetries})...`);
 
       const response = await ai.models.generateContent({
-        model: modelName,
+        model: activeModel,
         contents: context,
         config: {
           responseMimeType: "application/json",
@@ -147,7 +153,7 @@ const aiService = async (context, options = {}) => {
       // Save to MongoDB asynchronously (non-blocking)
       AiCache.findOneAndUpdate(
         { promptHash },
-        { promptHash, response: result, modelUsed: modelName },
+        { promptHash, response: result, modelUsed: activeModel },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       ).catch((saveErr) => console.warn("[AI Cache Write Warning]:", saveErr.message));
 
@@ -156,10 +162,18 @@ const aiService = async (context, options = {}) => {
     } catch (error) {
       lastError = error;
       const isRateLimit = error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED");
-      const isTransient = error?.status === 503 || error?.status === 500 || error?.code === "ECONNRESET";
+      const isTransient = 
+        error?.status === 503 ||
+        error?.status === 500 ||
+        error?.status === "UNAVAILABLE" ||
+        error?.code === 503 ||
+        error?.code === "ECONNRESET" ||
+        error?.message?.includes("503") ||
+        error?.message?.includes("UNAVAILABLE") ||
+        error?.message?.includes("high demand");
       const isParseError = error instanceof SyntaxError || error?.message?.includes("JSON") || error?.message?.includes("empty response");
 
-      console.warn(`[AI Attempt ${attempt + 1}/${maxRetries} failed]: ${error.message}`);
+      console.warn(`[AI Attempt ${attempt + 1}/${maxRetries} failed with model '${activeModel}']: ${error.message}`);
 
       // Rotate API key if multiple keys are available
       if (keys.length > 1) {
@@ -170,7 +184,7 @@ const aiService = async (context, options = {}) => {
       // Retry on rate limit, transient server error, or bad/empty JSON
       if ((isRateLimit || isTransient || isParseError) && attempt < maxRetries - 1) {
         const backoffMs = Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 500);
-        console.log(`[AI Backoff] Retrying in ${backoffMs}ms...`);
+        console.log(`[AI Backoff] Retrying with model '${models[(attempt + 1) % models.length]}' in ${backoffMs}ms...`);
         await new Promise((resolve) => setTimeout(resolve, backoffMs));
       } else if (!isRateLimit && !isTransient && !isParseError) {
         throw error;
