@@ -2,6 +2,118 @@ import ResumeAnalysis from "../models/resumeAnalysisSchema.js";
 import CoursePlan from "../models/coursePlanSchema.js";
 import aiService from "../services/aiServices.js";
 
+// Helper function to validate, sanitize, and normalize the AI output to match CoursePlan schema
+const normalizeCoursePlan = (rawPlan, targetRole, durationWeeks = 6) => {
+    const role = typeof rawPlan?.role === "string" && rawPlan.role.trim()
+        ? rawPlan.role.trim()
+        : targetRole || "Professional";
+
+    const duration = Number(rawPlan?.durationWeeks) || durationWeeks || 6;
+    const rawWeeks = Array.isArray(rawPlan?.weeks) ? rawPlan.weeks : [];
+
+    const weeks = [];
+    for (let w = 1; w <= duration; w++) {
+        const foundWeek = rawWeeks.find((rw) => Number(rw?.weekNumber) === w) || rawWeeks[w - 1] || {};
+        const overview = typeof foundWeek.overview === "string" && foundWeek.overview.trim()
+            ? foundWeek.overview.trim()
+            : `Comprehensive milestone curriculum and fundamentals for Week ${w}`;
+
+        const rawSessions = Array.isArray(foundWeek.sessions) && foundWeek.sessions.length > 0
+            ? foundWeek.sessions
+            : [{
+                title: `Week ${w} Core Concepts and Implementation`,
+                topics: [`Introduction to Week ${w} concepts`, "Practical Implementation"],
+                skills: [role],
+                materials: [
+                    {
+                        name: `${role} - Week ${w} Overview`,
+                        type: "YouTube",
+                        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(role)}+tutorial+week+${w}`,
+                        description: `Curated learning video resource for Week ${w}`
+                    }
+                ]
+            }];
+
+        const sessions = rawSessions.map((session, sIdx) => {
+            const title = typeof session?.title === "string" && session.title.trim()
+                ? session.title.trim()
+                : `Session ${sIdx + 1}: ${overview}`;
+
+            const topics = Array.isArray(session?.topics) && session.topics.length > 0
+                ? session.topics.map((t) => String(t).trim()).filter(Boolean)
+                : [title];
+
+            const skills = Array.isArray(session?.skills) && session.skills.length > 0
+                ? session.skills.map((s) => String(s).trim()).filter(Boolean)
+                : [role];
+
+            const rawMaterials = Array.isArray(session?.materials) ? session.materials : [];
+
+            let materials = rawMaterials.map((mat, mIdx) => {
+                const name = typeof mat?.name === "string" && mat.name.trim()
+                    ? mat.name.trim()
+                    : `${title} Resource ${mIdx + 1}`;
+
+                let type = typeof mat?.type === "string" && mat.type.trim()
+                    ? mat.type.trim()
+                    : (mIdx === 0 ? "YouTube" : "Official Documentation");
+
+                const validTypes = ["YouTube", "Official Documentation", "GitHub", "Research Paper", "Article", "Book", "Practice"];
+                const matchedType = validTypes.find((t) => t.toLowerCase() === type.toLowerCase());
+                type = matchedType || (mIdx === 0 ? "YouTube" : "Article");
+
+                let url = typeof mat?.url === "string" && mat.url.trim() ? mat.url.trim() : "";
+                if (!url || !url.startsWith("http")) {
+                    url = type === "YouTube"
+                        ? `https://www.youtube.com/results?search_query=${encodeURIComponent(name)}`
+                        : `https://www.google.com/search?q=${encodeURIComponent(name)}`;
+                }
+
+                const description = typeof mat?.description === "string" && mat.description.trim()
+                    ? mat.description.trim()
+                    : `Essential learning resource covering ${title} for ${role}.`;
+
+                return { name, type, url, description };
+            });
+
+            // Ensure there is at least one YouTube material as the first item
+            if (materials.length === 0) {
+                materials = [
+                    {
+                        name: `${title} Video Tutorial`,
+                        type: "YouTube",
+                        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(title)}`,
+                        description: `Educational video guide covering ${title}.`
+                    },
+                    {
+                        name: `${title} Official Documentation`,
+                        type: "Official Documentation",
+                        url: `https://www.google.com/search?q=${encodeURIComponent(title)}+documentation`,
+                        description: `Comprehensive reference materials for ${title}.`
+                    }
+                ];
+            } else if (materials[0].type !== "YouTube" || !materials[0].url.includes("youtube.com")) {
+                materials.unshift({
+                    name: `${title} Video Tutorial`,
+                    type: "YouTube",
+                    url: `https://www.youtube.com/results?search_query=${encodeURIComponent(title)}`,
+                    description: `Recommended video guide covering ${title}.`
+                });
+            }
+
+            return { title, topics, skills, materials };
+        });
+
+        weeks.push({
+            weekNumber: w,
+            overview,
+            sessions
+        });
+    }
+
+    return { role, durationWeeks: duration, weeks };
+};
+
 export const generateCoursePlan = async (req, res) => {
     try {
         const userId = req.userId;
@@ -14,7 +126,8 @@ export const generateCoursePlan = async (req, res) => {
         if (!analysis) {
             return res.status(404).json({
                 success: false,
-                message: "Resume analysis not found"
+                noAnalysis: true,
+                message: "Resume analysis not found. Please upload and analyze your resume first."
             });
         }
 
@@ -23,7 +136,8 @@ export const generateCoursePlan = async (req, res) => {
         if (!roleAnalysis) {
             return res.status(404).json({
                 success: false,
-                message: "Role analysis not found"
+                noAnalysis: true,
+                message: "Role analysis not found. Please upload and analyze your resume first."
             });
         }
 
@@ -68,188 +182,58 @@ export const generateCoursePlan = async (req, res) => {
             candidate's resume.
 
             From Week 2 onwards, prioritize:
-
             - Weaknesses
             - Missing skills
             - Important role-specific technologies
             - Advanced concepts
 
             Follow a logical progression from fundamentals to intermediate and
-            advanced concepts.
-
-            Always consider prerequisites.
-
-            For example:
-
-            Docker
-            → Docker Compose
-            → CI/CD
-            → CI/CD with Docker
-            → Deployment
-
-            Do not teach advanced topics before their required fundamentals.
+            advanced concepts. Always consider prerequisites.
 
             WEEK REQUIREMENTS:
-
             Generate exactly ${durationWeeks} weeks.
-
-            Week numbers must be:
-
-            1, 2, 3, 4, 5, 6
-
+            Week numbers must be: 1, 2, 3, 4, 5, 6.
             Do not generate fewer or more weeks.
-
-            Do not use a fixed number of sessions per week.
-
-            The number of sessions should depend on the complexity of the topics.
+            The number of sessions per week should depend on topic complexity (typically 3-4 sessions).
 
             SESSION REQUIREMENTS:
-
             Every session must contain:
-
             - title
-            - topics
-            - skills
-            - materials
+            - topics (array of strings)
+            - skills (array of strings)
+            - materials (array of objects)
 
             MATERIAL REQUIREMENTS:
-
             Every session must contain 2-4 useful learning resources.
 
-            IMPORTANT MATERIAL ORDER RULE:
-
-            The FIRST material in EVERY session MUST ALWAYS be a YouTube video.
-
-            Therefore:
-
+            IMPORTANT YOUTUBE MATERIAL RULE:
+            The FIRST material in EVERY session MUST ALWAYS be a YouTube video search query.
             materials[0].type MUST be exactly "YouTube".
-
-            materials[0].url MUST be a direct YouTube video URL.
-
-            The first material MUST be an actual educational YouTube video
-            directly related to the session topic.
-
-            YOUTUBE RECENCY REQUIREMENT:
-
-            Every first YouTube video MUST have been published within the
-            previous 2 years from the current date.
-
-            Current date:
-            ${new Date().toISOString().split("T")[0]}
-
-            Therefore, do NOT recommend videos older than 2 years.
-
-            Prefer videos published as recently as possible while still being
-            high-quality and directly relevant to the topic.
-
-            YOUTUBE POPULARITY REQUIREMENT:
-
-            The first YouTube video should preferably:
-
-            - Have a high number of views.
-            - Have strong viewer engagement.
-            - Come from a reputable educational or technical channel.
-            - Be widely used or recommended for learning the topic.
-            - Have clear and useful educational content.
-            - Be directly relevant to the exact session topic.
-
-            When multiple suitable videos exist, prioritize them in this order:
-
-            1. Direct relevance to the session topic.
-            2. Published within the last 2 years.
-            3. High view count.
-            4. Strong viewer engagement.
-            5. Reputable educational/technical channel.
-            6. Technical accuracy.
-            7. Quality of explanation.
-
-            Do NOT select an obscure or extremely low-view video if a
-            popular and trustworthy alternative exists.
-
-            Do NOT sacrifice relevance just because another video has more views.
-
-            YOUTUBE URL REQUIREMENTS:
-
-            For the first YouTube material in each session, generate a
-            YouTube search URL using the following format:
-
+            materials[0].url MUST be a YouTube search URL in the exact format:
             https://www.youtube.com/results?search_query=TOPIC+KEYWORDS
+            (Replace spaces with + signs and use specific relevant search keywords).
 
-            Replace spaces with + signs and use relevant keywords from the
-            session topic.
-
-            Examples:
-            - https://www.youtube.com/results?search_query=docker+compose+tutorial
-            - https://www.youtube.com/results?search_query=react+hooks+beginner+2024
-            - https://www.youtube.com/results?search_query=postgresql+indexing+explained
-
-            This ensures the URL always works and students find current, relevant videos.
-
-            DO NOT:
-            - Fabricate or guess a specific YouTube video ID
-            - Use direct watch URLs like youtube.com/watch?v=...
-            - Use channel or playlist URLs
-            - Use fake or placeholder URLs
-
-            REAL-TIME RESOURCE REQUIREMENT:
-
-            Learning resources should be current and relevant to modern
-            versions of the technology whenever possible.
-
-            For technologies that change frequently, prefer recently updated
-            resources.
-
-            Do not recommend outdated tutorials when a recent high-quality
-            alternative exists.
+            DO NOT fabricate or guess random YouTube video IDs like watch?v=...
+            Using YouTube search URLs guarantees the link works and points to active content.
 
             REMAINING MATERIALS:
+            Allowed resource types for materials[1+]:
+            - "YouTube"
+            - "Official Documentation"
+            - "GitHub"
+            - "Research Paper"
+            - "Article"
+            - "Book"
+            - "Practice"
 
-            The remaining materials may contain other useful learning resources.
-
-            Allowed resource types:
-
-            - YouTube
-            - Official Documentation
-            - GitHub
-            - Research Paper
-            - Article
-            - Book
-            - Practice
-
-            Only include resources that are genuinely relevant to the session.
-
-            Prefer official and trusted resources.
-
-            For programming technologies, prioritize:
-
-            - Official documentation
-            - Official tutorials
-            - Official GitHub repositories
-            - High-quality technical articles
-            - Reputable educational YouTube videos
-            - Current learning resources
-
-            Each material MUST contain:
-
-            - name
-            - type
-            - url
-            - description
-
-            MATERIAL TYPE must be exactly one of:
-
-            "YouTube"
-            "Official Documentation"
-            "GitHub"
-            "Research Paper"
-            "Article"
-            "Book"
-            "Practice"
+            Each material MUST contain all 4 fields:
+            - name: Short informative title
+            - type: One of the allowed types above
+            - url: Working URL or official domain
+            - description: Brief 1-2 sentence description of what the student will learn
 
             SCHEMA REQUIREMENTS:
-
-            The generated JSON MUST exactly match the following structure.
-
+            The generated JSON MUST strictly match this structure:
             {
                 "role": "${role}",
                 "durationWeeks": ${durationWeeks},
@@ -270,16 +254,16 @@ export const generateCoursePlan = async (req, res) => {
                                 ],
                                 "materials": [
                                     {
-                                        "name": "YouTube Video Title",
+                                        "name": "YouTube Video Tutorial",
                                         "type": "YouTube",
-                                        "url": "https://www.youtube.com/watch?v=REAL_VIDEO_ID",
-                                        "description": "Short explanation of the resource"
+                                        "url": "https://www.youtube.com/results?search_query=docker+compose+tutorial",
+                                        "description": "Video walkthrough of core concepts"
                                     },
                                     {
                                         "name": "Official Documentation",
                                         "type": "Official Documentation",
-                                        "url": "https://real-url.com",
-                                        "description": "Short explanation of the resource"
+                                        "url": "https://docs.docker.com",
+                                        "description": "Official guide and reference"
                                     }
                                 ]
                             }
@@ -289,112 +273,28 @@ export const generateCoursePlan = async (req, res) => {
             }
 
             STRICT JSON RULES:
-
             1. Return ONLY valid JSON.
-
-            2. Do not use markdown.
-
-            3. Do not wrap the JSON inside a code block.
-
-            4. Do not add explanations before or after the JSON.
-
-            5. Generate exactly ${durationWeeks} objects inside "weeks".
-
-            6. Week numbers MUST be exactly:
-               1, 2, 3, 4, 5, 6.
-
-            7. Every week must contain:
-               - weekNumber
-               - overview
-               - sessions
-
-            8. Every session must contain:
-               - title
-               - topics
-               - skills
-               - materials
-
-            9. Every session must contain 2-4 materials.
-
-            10. Every material must contain:
-                - name
-                - type
-                - url
-                - description
-
-            11. "topics" must always be an array of strings.
-
-            12. "skills" must always be an array of strings.
-
-            13. "materials" must always be an array of objects.
-
-            14. The FIRST material of EVERY session MUST be a YouTube video.
-
-            15. For EVERY session:
-                materials[0].type MUST equal "YouTube".
-
-            16. For EVERY session:
-                materials[0].url MUST be a direct YouTube video URL.
-
-            17. For EVERY session:
-                materials[0].type MUST equal "YouTube".
-
-            18. For EVERY session:
-                materials[0].url MUST be a YouTube search URL in the format:
-                https://www.youtube.com/results?search_query=TOPIC+KEYWORDS
-
-            19. Never use a direct video URL (watch?v=...) for materials[0].
-
-            20. Never use a YouTube channel, playlist, search page or homepage
-                as materials[1+].
-
-            21. Never fabricate, guess or invent YouTube video IDs.
-
-            22. Never generate fake or placeholder URLs for non-YouTube materials.
-
-            25. The order of materials is important:
-
-                materials[0] = recent YouTube video
-
-                materials[1+] = other relevant learning resources
-
-            26. Do not add any fields that are not defined in this structure.
-
-            27. Do not add:
-
-                - projects
-                - assignments
-                - assessments
-                - exams
-                - difficulty
-                - duration
-                - prerequisites
-                - resources
-                - notes
-                - exercises
-
-            28. Do not change field names.
-
-            29. Do not change the data types of fields.
-
-            30. The final JSON must be directly compatible with the
-                CoursePlan MongoDB schema.
+            2. Do not wrap in markdown or backticks.
+            3. Do not add text outside the JSON.
+            4. Include all ${durationWeeks} weeks.
         `;
 
         console.log("GENERATING COURSE PLAN...");
 
         const coursePlanResult = await aiService(prompt);
 
+        // Normalize and validate the plan to guarantee complete schema compliance
+        const normalizedPlan = normalizeCoursePlan(coursePlanResult, role, durationWeeks);
+
         const savedCoursePlan = await CoursePlan.findOneAndUpdate(
-            {
-                userId: userId,
-                analysisId: analysis._id
-            },
+            { userId: userId },
             {
                 $set: {
-                    role: coursePlanResult.role,
-                    durationWeeks: coursePlanResult.durationWeeks,
-                    weeks: coursePlanResult.weeks
+                    userId: userId,
+                    analysisId: analysis._id,
+                    role: normalizedPlan.role,
+                    durationWeeks: normalizedPlan.durationWeeks,
+                    weeks: normalizedPlan.weeks
                 }
             },
             {
@@ -415,7 +315,7 @@ export const generateCoursePlan = async (req, res) => {
 
         return res.status(500).json({
             success: false,
-            message: "Internal Server Error"
+            message: err.message || "Failed to generate course plan"
         });
     }
 };
@@ -423,28 +323,29 @@ export const generateCoursePlan = async (req, res) => {
 
 export const showCoursePlan = async (req, res) => {
   try {
-    const userId = req.userId
+    const userId = req.userId;
 
-    // Check whether course plan already exists
+    // Check whether course plan already exists (get the latest plan for the user)
     const coursePlan = await CoursePlan.findOne({
       userId: userId
-    }).populate("userId","username")
+    }).sort({ updatedAt: -1 }).populate("userId", "username");
 
     if (coursePlan) {
       return res.status(200).json({
         success: true,
         data: coursePlan,
-        message:"sucessfully retervied"
+        message: "Successfully retrieved course plan"
       });
     }
 
     // Get user's latest resume analysis
-    const analysis = await ResumeAnalysis.findOne({userId: userId}).sort({createdAt: -1});
+    const analysis = await ResumeAnalysis.findOne({ userId: userId }).sort({ createdAt: -1 });
 
     if (!analysis) {
       return res.status(404).json({
         success: false,
-        message: "Resume analysis not found"
+        noAnalysis: true,
+        message: "Resume analysis not found. Please upload and analyze your resume first."
       });
     }
 
@@ -454,11 +355,12 @@ export const showCoursePlan = async (req, res) => {
     if (!roleAnalysis) {
       return res.status(404).json({
         success: false,
-        message: "Role analysis not found"
+        noAnalysis: true,
+        message: "Role analysis not found. Please upload and analyze your resume first."
       });
     }
     
-    const { role,missingSkills } = roleAnalysis; 
+    const { role, missingSkills } = roleAnalysis; 
 
     return res.status(404).json({
       success: false,
@@ -473,7 +375,7 @@ export const showCoursePlan = async (req, res) => {
     console.error("SHOW COURSE PLAN ERROR:", err);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: err.message || "Internal Server Error"
     });
   }
 };

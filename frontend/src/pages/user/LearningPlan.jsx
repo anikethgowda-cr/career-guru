@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchLearningPlan, generateLearningPlan } from "../../slices/user/LearningPlanSlice";
 import WeeksPlan from "../../components/user/learningPlan/WeeksPlan";
@@ -6,7 +7,7 @@ import WeeksPlan from "../../components/user/learningPlan/WeeksPlan";
 export default function LearningPlan() {
     const dispatch = useDispatch();
 
-    const { data, targetRole, missingSkills, loading, generating, serverError } = useSelector((state) => {
+    const { data, targetRole, missingSkills, noAnalysis, loading, generating, serverError } = useSelector((state) => {
         return state.learningPlan;
     });
 
@@ -56,23 +57,65 @@ export default function LearningPlan() {
                         </svg>
                     </div>
                     <div className="flex-1 text-left">
-                        <h4 className="text-sm font-semibold text-red-900 dark:text-red-200">Failed to load learning plan</h4>
+                        <h4 className="text-sm font-semibold text-red-900 dark:text-red-200">
+                            {serverError?.actionType === "generate" ? "Failed to generate learning plan" : "Failed to load learning plan"}
+                        </h4>
                         <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
                             {serverError?.status ? `Error ${serverError.status}: ` : ""}{serverError?.message || "An unexpected error occurred."}
                         </p>
                         <button
                             type="button"
-                            onClick={() => dispatch(fetchLearningPlan())}
+                            onClick={() => {
+                                if (serverError?.actionType === "generate") {
+                                    dispatch(generateLearningPlan());
+                                } else {
+                                    dispatch(fetchLearningPlan());
+                                }
+                            }}
                             className="mt-3 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition-colors cursor-pointer"
                         >
-                            Try Again
+                            {serverError?.actionType === "generate" ? "Try Generating Again" : "Try Again"}
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Empty State / Plan Generator Screen */}
-            {!loading && !serverError && !data && (
+            {/* No Resume Analysis State */}
+            {!loading && !serverError && !data && noAnalysis && (
+                <div className="max-w-3xl mx-auto space-y-6">
+                    <div className="bg-bg-surface border border-border-default border-t-4 border-t-amber-500 rounded-xl p-8 sm:p-10 shadow-card space-y-6 text-left">
+                        <div className="space-y-3">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 text-amber-700 dark:text-amber-300 text-xs font-semibold">
+                                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                Resume Analysis Required
+                            </div>
+
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
+                                Upload Your Resume First
+                            </h1>
+
+                            <p className="text-sm text-text-secondary leading-relaxed max-w-2xl">
+                                To generate a highly customized 6-week curriculum tailored to your specific background and target job role, CareerGuru AI needs to evaluate your resume and identify your unique skill gaps.
+                            </p>
+                        </div>
+
+                        <div className="pt-2">
+                            <Link
+                                to="/user/dashboard"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-brand-primary hover:bg-brand-primary-hover text-white font-medium text-sm shadow-xs transition-colors"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                </svg>
+                                <span>Go to Dashboard & Analyze Resume</span>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Empty State / Plan Generator Screen (When Resume is Analyzed) */}
+            {!loading && !serverError && !data && !noAnalysis && (
                 <div className="max-w-3xl mx-auto space-y-6">
                     {/* Header Banner */}
                     <div className="bg-bg-surface border border-border-default border-t-4 border-t-brand-primary rounded-xl p-8 sm:p-10 shadow-card space-y-8 text-left">
