@@ -6,47 +6,47 @@
    CareerGuru Design System — Semantic Theme Tokens
    ═══════════════════════════════════════════════════ */
 
-/* ─── Light Theme (Default) ──────────────────────── */
+/* ─── Permanent Dark Theme (Default) ─────────────── */
 :root {
   /* Backgrounds */
-  --bg-app: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-muted: #f1f5f9;
-  --bg-elevated: #ffffff;
-  --bg-overlay: rgba(15, 23, 42, 0.5);
+  --bg-app: #090d16;
+  --bg-surface: #0f172a;
+  --bg-muted: #1e293b;
+  --bg-elevated: #1e293b;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
 
   /* Text */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-inverse: #ffffff;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
 
   /* Brand / Accent */
-  --brand-primary: #4f46e5;
-  --brand-primary-hover: #4338ca;
-  --brand-subtle: #eef2ff;
-  --brand-ring: rgba(79, 70, 229, 0.2);
+  --brand-primary: #6366f1;
+  --brand-primary-hover: #818cf8;
+  --brand-subtle: rgba(99, 102, 241, 0.1);
+  --brand-ring: rgba(99, 102, 241, 0.2);
 
   /* Borders & Dividers */
-  --border-default: #e2e8f0;
-  --border-muted: #f1f5f9;
-  --border-strong: #cbd5e1;
+  --border-default: #1e293b;
+  --border-muted: #162032;
+  --border-strong: #334155;
 
   /* Semantic Status */
-  --status-success: #059669;
-  --status-success-subtle: #ecfdf5;
-  --status-warning: #d97706;
-  --status-warning-subtle: #fffbeb;
-  --status-danger: #dc2626;
-  --status-danger-subtle: #fef2f2;
-  --status-info: #2563eb;
-  --status-info-subtle: #eff6ff;
+  --status-success: #10b981;
+  --status-success-subtle: rgba(16, 185, 129, 0.1);
+  --status-warning: #f59e0b;
+  --status-warning-subtle: rgba(245, 158, 11, 0.1);
+  --status-danger: #ef4444;
+  --status-danger-subtle: rgba(239, 68, 68, 0.1);
+  --status-info: #3b82f6;
+  --status-info-subtle: rgba(59, 130, 246, 0.1);
 
-  /* Elevation Shadows — Clean, minimal SaaS elevation */
-  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.07), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  /* Elevation Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -2px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
 
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -64,7 +64,7 @@
   --sidebar-width: 16rem;
 
   font-family: var(--font-sans);
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
 /* ─── Dark Theme ─────────────────────────────────── */

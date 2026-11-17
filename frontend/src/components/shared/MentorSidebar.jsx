@@ -1,12 +1,10 @@
 import { NavLink, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../slices/AuthSlice";
-import { useTheme } from "../../context/ThemeContext";
 
 export default function MentorSidebar() {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.auth?.user);
-    const { theme, toggleTheme } = useTheme();
 
     const displayName = user?.username || user?.name || "Mentor";
     const displayEmail = user?.email || "mentor@careerguru.ai";
@@ -91,25 +89,6 @@ export default function MentorSidebar() {
                             </span>
                         </div>
                     </Link>
-
-                    {/* Theme Toggle */}
-                    <button
-                        type="button"
-                        onClick={toggleTheme}
-                        className="w-7 h-7 rounded-md flex items-center justify-center bg-bg-muted hover:bg-border-default text-text-secondary border border-border-default theme-transition cursor-pointer shrink-0"
-                        title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                        aria-label="Toggle Color Theme"
-                    >
-                        {theme === "dark" ? (
-                            <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                        ) : (
-                            <svg className="w-3.5 h-3.5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                            </svg>
-                        )}
-                    </button>
                 </div>
 
                 {/* Nav Links */}

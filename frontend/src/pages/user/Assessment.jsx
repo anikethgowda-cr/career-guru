@@ -15,7 +15,6 @@ export default function Assessment() {
     });
 
     const [activeTab, setActiveTab] = useState("all"); // 'all' | 'pending' | 'completed'
-    const [searchTerm, setSearchTerm] = useState("");
     const [difficultyFilter, setDifficultyFilter] = useState("all");
     const [startingAssessmentId, setStartingAssessmentId] = useState(null);
 
@@ -35,28 +34,21 @@ export default function Assessment() {
         return safeAssessments.filter((assessment) => assessment.status === "completed");
     }, [safeAssessments]);
 
-    // Filter by tab, search term, and difficulty
+    // Filter by tab and difficulty
     const filteredAssessments = useMemo(() => {
         return safeAssessments.filter((assessment) => {
             // Tab filter
             if (activeTab === "pending" && assessment.status !== "pending") return false;
             if (activeTab === "completed" && assessment.status !== "completed") return false;
 
-            // Search filter
-            const matchesSearch =
-                !searchTerm.trim() ||
-                assessment.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                assessment.targetRole?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                assessment.mentorId?.username?.toLowerCase().includes(searchTerm.toLowerCase());
-
             // Difficulty filter
             const matchesDifficulty =
                 difficultyFilter === "all" ||
                 assessment.difficulty?.toLowerCase() === difficultyFilter.toLowerCase();
 
-            return matchesSearch && matchesDifficulty;
+            return matchesDifficulty;
         });
-    }, [safeAssessments, activeTab, searchTerm, difficultyFilter]);
+    }, [safeAssessments, activeTab, difficultyFilter]);
 
     async function handleTakeAssessment(assessmentId) {
         try {
@@ -179,34 +171,9 @@ export default function Assessment() {
             )}
 
             {/* Filter & Controls Card */}
-            <div className="bg-bg-surface border border-border-default rounded-xl p-4 sm:p-5 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between shadow-subtle">
-                {/* Search Bar */}
-                <div className="relative flex-1 max-w-md">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search by title, role, or mentor..."
-                        className="w-full pl-10 pr-4 py-2.5 rounded-lg text-xs sm:text-sm bg-bg-app border border-border-default text-text-primary placeholder:text-text-muted focus:outline-hidden focus:ring-2 focus:ring-brand-ring focus:border-brand-primary transition shadow-2xs"
-                    />
-                    {searchTerm && (
-                        <button
-                            type="button"
-                            onClick={() => setSearchTerm("")}
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-text-muted hover:text-text-primary cursor-pointer"
-                        >
-                            ✕
-                        </button>
-                    )}
-                </div>
-
+            <div className="bg-bg-surface border border-border-default rounded-xl p-4 sm:p-5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 shadow-subtle">
                 {/* Status Switcher Tabs & Difficulty Filters */}
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+                <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 w-full">
                     {/* Status Tabs */}
                     <div className="flex items-center p-1 bg-bg-muted rounded-lg border border-border-default shrink-0">
                         <button
@@ -409,13 +376,12 @@ export default function Assessment() {
                             No matching assessments
                         </h4>
                         <p className="text-xs text-text-muted">
-                            Try adjusting your search keywords or switching difficulty filters.
+                            Try switching difficulty filters or tabs.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={() => {
-                            setSearchTerm("");
                             setDifficultyFilter("all");
                             setActiveTab("all");
                         }}

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/careerguru.png" />
@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
-      // Anti-flash: apply theme class before first paint
-      (function(){var t=localStorage.getItem('careerguru-theme');if(!t)t=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';if(t==='dark')document.documentElement.classList.add('dark')})();
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('careerguru-theme', 'dark');
     </script>
     <title>CareerGuru - Career Intelligence Platform</title>
   </head>

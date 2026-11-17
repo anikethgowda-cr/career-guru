@@ -10,6 +10,7 @@ export default function MentorPayment() {
     const { mentorId } = useParams();
 
     const { paymentLoading, error, duplicateSubscription } = useSelector((state) => state.payment);
+    const { user } = useSelector((state) => state.auth);
     const [localError, setLocalError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [mentorInfo, setMentorInfo] = useState(null);
@@ -35,16 +36,25 @@ export default function MentorPayment() {
         setSuccessMessage("");
 
         try {
+            if (!window.Razorpay) {
+                setLocalError("Razorpay checkout failed to load. Please check your internet connection or ad blocker.");
+                return;
+            }
+
             const result = await dispatch(createPaymentOrder({ mentorId })).unwrap();
-            const { orderId, amount, currency } = result;
+            const { orderId, amount, currency, keyId } = result;
 
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                key: keyId || (import.meta.env.VITE_RAZORPAY_KEY_ID || "").trim().replace(/\.+$/, ""),
                 amount: amount,
                 currency: currency,
                 name: "CareerGuru",
-                description: `30-day Mentorship with ${mentorInfo?.name || "your mentor"}`,
+                description: `30-day Mentorship with ${mentorName}`,
                 order_id: orderId,
+                prefill: {
+                    name: user?.username || "",
+                    email: user?.email || ""
+                },
 
                 handler: async function (paymentResponse) {
                     try {
@@ -84,6 +94,9 @@ export default function MentorPayment() {
             };
 
             const razorpay = new window.Razorpay(options);
+            razorpay.on("payment.failed", function (response) {
+                setLocalError(response?.error?.description || "Payment failed.");
+            });
             razorpay.open();
 
         } catch (err) {

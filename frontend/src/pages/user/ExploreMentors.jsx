@@ -11,7 +11,6 @@ export default function ExploreMentors() {
     const { data: profileData } = useSelector((state) => state.profile);
     const { user } = useSelector((state) => state.auth);
 
-    const [searchTerm, setSearchTerm] = useState("");
     const [filterMode, setFilterMode] = useState("matched"); // "matched" | "all"
 
     const studentJobRole = profileData?.preferredJobRole || null;
@@ -48,7 +47,7 @@ export default function ExploreMentors() {
         });
     }, [mentors, studentJobRole, studentSpecs]);
 
-    // Apply search + filter
+    // Apply filter
     const filteredMentors = useMemo(() => {
         let list = scoredMentors;
 
@@ -59,22 +58,9 @@ export default function ExploreMentors() {
             if (list.length === 0) list = scoredMentors;
         }
 
-        // Text search
-        if (searchTerm.trim()) {
-            const term = searchTerm.toLowerCase();
-            list = list.filter((m) => {
-                const nameMatch = m.name?.toLowerCase().includes(term);
-                const orgMatch = (m.organization || m.origin)?.toLowerCase().includes(term);
-                const desigMatch = m.designation?.toLowerCase().includes(term);
-                const specMatch = m.specialization?.some((s) => s.toLowerCase().includes(term));
-                const expMatch = m.expertIn?.some((e) => e.toLowerCase().includes(term));
-                return nameMatch || orgMatch || desigMatch || specMatch || expMatch;
-            });
-        }
-
         // Sort: higher match score first
         return [...list].sort((a, b) => (b._matchScore || 0) - (a._matchScore || 0));
-    }, [scoredMentors, searchTerm, filterMode, hasProfile]);
+    }, [scoredMentors, filterMode, hasProfile]);
 
     const matchedCount = scoredMentors.filter((m) => m._isMatch).length;
 
@@ -186,33 +172,6 @@ export default function ExploreMentors() {
                         </div>
                     )}
 
-                    {/* Search Input */}
-                    <div className="p-3 rounded-xl bg-bg-surface border border-border-default shadow-subtle flex items-center gap-3 flex-1 w-full">
-                        <div className="relative flex-1">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search by mentor name, company, or specialization..."
-                                className="w-full pl-10 pr-4 py-2 rounded-lg border border-border-default bg-bg-surface text-text-primary text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary placeholder:text-text-muted transition-colors"
-                            />
-                        </div>
-
-                        {searchTerm && (
-                            <button
-                                type="button"
-                                onClick={() => setSearchTerm("")}
-                                className="px-3.5 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:bg-bg-muted transition-colors cursor-pointer shrink-0"
-                            >
-                                Clear
-                            </button>
-                        )}
-                    </div>
                 </div>
             )}
 
@@ -226,9 +185,7 @@ export default function ExploreMentors() {
                     </div>
                     <h3 className="text-lg font-bold text-text-primary">No Mentors Found</h3>
                     <p className="text-xs sm:text-sm text-text-secondary max-w-sm mx-auto">
-                        {searchTerm
-                            ? `No mentors matched "${searchTerm}". Try searching for another skill or company.`
-                            : "Currently no mentors are listed. Please check back shortly."}
+                        Currently no mentors are listed. Please check back shortly.
                     </p>
                 </div>
             )}

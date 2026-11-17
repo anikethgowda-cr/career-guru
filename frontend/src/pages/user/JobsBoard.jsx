@@ -11,7 +11,6 @@ export default function JobsBoard() {
     const { user } = useSelector((state) => state.auth);
     const profile = useSelector((state) => state.profile?.data?.profile || state.profile?.data);
 
-    const [searchTerm, setSearchTerm] = useState("");
     const [locationFilter, setLocationFilter] = useState("");
 
     useEffect(() => {
@@ -23,22 +22,17 @@ export default function JobsBoard() {
 
     const jobRole = profile?.preferredJobRole || "Software Developer";
 
-    // Filter jobs by title, company, and location
+    // Filter jobs by location
     const filteredJobs = useMemo(() => {
         if (!Array.isArray(data)) return [];
         return data.filter((job) => {
-            const matchesSearch =
-                !searchTerm.trim() ||
-                job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                job.company?.display_name?.toLowerCase().includes(searchTerm.toLowerCase());
-
             const matchesLocation =
                 !locationFilter.trim() ||
                 job.location?.display_name?.toLowerCase().includes(locationFilter.toLowerCase());
 
-            return matchesSearch && matchesLocation;
+            return matchesLocation;
         });
-    }, [data, searchTerm, locationFilter]);
+    }, [data, locationFilter]);
 
     // Shimmering Skeleton Loader
     if (loading) {
@@ -124,25 +118,10 @@ export default function JobsBoard() {
                 </div>
             )}
 
-            {/* Filter & Search Toolbar */}
+            {/* Filter Toolbar */}
             {!serverError && Array.isArray(data) && data.length > 0 && (
-                <div className="p-4 rounded-xl bg-bg-surface border border-border-default shadow-subtle flex flex-col sm:flex-row items-center gap-3">
-                    <div className="relative flex-1 w-full">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Filter by job title or company..."
-                            className="w-full pl-10 pr-4 py-2 rounded-lg border border-border-default bg-bg-surface text-text-primary text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-ring focus:border-brand-primary placeholder:text-text-muted transition-colors"
-                        />
-                    </div>
-
-                    <div className="relative w-full sm:w-64">
+                <div className="p-4 rounded-xl bg-bg-surface border border-border-default shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="relative w-full sm:w-72">
                         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -158,13 +137,13 @@ export default function JobsBoard() {
                         />
                     </div>
 
-                    {(searchTerm || locationFilter) && (
+                    {locationFilter && (
                         <button
                             type="button"
-                            onClick={() => { setSearchTerm(""); setLocationFilter(""); }}
+                            onClick={() => setLocationFilter("")}
                             className="px-3.5 py-2 rounded-lg text-xs font-semibold text-text-secondary hover:bg-bg-muted transition-colors cursor-pointer shrink-0"
                         >
-                            Clear
+                            Clear Location
                         </button>
                     )}
                 </div>

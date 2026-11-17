@@ -32,31 +32,25 @@ import "./config/subscriptionReminder.js";
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
-    .split(",")
-    .map(url => url.trim().replace(/\/$/, ""));
+const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, "");
 
-const corsOriginHandler = (origin, callback) => {
-    if (!origin) return callback(null, true);
-    const cleanOrigin = origin.replace(/\/$/, "");
-    if (
-        allowedOrigins.includes("*") ||
-        allowedOrigins.includes(cleanOrigin) ||
-        cleanOrigin.endsWith(".vercel.app") ||
-        cleanOrigin.includes("localhost")
-    ) {
-        return callback(null, true);
-    }
-    return callback(null, true);
+// CORS configuration (supports Localhost, Vercel apps, and custom FRONTEND_URL)
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (
+            !origin ||
+            origin.includes("localhost") ||
+            origin.endsWith(".vercel.app") ||
+            (frontendUrl && origin === frontendUrl)
+        ) {
+            return callback(null, true);
+        }
+        return callback(null, false);
+    },
+    credentials: true
 };
 
-const io = new Server(server, {
-    cors: {
-        origin: corsOriginHandler,
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-});
+const io = new Server(server, { cors: corsOptions });
 
 // Socket.io authentication
 io.use(socketAuth);
@@ -65,10 +59,7 @@ io.use(socketAuth);
 chatSocket(io);
 
 // Express middleware
-app.use(cors({
-    origin: corsOriginHandler,
-    credentials: true
-}));
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
@@ -89,7 +80,6 @@ app.use("/api", payoutRouter);
 
 cloudinary.api.ping()
     .then(async (result) => {
-        console.log("Cloudinary connected:", result);
         try {
             await cloudinary.api.upload_preset("careerguru_interviews");
         } catch {
