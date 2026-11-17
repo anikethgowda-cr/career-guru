@@ -1,68 +1,19 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMentors } from "../../slices/user/MentorSlice";
-import { fetchProfileDetails } from "../../slices/ProfileSlice";
 import { fetchConversations } from "../../slices/MentorChatSlice";
 import MentorsCard from "../../components/user/exploreMentors/MentorsCard";
 
 export default function ExploreMentors() {
     const dispatch = useDispatch();
     const { mentors, loading, serverError } = useSelector((state) => state.mentor);
-    const { data: profileData } = useSelector((state) => state.profile);
-    const { user } = useSelector((state) => state.auth);
-
-    const [filterMode, setFilterMode] = useState("matched"); // "matched" | "all"
-
-    const studentJobRole = profileData?.preferredJobRole || null;
-    const studentSpecs = useMemo(() => profileData?.preferredSpecialization || [], [profileData]);
-    const hasProfile = !!studentJobRole;
 
     useEffect(() => {
         dispatch(fetchMentors());
         dispatch(fetchConversations());
-        if (!profileData && user?.role) {
-            dispatch(fetchProfileDetails(user.role));
-        }
-    }, [dispatch, user?.role]);
+    }, [dispatch]);
 
-    // Compute match score for each mentor
-    const scoredMentors = useMemo(() => {
-        if (!Array.isArray(mentors)) return [];
-
-        return mentors.map((m) => {
-            let score = 0;
-            const mentorRoles = m.expertIn || [];
-            const mentorSpecs = m.specialization || [];
-
-            // Role match
-            if (studentJobRole && mentorRoles.includes(studentJobRole)) score += 10;
-
-            // Specialization overlap
-            const overlapCount = studentSpecs.filter(s =>
-                mentorSpecs.includes(s) || mentorSpecs.includes(s?.value)
-            ).length;
-            score += overlapCount * 5;
-
-            return { ...m, _matchScore: score, _isMatch: score > 0 };
-        });
-    }, [mentors, studentJobRole, studentSpecs]);
-
-    // Apply filter
-    const filteredMentors = useMemo(() => {
-        let list = scoredMentors;
-
-        // Filter by match mode
-        if (filterMode === "matched" && hasProfile) {
-            list = list.filter((m) => m._isMatch);
-            // If no matches, fall back to all
-            if (list.length === 0) list = scoredMentors;
-        }
-
-        // Sort: higher match score first
-        return [...list].sort((a, b) => (b._matchScore || 0) - (a._matchScore || 0));
-    }, [scoredMentors, filterMode, hasProfile]);
-
-    const matchedCount = scoredMentors.filter((m) => m._isMatch).length;
+    const mentorList = Array.isArray(mentors) ? mentors : [];
 
     // Shimmer Skeleton Loader
     if (loading) {
@@ -75,7 +26,6 @@ export default function ExploreMentors() {
                     </div>
                     <div className="w-32 h-8 bg-bg-muted rounded-full"></div>
                 </div>
-                <div className="h-12 bg-bg-muted rounded-xl max-w-md"></div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3, 4, 5, 6].map((n) => (
                         <div key={n} className="bg-bg-surface border border-border-default rounded-xl p-6 h-64 flex flex-col justify-between">
@@ -108,19 +58,15 @@ export default function ExploreMentors() {
                         Explore Verified Mentors
                     </h1>
                     <p className="text-xs sm:text-sm text-text-secondary">
-                        {hasProfile
-                            ? `Showing mentors matched to your target role: ${studentJobRole}`
-                            : "Connect with seasoned industry engineers and technical leads for 1-on-1 guidance."}
+                        Connect with seasoned industry engineers and technical leads for 1-on-1 guidance.
                     </p>
                 </div>
 
-                {Array.isArray(mentors) && (
-                    <div className="flex items-center gap-2">
-                        <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-brand-subtle text-brand-primary border border-border-default shadow-subtle">
-                            {filteredMentors.length} {filteredMentors.length === 1 ? "Mentor" : "Mentors"} Available
-                        </span>
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-brand-subtle text-brand-primary border border-border-default shadow-subtle">
+                        {mentorList.length} {mentorList.length === 1 ? "Mentor" : "Mentors"} Available
+                    </span>
+                </div>
             </div>
 
             {/* Error Alert */}
@@ -143,40 +89,8 @@ export default function ExploreMentors() {
                 </div>
             )}
 
-            {/* Filter + Search Toolbar */}
-            {!serverError && Array.isArray(mentors) && mentors.length > 0 && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    {/* Matched / All toggle (only when student profile exists) */}
-                    {hasProfile && matchedCount > 0 && (
-                        <div className="flex items-center gap-1 p-1 rounded-xl bg-bg-muted border border-border-default shrink-0">
-                            <button
-                                type="button"
-                                onClick={() => setFilterMode("matched")}
-                                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${filterMode === "matched"
-                                    ? "bg-brand-primary text-white shadow-sm"
-                                    : "text-text-secondary hover:text-text-primary"
-                                }`}
-                            >
-                                ⚡ Matched ({matchedCount})
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFilterMode("all")}
-                                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${filterMode === "all"
-                                    ? "bg-brand-primary text-white shadow-sm"
-                                    : "text-text-secondary hover:text-text-primary"
-                                }`}
-                            >
-                                All Mentors
-                            </button>
-                        </div>
-                    )}
-
-                </div>
-            )}
-
             {/* Empty State */}
-            {!serverError && filteredMentors.length === 0 && (
+            {!serverError && mentorList.length === 0 && (
                 <div className="bg-bg-surface border border-border-default rounded-xl p-10 text-center space-y-3">
                     <div className="w-12 h-12 rounded-xl bg-brand-subtle text-brand-primary mx-auto flex items-center justify-center">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.75">
@@ -191,14 +105,12 @@ export default function ExploreMentors() {
             )}
 
             {/* Mentors Card Grid */}
-            {!serverError && filteredMentors.length > 0 && (
+            {!serverError && mentorList.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredMentors.map((mentor) => (
+                    {mentorList.map((mentor) => (
                         <MentorsCard
                             key={mentor._id}
                             mentor={mentor}
-                            isMatch={mentor._isMatch}
-                            matchScore={mentor._matchScore}
                         />
                     ))}
                 </div>

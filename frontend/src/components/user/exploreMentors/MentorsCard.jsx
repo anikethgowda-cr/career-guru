@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import MentorProfileModal from "./MentorProfileModal";
 
-export default function MentorsCard({ mentor, isMatch }) {
+export default function MentorsCard({ mentor }) {
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
     const { conversations } = useSelector((state) => state.mentorChat);
@@ -47,11 +47,6 @@ export default function MentorsCard({ mentor, isMatch }) {
                                 >
                                     {mentor.name}
                                 </h3>
-                                {isMatch && (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shrink-0">
-                                        ⚡ Matched
-                                    </span>
-                                )}
                             </div>
                             <p
                                 title={mentor.designation}
